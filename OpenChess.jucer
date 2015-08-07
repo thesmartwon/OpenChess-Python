@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="iFExDs" name="OpenChess" projectType="guiapp" version="1.0.0"
+              bundleIdentifier="com.yourcompany.OpenChess" includeBinaryInAppConfig="1"
+              jucerVersion="3.1.0">
+  <MAINGROUP id="i8PJNo" name="OpenChess">
+    <GROUP id="{96BAAB6A-1C9E-96C7-7221-D7D5AAAA5B2F}" name="Source">
+      <FILE id="jbxtLJ" name="BoardTabbedComponent.cpp" compile="1" resource="0"
+            file="Source/BoardTabbedComponent.cpp"/>
+      <FILE id="RlG8E1" name="BoardTabbedComponent.h" compile="0" resource="0"
+            file="Source/BoardTabbedComponent.h"/>
+      <FILE id="QOCDsn" name="MainContentComponent.cpp" compile="1" resource="0"
+            file="Source/MainContentComponent.cpp"/>
+      <FILE id="z0SdEa" name="MainContentComponent.h" compile="0" resource="0"
+            file="Source/MainContentComponent.h"/>
+      <FILE id="CANMq9" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
+      <FILE id="LoxyUa" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
+      <FILE id="OXzqjm" name="BoardComponent.cpp" compile="1" resource="0"
+            file="Source/BoardComponent.cpp"/>
+      <FILE id="zmc0pE" name="BoardComponent.h" compile="0" resource="0"
+            file="Source/BoardComponent.h"/>
+      <FILE id="JzvC5X" name="BoardTabsComponent.cpp" compile="1" resource="0"
+            file="Source/BoardTabsComponent.cpp"/>
+      <FILE id="qui7dk" name="BoardTabsComponent.h" compile="0" resource="0"
+            file="Source/BoardTabsComponent.h"/>
+      <FILE id="ERwji2" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2015 targetFolder="Builds/VisualStudio2015">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="1" optimisation="1" targetName="OpenChess"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="0" optimisation="2" targetName="OpenChess"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_video" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../Dev/JUCE-WINDOWS/modules"/>
+      </MODULEPATHS>
+    </VS2015>
+    <VS2013 targetFolder="Builds/VisualStudio2013">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="1" optimisation="1" targetName="OpenChess"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="0" optimisation="2" targetName="OpenChess"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_video" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../Dev/JUCE-WINDOWS/modules"/>
+      </MODULEPATHS>
+    </VS2013>
+    <VS2010 targetFolder="Builds/VisualStudio2010">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="1" optimisation="1" targetName="OpenChess"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="0" optimisation="2" targetName="OpenChess"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_video" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../Dev/JUCE-WINDOWS/modules"/>
+      </MODULEPATHS>
+    </VS2010>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_audio_devices" showAllCode="0" useLocalCopy="0"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_audio_processors" showAllCode="0" useLocalCopy="0"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_video" showAllCode="1" useLocalCopy="0"/>
+  </MODULES>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>

@@ -35,5 +35,5 @@ back/
 backup/
 
 # Silly visual studio intellisense files
-.sdf
-.opensdf
+OpenChess.sdf
+OpenChess.opensdf

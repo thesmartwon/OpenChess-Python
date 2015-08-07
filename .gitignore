@@ -33,3 +33,7 @@ Debug/
 Release/
 back/
 backup/
+
+# Silly visual studio intellisense files
+.sdf
+.opensdf

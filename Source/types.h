@@ -6,7 +6,7 @@
 enum MessageType
 {
     MSG_GENERIC_MESSAGE,
-    MSG_BOARD_STATE
+    MSG_MOVEMESSAGE
 };
 
 class GenericMessage : public Message
@@ -16,9 +16,10 @@ public:
     MessageType messageType;
 };
 
-class MoveListMessage : public GenericMessage
+class MoveMessage : public GenericMessage
 {
 public:
-    MoveListMessage () : GenericMessage (MSG_BOARD_STATE){};
-    juce::Array<Stockfish::Move> moveList;
+    MoveMessage () : GenericMessage (MSG_MOVEMESSAGE){};
+    Stockfish::Move move;
+	Stockfish::Position* pos;
 };

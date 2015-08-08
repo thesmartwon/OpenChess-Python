@@ -341,8 +341,9 @@ void BoardComponent::doMove (const Stockfish::Move move)
         position->do_move (move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
         moveList.add (move);
 
-        MoveListMessage* mes = new MoveListMessage ();
-        mes->moveList = moveList;
+        MoveMessage* mes = new MoveMessage ();
+        mes->move = move;
+		mes->pos = position;
 
         if(const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
             cm->postMessage (mes);

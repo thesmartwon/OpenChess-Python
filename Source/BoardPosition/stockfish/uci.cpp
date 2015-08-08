@@ -360,12 +360,14 @@ string UCI::move(Move m, bool chess960) {
   return move;
 }
 
-bool containsTwo (ExtMove* moveList, Move m)
+bool containsTwo (ExtMove moveList[250], Move m)
 {
     bool foundOne = false;
-    for (const ExtMove* it (moveList); it != nullptr; ++it)
+	for (int i = 0; i < 250; ++i)
     {
-        if (to_sq(it->move) == to_sq(m))
+		if (moveList[i].move == MOVE_NULL)
+			break;
+        else if (to_sq(moveList[i].move) == to_sq(m))
         {
             if (!foundOne)
                 foundOne = true;
@@ -376,16 +378,15 @@ bool containsTwo (ExtMove* moveList, Move m)
     return false;
 }
 
-std::string UCI::movePGN (Move m, Position& p, bool chess960)
+string UCI::movePGN (Move m, Position& p, bool chess960)
 {
     if (m == MOVE_NONE)
         return "(none)";
 
     if (m == MOVE_NULL)
         return "0000";
-
     string moveTextBefore = move (m, chess960);
-    string moveTextAfter;
+    string moveTextAfter = "";
 
     if (type_of (m) == CASTLING && !chess960)
     {
@@ -409,7 +410,7 @@ std::string UCI::movePGN (Move m, Position& p, bool chess960)
     {
         if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::BISHOP)
         {
-            moveTextAfter = "B";
+            moveTextAfter = "B" + moveTextBefore.substr(2, 4);
         }
         else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::KNIGHT)
         {
@@ -422,8 +423,9 @@ std::string UCI::movePGN (Move m, Position& p, bool chess960)
             const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
             moveListPtr = MoveGen::generate_moves<KNIGHT, true> (tmpPos, moveListPtr, p.side_to_move (), 0, chkInfo);
             if (containsTwo (moveListPtr, m))
-                moveTextAfter += moveTextBefore[0];
+                moveTextAfter += moveTextBefore.substr(0, 1);
             p.do_move (m, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
+			moveTextAfter += moveTextBefore.substr(2, 4);
         }
         else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::ROOK)
         {
@@ -436,7 +438,7 @@ std::string UCI::movePGN (Move m, Position& p, bool chess960)
             const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
             moveListPtr = MoveGen::generate_moves<ROOK, true> (tmpPos, moveListPtr, p.side_to_move (), 0, chkInfo);
             if (containsTwo (moveListPtr, m))
-                moveTextAfter += moveTextBefore[0];
+                moveTextAfter += moveTextBefore.substr(0, 1);
             p.do_move (m, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
         }
         else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::QUEEN)
@@ -450,21 +452,21 @@ std::string UCI::movePGN (Move m, Position& p, bool chess960)
             const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
             moveListPtr = MoveGen::generate_moves<QUEEN, true> (tmpPos, moveListPtr, p.side_to_move (), 0, chkInfo);
             if (containsTwo (moveListPtr, m))
-                moveTextAfter += moveTextBefore[0];
+                moveTextAfter += moveTextBefore.substr(0, 1);
             p.do_move (m, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
         }
         else //pawn
         {
+			Stockfish::StateInfo* lastState = p.st;
             p.undo_move (m);
             // is it a capture?
             if (p.piece_on (to_sq (m)) != Stockfish::Piece::NO_PIECE)
-                moveTextAfter = moveTextBefore[0] + "x" + moveTextBefore.substr (2, 4);
+                moveTextAfter = moveTextBefore.substr (0,1) + "x" + moveTextBefore.substr (2, 4);
             else
                 moveTextAfter = moveTextBefore.substr (2, 4);
-            p.do_move (m, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-
+            p.do_move (m, st);
         }
-
+		return moveTextAfter;
     }
 }
 

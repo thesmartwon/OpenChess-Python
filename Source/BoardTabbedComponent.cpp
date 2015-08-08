@@ -119,12 +119,28 @@ void BoardTabbedComponent::handleMessage (const Message & message)
 {
     // this method is called by the board when a (half) move has happened, so we should send the info
     // other places the message is in UCI format. Examples of UCI - e2e4  
-    if (((GenericMessage*)(&message))->messageType = MSG_BOARD_STATE)
+	juce::Array<int> sampleArray;
+	sampleArray.add(123);
+	sampleArray.add(456);
+	sampleArray.add(789);
+
+    if (((GenericMessage*)(&message))->messageType = MSG_MOVEMESSAGE)
     {
         //update movelist
-        juce::String move = Stockfish::UCI::movePGN (((MoveListMessage*)(&message))->moveList.getLast (), position, false);
+		//Stockfish::Move(((MoveMessage*)(&message))->move)
+		//juce::String move = Stockfish::UCI::move(((MoveMessage*)(&message))->move, false);
+		juce::String a = Stockfish::UCI::movePGN (((MoveMessage*)(&message))->move, *((MoveMessage*)(&message))->pos, false);
 
-        
+		// TODO: Option to have inline or have with a newline between every ply
+		if (((MoveMessage*)(&message))->pos->game_ply() % 2 == 1)
+		{
+			txtMoveHist->setText(txtMoveHist->getText() + std::to_string(((MoveMessage*)(&message))->pos->game_ply() - (((MoveMessage*)(&message))->pos->game_ply()) / 2) + ".  ");
+			txtMoveHist->setText(txtMoveHist->getText() + a + "    ");
+		}
+		else
+			txtMoveHist->setText(txtMoveHist->getText() + a);
+
+        int ab = 3;
 
         //update engine
     }

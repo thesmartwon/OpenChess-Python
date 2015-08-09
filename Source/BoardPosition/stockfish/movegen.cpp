@@ -417,9 +417,13 @@ namespace Stockfish
         while (cur != moveList)
             if ((pinned || from_sq (cur->move) == ksq || type_of (cur->move) == ENPASSANT)
                 && !pos.legal (cur->move, pinned))
-            cur->move = (--moveList)->move;
+            { //illegal move but it still gets added to the list ?!?!?!
+                cur->move = (--moveList)->move;
+            }
             else
+            {
                 ++cur;
+            }
 
         return moveList;
     }

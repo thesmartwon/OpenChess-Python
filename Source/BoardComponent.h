@@ -69,7 +69,7 @@ private:
     Image wPawnImage, wRookImage, wKnightImage, wBishopImage, wKingImage, wQueenImage;
     Image bPawnImage, bRookImage, bKnightImage, bBishopImage, bKingImage, bQueenImage;
 
-    ScopedPointer<Stockfish::Position> position;
+    Stockfish::Position* position;
     juce::Array<Stockfish::Move> moveList;
     int sidePerspective;
     Point<int> mouseDownRankFile, mouseUpRankFile, mouseXY, selectedSquare;

@@ -31,7 +31,7 @@ BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
 {
     addAndMakeVisible (txtMoveHist = new TextEditor ("move history text editor"));
     txtMoveHist->setTooltip (TRANS("Move History"));
-    txtMoveHist->setMultiLine (false);
+    txtMoveHist->setMultiLine (true);
     txtMoveHist->setReturnKeyStartsNewLine (false);
     txtMoveHist->setReadOnly (false);
     txtMoveHist->setScrollbarsShown (true);
@@ -118,29 +118,23 @@ void BoardTabbedComponent::resized()
 void BoardTabbedComponent::handleMessage (const Message & message)
 {
     // this method is called by the board when a (half) move has happened, so we should send the info
-    // other places the message is in UCI format. Examples of UCI - e2e4  
-	juce::Array<int> sampleArray;
-	sampleArray.add(123);
-	sampleArray.add(456);
-	sampleArray.add(789);
+    // other placesc.
 
     if (((GenericMessage*)(&message))->messageType = MSG_MOVEMESSAGE)
     {
         //update movelist
-		//Stockfish::Move(((MoveMessage*)(&message))->move)
 		//juce::String move = Stockfish::UCI::move(((MoveMessage*)(&message))->move, false);
-		juce::String a = Stockfish::UCI::movePGN (((MoveMessage*)(&message))->move, *((MoveMessage*)(&message))->pos, false);
+        MoveMessage* moveMessage = ((MoveMessage*)(&message));
+		juce::String a = Stockfish::UCI::movePGN (moveMessage->move, *moveMessage->pos, false);
 
 		// TODO: Option to have inline or have with a newline between every ply
 		if (((MoveMessage*)(&message))->pos->game_ply() % 2 == 1)
 		{
-			txtMoveHist->setText(txtMoveHist->getText() + std::to_string(((MoveMessage*)(&message))->pos->game_ply() - (((MoveMessage*)(&message))->pos->game_ply()) / 2) + ".  ");
+			txtMoveHist->setText(txtMoveHist->getText() + std::to_string(moveMessage->pos->game_ply() - moveMessage->pos->game_ply() / 2) + ".  ");
 			txtMoveHist->setText(txtMoveHist->getText() + a + "    ");
 		}
 		else
-			txtMoveHist->setText(txtMoveHist->getText() + a);
-
-        int ab = 3;
+			txtMoveHist->setText(txtMoveHist->getText() + a + "\n");
 
         //update engine
     }

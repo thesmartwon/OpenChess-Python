@@ -7,12 +7,12 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Introjucer version: 3.1.0
+  Created with Introjucer version: 3.2.0
 
   ------------------------------------------------------------------------------
 
   The Introjucer is part of the JUCE library - "Jules' Utility Class Extensions"
-  Copyright 2004-13 by Raw Material Software Ltd.
+  Copyright (c) 2015 - ROLI Ltd.
 
   ==============================================================================
 */
@@ -29,16 +29,17 @@
 //==============================================================================
 BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Position* pos)
 {
+    //[Constructor_pre] You can add your own custom stuff here..
+    //[/Constructor_pre]
+
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (600, 400);
+    setSize (886, 766);
 
 
     //[Constructor] You can add your own custom stuff here..
-    setSize (886, 766);
-    //this->getParentComponent ()->addChangeListener (this);
 
     boardImage = boardImages[0];
     piecesImage = boardImages[1];
@@ -81,7 +82,6 @@ BoardComponent::~BoardComponent()
     openGLContext.detach ();
     //[/Destructor]
 }
-
 
 //==============================================================================
 void BoardComponent::paint (Graphics& g)
@@ -358,9 +358,10 @@ void BoardComponent::doMove (const Stockfish::Move move)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="BoardComponent" componentName=""
-                 parentClasses="public Component" constructorParams="" variableInitialisers=""
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
+                 parentClasses="public Component, public MouseListener, public MessageListener"
+                 constructorParams="juce::Array&lt;Image&gt; boardImages, Stockfish::Position* pos"
+                 variableInitialisers="" snapPixels="8" snapActive="1" snapShown="1"
+                 overlayOpacity="0.330" fixedSize="0" initialWidth="886" initialHeight="766">
   <BACKGROUND backgroundColour="ffffffff"/>
 </JUCER_COMPONENT>
 

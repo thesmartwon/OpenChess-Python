@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
+
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="OpenChess">
@@ -6,6 +7,15 @@
     </Filter>
     <Filter Include="OpenChess\Source">
       <UniqueIdentifier>{963B3061-5F91-9968-3602-A69A8C3EF33E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenChess\Source\Resources">
+      <UniqueIdentifier>{79E08B46-33AB-EE68-B8AE-E0D5BF804F40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenChess\Source\BoardPosition">
+      <UniqueIdentifier>{EB8855E3-D169-9F5F-8D12-DE584FE78A53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenChess\Source\BoardPosition\stockfish">
+      <UniqueIdentifier>{7AB16EB1-9A21-5F8E-35E3-434D889222BC}</UniqueIdentifier>
     </Filter>
     <Filter Include="Juce Modules">
       <UniqueIdentifier>{422C46B7-0467-2DB0-BF3C-16DFCAFD69AC}</UniqueIdentifier>
@@ -93,15 +103,6 @@
     </Filter>
     <Filter Include="Juce Modules\juce_core\native">
       <UniqueIdentifier>{C79A4D23-7866-8F3E-AC39-BD68C52A9259}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_cryptography">
-      <UniqueIdentifier>{3C7C8F35-6C08-9866-6663-6FEFE2EFC9FC}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_cryptography\encryption">
-      <UniqueIdentifier>{7703D2CE-C32A-936A-0EEF-949FE6E52EB5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_cryptography\hashing">
-      <UniqueIdentifier>{8D283B6C-13BA-9EF6-1B18-B1C393786943}</UniqueIdentifier>
     </Filter>
     <Filter Include="Juce Modules\juce_data_structures">
       <UniqueIdentifier>{928D8FCC-5E00-174B-6538-93E8D75AB396}</UniqueIdentifier>
@@ -235,58 +236,67 @@
     <Filter Include="Juce Modules\juce_gui_extra\native">
       <UniqueIdentifier>{C413328B-5D81-89EE-F4F3-75752E700DE4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Juce Modules\juce_video">
-      <UniqueIdentifier>{72A923E2-C729-DB92-D7BF-A9D4AFAE5896}</UniqueIdentifier>
+    <Filter Include="Juce Modules\juce_opengl">
+      <UniqueIdentifier>{639E16C5-DA8B-ADBA-6E24-7B596378EAB2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Juce Modules\juce_video\playback">
-      <UniqueIdentifier>{0E43EA8A-95EE-4253-E1B7-160F38ACBB00}</UniqueIdentifier>
+    <Filter Include="Juce Modules\juce_opengl\opengl">
+      <UniqueIdentifier>{2D8D0E19-E676-83EB-38D9-F73500DD6B79}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Juce Modules\juce_video\capture">
-      <UniqueIdentifier>{7F11E7D2-54C0-2A36-5F15-BEC0A5374A08}</UniqueIdentifier>
+    <Filter Include="Juce Modules\juce_opengl\geometry">
+      <UniqueIdentifier>{B3141847-8F13-F67D-45B2-E3ECF6E09088}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Juce Modules\juce_video\native">
-      <UniqueIdentifier>{EE985DEA-CD83-8132-7219-542BB1DAD560}</UniqueIdentifier>
+    <Filter Include="Juce Modules\juce_opengl\utils">
+      <UniqueIdentifier>{9E586194-C056-101C-5311-F2AF5191AC80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Juce Modules\juce_opengl\native">
+      <UniqueIdentifier>{151B49D8-6102-F802-1C07-D59931BC0574}</UniqueIdentifier>
     </Filter>
     <Filter Include="Juce Library Code">
       <UniqueIdentifier>{8B4D1BAA-6DB4-CAEC-A0FA-271F354D5C61}</UniqueIdentifier>
     </Filter>
-    <Filter Include="OpenChess\Source\BoardPosition">
-      <UniqueIdentifier>{3641cd00-01f2-4bb6-a9fa-8d12718088f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_video\juce_opengl">
-      <UniqueIdentifier>{639E16C5-DA8B-ADBA-6E24-7B596378EAB2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_video\juce_opengl\opengl">
-      <UniqueIdentifier>{2D8D0E19-E676-83EB-38D9-F73500DD6B79}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_video\juce_opengl\geometry">
-      <UniqueIdentifier>{B3141847-8F13-F67D-45B2-E3ECF6E09088}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_video\juce_opengl\utils">
-      <UniqueIdentifier>{9E586194-C056-101C-5311-F2AF5191AC80}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Juce Modules\juce_video\juce_opengl\native">
-      <UniqueIdentifier>{151B49D8-6102-F802-1C07-D59931BC0574}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="OpenChess\Source\BoardPosition\stockfish">
-      <UniqueIdentifier>{93c33f5e-a9a7-4d55-9c9b-86c5479cfba5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp">
-      <Filter>OpenChess\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\MainWindow.cpp">
-      <Filter>OpenChess\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\BoardComponent.cpp">
+      <Filter>OpenChess\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp">
       <Filter>OpenChess\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\BoardTabsComponent.cpp">
       <Filter>OpenChess\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\MainContentComponent.cpp">
+      <Filter>OpenChess\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\Main.cpp">
       <Filter>OpenChess\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\MainWindow.cpp">
+      <Filter>OpenChess\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\MoveListComponent.cpp">
+      <Filter>OpenChess\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\movegen.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\game.cpp">
+      <Filter>OpenChess\Source\BoardPosition</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_AudioDataConverters.cpp">
       <Filter>Juce Modules\juce_audio_basics\buffers</Filter>
@@ -311,6 +321,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\midi\juce_MidiMessageSequence.cpp">
       <Filter>Juce Modules\juce_audio_basics\midi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_FFT.cpp">
+      <Filter>Juce Modules\juce_audio_basics\effects</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_IIRFilter.cpp">
       <Filter>Juce Modules\juce_audio_basics\effects</Filter>
@@ -585,6 +598,9 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_android_Threads.cpp">
       <Filter>Juce Modules\juce_core\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_curl_Network.cpp">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_linux_CommonFile.cpp">
       <Filter>Juce Modules\juce_core\native</Filter>
     </ClCompile>
@@ -598,6 +614,21 @@
       <Filter>Juce Modules\juce_core\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_linux_Threads.cpp">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_mac_Files.mm">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_mac_Network.mm">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_mac_Strings.mm">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_mac_SystemStats.mm">
+      <Filter>Juce Modules\juce_core\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_mac_Threads.mm">
       <Filter>Juce Modules\juce_core\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_posix_NamedPipe.cpp">
@@ -618,25 +649,13 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_win32_Threads.cpp">
       <Filter>Juce Modules\juce_core\native</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_BlowFish.cpp">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_Primes.cpp">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_RSAKey.cpp">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_MD5.cpp">
-      <Filter>Juce Modules\juce_cryptography\hashing</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_SHA256.cpp">
-      <Filter>Juce Modules\juce_cryptography\hashing</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_Value.cpp">
       <Filter>Juce Modules\juce_data_structures\values</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTree.cpp">
+      <Filter>Juce Modules\juce_data_structures\values</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTreeSynchroniser.cpp">
       <Filter>Juce Modules\juce_data_structures\values</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\undomanager\juce_UndoManager.cpp">
@@ -687,7 +706,13 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\native\juce_android_Messaging.cpp">
       <Filter>Juce Modules\juce_events\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\native\juce_ios_MessageManager.mm">
+      <Filter>Juce Modules\juce_events\native</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\native\juce_linux_Messaging.cpp">
+      <Filter>Juce Modules\juce_events\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\native\juce_mac_MessageManager.mm">
       <Filter>Juce Modules\juce_events\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\native\juce_win32_Messaging.cpp">
@@ -787,6 +812,12 @@
       <Filter>Juce Modules\juce_graphics\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\native\juce_linux_Fonts.cpp">
+      <Filter>Juce Modules\juce_graphics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\native\juce_mac_CoreGraphicsContext.mm">
+      <Filter>Juce Modules\juce_graphics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\native\juce_mac_Fonts.mm">
       <Filter>Juce Modules\juce_graphics\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\native\juce_win32_Direct2DGraphicsContext.cpp">
@@ -1137,6 +1168,12 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_android_Windowing.cpp">
       <Filter>Juce Modules\juce_gui_basics\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_ios_UIViewComponentPeer.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_ios_Windowing.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_linux_Clipboard.cpp">
       <Filter>Juce Modules\juce_gui_basics\native</Filter>
     </ClCompile>
@@ -1144,6 +1181,21 @@
       <Filter>Juce Modules\juce_gui_basics\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_linux_Windowing.cpp">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_mac_FileChooser.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_mac_MainMenu.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_mac_MouseCursor.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_mac_NSViewComponentPeer.mm">
+      <Filter>Juce Modules\juce_gui_basics\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_mac_Windowing.mm">
       <Filter>Juce Modules\juce_gui_basics\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\native\juce_win32_DragAndDrop.cpp">
@@ -1203,13 +1255,25 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_android_WebBrowserComponent.cpp">
       <Filter>Juce Modules\juce_gui_extra\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_ios_UIViewComponent.mm">
+      <Filter>Juce Modules\juce_gui_extra\native</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_linux_SystemTrayIcon.cpp">
       <Filter>Juce Modules\juce_gui_extra\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_linux_WebBrowserComponent.cpp">
       <Filter>Juce Modules\juce_gui_extra\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_mac_AppleRemote.mm">
+      <Filter>Juce Modules\juce_gui_extra\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_mac_NSViewComponent.mm">
+      <Filter>Juce Modules\juce_gui_extra\native</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_mac_SystemTrayIcon.cpp">
+      <Filter>Juce Modules\juce_gui_extra\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_mac_WebBrowserComponent.mm">
       <Filter>Juce Modules\juce_gui_extra\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\native\juce_win32_ActiveXComponent.cpp">
@@ -1222,63 +1286,42 @@
       <Filter>Juce Modules\juce_gui_extra\native</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLContext.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLHelpers.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLImage.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLTexture.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
-      <Filter>Juce Modules\juce_video\juce_opengl\utils</Filter>
+      <Filter>Juce Modules\juce_opengl\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\capture\juce_CameraDevice.cpp">
-      <Filter>Juce Modules\juce_video\capture</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_android_CameraDevice.cpp">
-      <Filter>Juce Modules\juce_video\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_CameraDevice.cpp">
-      <Filter>Juce Modules\juce_video\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_DirectShowComponent.cpp">
-      <Filter>Juce Modules\juce_video\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_QuickTimeMovieComponent.cpp">
-      <Filter>Juce Modules\juce_video\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\juce_audio_basics.cpp">
+    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_devices\juce_audio_devices.cpp">
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\juce_audio_basics.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_formats\juce_audio_formats.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_processors\juce_audio_processors.cpp">
-      <Filter>Juce Library Code</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_core.cpp">
-      <Filter>Juce Library Code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_cryptography.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\juce_data_structures.cpp">
@@ -1299,49 +1342,55 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.cpp">
-      <Filter>Juce Library Code</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\movegen.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\game.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\ContentComponent.cpp">
-      <Filter>OpenChess\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\MoveListComponent.cpp">
-      <Filter>OpenChess\Source</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\BoardComponent.h">
+      <Filter>OpenChess\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\BoardTabbedComponent.h">
+      <Filter>OpenChess\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardTabsComponent.h">
+      <Filter>OpenChess\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\MainContentComponent.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MainWindow.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\BoardComponent.h">
+    <ClInclude Include="..\..\Source\MoveListComponent.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\BoardTabsComponent.h">
+    <ClInclude Include="..\..\Source\types.h">
       <Filter>OpenChess\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\movegen.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\platform.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\position.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\game.h">
+      <Filter>OpenChess\Source\BoardPosition</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h">
       <Filter>Juce Modules\juce_audio_basics\buffers</Filter>
@@ -1368,6 +1417,9 @@
       <Filter>Juce Modules\juce_audio_basics\midi</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_Decibels.h">
+      <Filter>Juce Modules\juce_audio_basics\effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_FFT.h">
       <Filter>Juce Modules\juce_audio_basics\effects</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_IIRFilter.h">
@@ -1808,28 +1860,13 @@
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_core.h">
       <Filter>Juce Modules\juce_core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_BlowFish.h">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_Primes.h">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_RSAKey.h">
-      <Filter>Juce Modules\juce_cryptography\encryption</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_MD5.h">
-      <Filter>Juce Modules\juce_cryptography\hashing</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_SHA256.h">
-      <Filter>Juce Modules\juce_cryptography\hashing</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_cryptography.h">
-      <Filter>Juce Modules\juce_cryptography</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_Value.h">
       <Filter>Juce Modules\juce_data_structures\values</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTree.h">
+      <Filter>Juce Modules\juce_data_structures\values</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTreeSynchroniser.h">
       <Filter>Juce Modules\juce_data_structures\values</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\undomanager\juce_UndoableAction.h">
@@ -2490,127 +2527,88 @@
       <Filter>Juce Modules\juce_gui_extra</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLContext.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLFrameBuffer.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLGraphicsContext.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLHelpers.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLImage.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLPixelFormat.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLRenderer.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLShaderProgram.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\opengl\juce_OpenGLTexture.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\opengl</Filter>
+      <Filter>Juce Modules\juce_opengl\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\geometry\juce_Draggable3DOrientation.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\geometry</Filter>
+      <Filter>Juce Modules\juce_opengl\geometry</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\geometry\juce_Matrix3D.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\geometry</Filter>
+      <Filter>Juce Modules\juce_opengl\geometry</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\geometry\juce_Quaternion.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\geometry</Filter>
+      <Filter>Juce Modules\juce_opengl\geometry</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\geometry\juce_Vector3D.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\geometry</Filter>
+      <Filter>Juce Modules\juce_opengl\geometry</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\utils\juce_OpenGLAppComponent.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\utils</Filter>
+      <Filter>Juce Modules\juce_opengl\utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_MissingGLDefinitions.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_android.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_ios.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_linux.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_osx.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_win32.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGLExtensions.h">
-      <Filter>Juce Modules\juce_video\juce_opengl\native</Filter>
+      <Filter>Juce Modules\juce_opengl\native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.h">
-      <Filter>Juce Modules\juce_video\juce_opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\playback\juce_DirectShowComponent.h">
-      <Filter>Juce Modules\juce_video\playback</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\playback\juce_QuickTimeMovieComponent.h">
-      <Filter>Juce Modules\juce_video\playback</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\capture\juce_CameraDevice.h">
-      <Filter>Juce Modules\juce_video\capture</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.h">
-      <Filter>Juce Modules\juce_video</Filter>
+      <Filter>Juce Modules\juce_opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h">
+      <Filter>Juce Library Code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\types.h">
-      <Filter>OpenChess\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\movegen.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\platform.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\position.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h">
-      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\game.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\ContentComponent.h">
-      <Filter>OpenChess\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MoveListComponent.h">
-      <Filter>OpenChess\Source</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Source\Resources\board.jpg">
+      <Filter>OpenChess\Source\Resources</Filter>
+    </None>
+    <None Include="..\..\Source\Resources\Chess_Pieces_Sprite.png">
+      <Filter>OpenChess\Source\Resources</Filter>
+    </None>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\juce_module_info">
       <Filter>Juce Modules\juce_audio_basics</Filter>
     </None>
@@ -2619,9 +2617,6 @@
     </None>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_module_info">
       <Filter>Juce Modules\juce_core</Filter>
-    </None>
-    <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_module_info">
-      <Filter>Juce Modules\juce_cryptography</Filter>
     </None>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\juce_module_info">
       <Filter>Juce Modules\juce_data_structures</Filter>
@@ -2639,10 +2634,7 @@
       <Filter>Juce Modules\juce_gui_extra</Filter>
     </None>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_module_info">
-      <Filter>Juce Modules\juce_video\juce_opengl</Filter>
-    </None>
-    <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_module_info">
-      <Filter>Juce Modules\juce_video</Filter>
+      <Filter>Juce Modules\juce_opengl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

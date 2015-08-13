@@ -36,14 +36,6 @@ BoardTabsComponent::BoardTabsComponent ()
 
 
     //[UserPreSize]
-    //[/UserPreSize]
-
-    setSize (886, 766);
-
-    boardTabs->addTab (TRANS ("Tab 0"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
-    boardTabs->addTab (TRANS ("Tab 1"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
-    boardTabs->setCurrentTabIndex (0);
-    //[Constructor] You can add your own custom stuff here..
     boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/board.jpg")));
     boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/Chess_Pieces_Sprite.png")));
 
@@ -60,6 +52,15 @@ BoardTabsComponent::BoardTabsComponent ()
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 3, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 4, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 5, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    //[/UserPreSize]
+
+    setSize (886, 766);
+
+    boardTabs->addTab (TRANS ("Tab 0"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
+    boardTabs->addTab (TRANS ("Tab 1"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
+    boardTabs->setCurrentTabIndex (0);
+    //[Constructor] You can add your own custom stuff here..
+    
     //[/Constructor]
 }
 

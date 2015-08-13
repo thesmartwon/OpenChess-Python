@@ -33,10 +33,8 @@
   <PropertyGroup Label="UserMacros"/>
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">OpenChess</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">OpenChess</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
   </PropertyGroup>
@@ -125,12 +123,20 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp"/>
-    <ClCompile Include="..\..\Source\MainContentComponent.cpp"/>
-    <ClCompile Include="..\..\Source\MainWindow.cpp"/>
     <ClCompile Include="..\..\Source\BoardComponent.cpp"/>
+    <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp"/>
     <ClCompile Include="..\..\Source\BoardTabsComponent.cpp"/>
+    <ClCompile Include="..\..\Source\MainContentComponent.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
+    <ClCompile Include="..\..\Source\MainWindow.cpp"/>
+    <ClCompile Include="..\..\Source\MoveListComponent.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\movegen.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp"/>
+    <ClCompile Include="..\..\Source\BoardPosition\game.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_AudioDataConverters.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -153,6 +159,9 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\midi\juce_MidiMessageSequence.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_FFT.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_IIRFilter.cpp">
@@ -428,6 +437,9 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_android_Threads.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_curl_Network.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_linux_CommonFile.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -461,25 +473,13 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_win32_Threads.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_BlowFish.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_Primes.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_RSAKey.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_MD5.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_SHA256.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_Value.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTree.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTreeSynchroniser.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\undomanager\juce_UndoManager.cpp">
@@ -1091,41 +1091,34 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\capture\juce_CameraDevice.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_android_CameraDevice.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_CameraDevice.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_DirectShowComponent.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\native\juce_win32_QuickTimeMovieComponent.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\juce_audio_basics.cpp"/>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_devices\juce_audio_devices.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_formats\juce_audio_formats.cpp"/>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_processors\juce_audio_processors.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_core.cpp"/>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_cryptography.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\juce_data_structures.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\juce_events.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\juce_graphics.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\juce_gui_basics.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\juce_gui_extra.cpp"/>
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.cpp"/>
-    <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\BoardComponent.h"/>
     <ClInclude Include="..\..\Source\BoardTabbedComponent.h"/>
+    <ClInclude Include="..\..\Source\BoardTabsComponent.h"/>
     <ClInclude Include="..\..\Source\MainContentComponent.h"/>
     <ClInclude Include="..\..\Source\MainWindow.h"/>
-    <ClInclude Include="..\..\Source\BoardComponent.h"/>
-    <ClInclude Include="..\..\Source\BoardTabsComponent.h"/>
+    <ClInclude Include="..\..\Source\MoveListComponent.h"/>
+    <ClInclude Include="..\..\Source\types.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\movegen.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\platform.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\position.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h"/>
+    <ClInclude Include="..\..\Source\BoardPosition\game.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_AudioSampleBuffer.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\buffers\juce_FloatVectorOperations.h"/>
@@ -1135,6 +1128,7 @@
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\midi\juce_MidiMessage.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\midi\juce_MidiMessageSequence.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_Decibels.h"/>
+    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_FFT.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_IIRFilter.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_LagrangeInterpolator.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\effects\juce_Reverb.h"/>
@@ -1281,14 +1275,9 @@
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_posix_SharedCode.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\native\juce_win32_ComSmartPtr.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_core.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_BlowFish.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_Primes.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\encryption\juce_RSAKey.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_MD5.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\hashing\juce_SHA256.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_cryptography.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_Value.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTree.h"/>
+    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\values\juce_ValueTreeSynchroniser.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\undomanager\juce_UndoableAction.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\undomanager\juce_UndoManager.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\app_properties\juce_ApplicationProperties.h"/>
@@ -1530,25 +1519,22 @@
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGL_win32.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\native\juce_OpenGLExtensions.h"/>
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\playback\juce_DirectShowComponent.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\playback\juce_QuickTimeMovieComponent.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\capture\juce_CameraDevice.h"/>
-    <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h"/>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Source\Resources\board.jpg"/>
+    <None Include="..\..\Source\Resources\Chess_Pieces_Sprite.png"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_basics\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_audio_formats\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_core\juce_module_info"/>
-    <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_cryptography\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_data_structures\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_events\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_graphics\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_basics\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\juce_module_info"/>
     <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_module_info"/>
-    <None Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_module_info"/>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include=".\resources.rc"/>

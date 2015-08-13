@@ -6,10 +6,10 @@
   ==============================================================================
 */
 
-#include "ContentComponent.h"
+#include "MainContentComponent.h"
 
 //==============================================================================
-ContentComponent::ContentComponent ()
+MainContentComponent::MainContentComponent ()
 {
     addAndMakeVisible (menuBar = new MenuBarComponent(this));
     menuBar->setBounds (0, 0, 886, 24);
@@ -23,12 +23,12 @@ ContentComponent::ContentComponent ()
 
 }
 
-ContentComponent::~ContentComponent ()
+MainContentComponent::~MainContentComponent ()
 {
     //this is a test hello therr yayyyy
 }
 
-void ContentComponent::paint (Graphics& g)
+void MainContentComponent::paint (Graphics& g)
 {
     g.fillAll (Colour (0xff001F36));
 
@@ -38,7 +38,7 @@ void ContentComponent::paint (Graphics& g)
     
 }
 
-ApplicationCommandTarget* ContentComponent::getNextCommandTarget ()
+ApplicationCommandTarget* MainContentComponent::getNextCommandTarget ()
 {
     // this will return the next parent component that is an ApplicationCommandTarget (in this
     // case, there probably isn't one, but it's best to use this method in your own apps).
@@ -46,12 +46,12 @@ ApplicationCommandTarget* ContentComponent::getNextCommandTarget ()
 }
 
 
-bool ContentComponent::perform (const InvocationInfo& info)
+bool MainContentComponent::perform (const InvocationInfo& info)
 {
     return false;
 }
 
-void ContentComponent::resized()
+void MainContentComponent::resized()
 {
     // This is called when the MainAppWindow is resized.
     // If you add any child components, this is where you should
@@ -63,7 +63,7 @@ void ContentComponent::resized()
                                    boardTabsComponent->getHeight ());
 }
 
-PopupMenu ContentComponent::getDummyPopupMenu ()
+PopupMenu MainContentComponent::getDummyPopupMenu ()
 {
     PopupMenu m;
     m.addItem (1, "Normal item");
@@ -93,14 +93,14 @@ PopupMenu ContentComponent::getDummyPopupMenu ()
     return m;
 }
 
-StringArray ContentComponent::getMenuBarNames ()
+StringArray MainContentComponent::getMenuBarNames ()
 {
     const char* const names[] = { "Demo", "Look-and-feel", "Tabs", "Misc", nullptr };
 
     return StringArray (names);
 }
 
-PopupMenu ContentComponent::getMenuForIndex (int menuIndex, const String& /*menuName*/)
+PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& /*menuName*/)
 {
     ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager ();
 
@@ -122,7 +122,7 @@ PopupMenu ContentComponent::getMenuForIndex (int menuIndex, const String& /*menu
     return menu;
 }
 
-void ContentComponent::menuItemSelected (int menuItemID, int)
+void MainContentComponent::menuItemSelected (int menuItemID, int)
 {
     if (menuItemID >= 3000 && menuItemID <= 3003)
     {

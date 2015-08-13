@@ -18,7 +18,7 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class ContentComponent   : public Component,
+class MainContentComponent   : public Component,
                            public MenuBarModel,
                            public ApplicationCommandTarget
 {
@@ -28,8 +28,8 @@ public:
     void getAllCommands (Array<CommandID>& commands) override {};
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo & result) override {};
     //==============================================================================
-    ContentComponent ();
-    ~ContentComponent ();
+    MainContentComponent ();
+    ~MainContentComponent ();
     
     StringArray getMenuBarNames () override;
     PopupMenu getMenuForIndex (int menuIndex, const String &) override;
@@ -45,7 +45,7 @@ private:
     
 
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ContentComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 
 

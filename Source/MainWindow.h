@@ -2,7 +2,7 @@
 #define MAINWINDOW_H_INCLUDED
 
 #include "JuceHeader.h"
-#include "ContentComponent.h"
+#include "MainContentComponent.h"
 
 class MainWindow     : public DocumentWindow,
                        private AsyncUpdater
@@ -18,9 +18,6 @@ public:
 
     // (return the command manager object used to dispatch command events)
     static ApplicationCommandManager& getApplicationCommandManager ();
-
-    // (returns a shared AudioDeviceManager object that all the demos can use)
-    AudioDeviceManager& getSharedAudioDeviceManager ();
 
     /* Note: Be careful if you override any DocumentWindow methods - the base
     class uses a lot of them, so by overriding you might break its functionality.

@@ -1,7 +1,6 @@
 #include "MainWindow.h"
 
 static ScopedPointer<ApplicationCommandManager> applicationCommandManager;
-static ScopedPointer<AudioDeviceManager> sharedAudioDeviceManager;
 
 MainWindow::MainWindow (String name)
     : DocumentWindow(name,
@@ -10,11 +9,11 @@ MainWindow::MainWindow (String name)
 {
     setUsingNativeTitleBar (true);
     //mainContentComponent = new MainContentComponent ();
-    setContentOwned (mainComponent = new ContentComponent (), true);
+    setContentOwned (mainComponent = new MainContentComponent (), true);
 
     centreWithSize (getWidth (), getHeight ());
     setVisible (true);
-    setResizable (true, false);
+    setResizable (true, true);
 
     // this lets the command manager use keypresses that arrive in our window to send out commands
     addKeyListener (getApplicationCommandManager ().getKeyMappings ());
@@ -30,7 +29,6 @@ MainWindow::MainWindow (String name)
 MainWindow::~MainWindow ()
 {
     applicationCommandManager = nullptr;
-    sharedAudioDeviceManager = nullptr;
 
     #if JUCE_OPENGL
         openGLContext.detach ();
@@ -52,18 +50,6 @@ ApplicationCommandManager& MainWindow::getApplicationCommandManager ()
         applicationCommandManager = new ApplicationCommandManager ();
 
     return *applicationCommandManager;
-}
-
-// (returns a shared AudioDeviceManager object that all the demos can use)
-AudioDeviceManager& MainWindow::getSharedAudioDeviceManager ()
-{
-    if (sharedAudioDeviceManager == nullptr)
-    {
-        sharedAudioDeviceManager = new AudioDeviceManager ();
-        sharedAudioDeviceManager->initialise (2, 2, 0, true, String::empty, 0);
-    }
-
-    return *sharedAudioDeviceManager;
 }
 
 void MainWindow::handleAsyncUpdate ()

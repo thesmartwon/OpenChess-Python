@@ -10,7 +10,7 @@ MainWindow::MainWindow (String name)
 {
     setUsingNativeTitleBar (true);
     //mainContentComponent = new MainContentComponent ();
-    setContentOwned (new MainComponent (), true);
+    setContentOwned (mainComponent = new ContentComponent (), true);
 
     centreWithSize (getWidth (), getHeight ());
     setVisible (true);
@@ -72,4 +72,28 @@ void MainWindow::handleAsyncUpdate ()
     // been created so we can find the number of rendering engines available
     ApplicationCommandManager& commandManager = MainWindow::getApplicationCommandManager ();
     commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance ());
+}
+
+MainWindow* MainWindow::getMainWindow ()
+{
+    for (int i = TopLevelWindow::getNumTopLevelWindows (); --i >= 0;)
+        if (MainWindow* maw = dynamic_cast<MainWindow*> (TopLevelWindow::getTopLevelWindow (i)))
+        return maw;
+
+    return nullptr;
+}
+
+void MainWindow::showMessageBubble (const String& text)
+{
+    currentBubbleMessage = new BubbleMessageComponent (500);
+    getContentComponent ()->addChildComponent (currentBubbleMessage);
+
+    AttributedString attString;
+    attString.append (text, Font (15.0f));
+
+    currentBubbleMessage->showAt (juce::Rectangle<int> (getLocalBounds ().getCentreX (), 10, 1, 1),
+        attString,
+        500,  // numMillisecondsBeforeRemoving
+        true,  // removeWhenMouseClicked
+        false); // deleteSelfAfterUse
 }

@@ -103,8 +103,7 @@ void BoardComponent::paint (Graphics& g)
         g.setColour (Colours::green);
     else
         g.setColour (Colours::black);
-        //darken dark squares
-        //g.setColour (Colour::fromFloatRGBA (0x4F, 0x35, 0x25, 0.83f));
+    //darken dark squares
     g.setColour (Colour::fromRGBA (0x00, 0x00, 0x00, 0x42));
     for (int i = 0; i < 8; ++i)
         for (int j = 0; j < 4; ++j)
@@ -247,7 +246,7 @@ Stockfish::Move BoardComponent::createMove (Stockfish::Square fromSquare, Stockf
          || (position->piece_on (fromSquare) == Stockfish::Piece::B_PAWN && Stockfish::rank_of (fromSquare) == Stockfish::RANK_2))
     {
         //promotion by white or black.
-        return Stockfish::make<Stockfish::MoveType::PROMOTION> (fromSquare, toSquare, Stockfish::PieceType::QUEEN);
+        return Stockfish::make<Stockfish::MoveType::PROMOTION> (fromSquare, toSquare, Stockfish::PieceType::BISHOP);
     }
     return Stockfish::make<Stockfish::MoveType::NORMAL> (fromSquare, toSquare);
 
@@ -260,16 +259,10 @@ void BoardComponent::mouseDown (const MouseEvent& event)
         mouseIsDown = true;
         mouseXY.setXY (event.x, event.y);
         if (sidePerspective == white)
-        {
             mouseDownRankFile.setXY (7 - event.y / 75, event.x / 75);
-            pieceOnBoard[Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
-        }
         else
-        {
             mouseDownRankFile.setXY (event.y / 75, event.x / 75);
-            pieceOnBoard[Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
-        }
-        
+        pieceOnBoard[Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
     }
 }
 
@@ -337,15 +330,16 @@ void BoardComponent::doMove (const Stockfish::Move move)
 {
     if (position->pseudo_legal (move) && position->legal (move, position->pinned_pieces (position->side_to_move ())))
     {
+        MoveMessage* mes = new MoveMessage ();
+        mes->move = move;
+        mes->moveSAN = Stockfish::UCI::move_to_san (*position, move);
+        mes->moveUCI = Stockfish::UCI::move (move, false);
         //Stockfish wants a new stateinfo for each move.... /sigh
         position->do_move (move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
         moveList.add (move);
 
-        MoveMessage* mes = new MoveMessage ();
-        mes->move = move;
-		mes->pos = position;
 
-        if(const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
+        if (const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
             cm->postMessage (mes);
         selectedSquare.setXY (-1, -1);
     }

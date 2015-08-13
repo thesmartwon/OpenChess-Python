@@ -23,6 +23,9 @@
 //[Headers]     -- You can add your own extra header files here --
 #include "BoardComponent.h"
 #include "JuceHeader.h"
+#include "MoveListComponent.h"
+#include <sstream>
+#include <iomanip>
 
 //[/Headers]
 
@@ -57,13 +60,14 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Stockfish::Position position;
     void handleMessage (const Message & message) override;
+    Array<ScopedPointer<MoveListItem>> moveListLabels;
+    ScopedPointer<Label> newButton1;
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<TextEditor> txtMoveHist;
     ScopedPointer<BoardComponent> cmpBoard;
     ScopedPointer<TextEditor> txtEngineOutput;
-
+    
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BoardTabbedComponent)

@@ -30,12 +30,12 @@
 namespace Stockfish
 {
 
-    class Position;
+    class __declspec(dllexport) Position;
 
     /// CheckInfo struct is initialized at c'tor time and keeps info used to detect
     /// if a move gives check.
 
-    struct CheckInfo
+    struct __declspec(dllexport) CheckInfo
     {
 
         explicit CheckInfo (const Position&);
@@ -51,7 +51,7 @@ namespace Stockfish
     /// its previous state when we retract a move. Whenever a move is made on the
     /// board (by calling Position::do_move), a StateInfo object must be passed.
 
-    struct StateInfo
+    struct __declspec(dllexport) StateInfo
     {
         // Copied when making a move
         Key    pawnKey;

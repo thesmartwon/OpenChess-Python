@@ -74,7 +74,7 @@ namespace Stockfish
     std::string value(Value v);
     std::string square(Square s);
     std::string move (Move m, bool chess960);
-    std::string movePGN (Move m, Position& p, bool chess960);
+    const std::string move_to_san (Position& pos, Move m);
     Move to_move(const Position& pos, std::string& str);
 
     typedef std::auto_ptr<std::stack<StateInfo> > StateStackPtr;

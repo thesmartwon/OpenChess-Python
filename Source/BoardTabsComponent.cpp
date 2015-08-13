@@ -30,16 +30,20 @@
 //==============================================================================
 BoardTabsComponent::BoardTabsComponent ()
 {
-    addAndMakeVisible (boardsComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
-    boardsComponent->setTabBarDepth (30);
+    addAndMakeVisible (boardTabs = new TabbedComponent (TabbedButtonBar::TabsAtTop));
+    boardTabs->setTabBarDepth (30);
 
 
 
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (600, 400);
+    setSize (886, 766);
 
+    boardTabs->addTab (TRANS ("Tab 0"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
+    boardTabs->addTab (TRANS ("Tab 1"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
+    boardTabs->setCurrentTabIndex (0);
+    //[Constructor] You can add your own custom stuff here..
     boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/board.jpg")));
     boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/Chess_Pieces_Sprite.png")));
 
@@ -56,13 +60,6 @@ BoardTabsComponent::BoardTabsComponent ()
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 3, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 4, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 5, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
-
-    boardsComponent->addTab (TRANS ("Tab 0"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
-    boardsComponent->addTab (TRANS ("Tab 1"), Colours::lightgrey, new BoardTabbedComponent (boardImages), true);
-    boardsComponent->setCurrentTabIndex (0);
-    //[Constructor] You can add your own custom stuff here..
-    setSize (886, 766);
-
     //[/Constructor]
 }
 
@@ -71,7 +68,7 @@ BoardTabsComponent::~BoardTabsComponent()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
-    boardsComponent = nullptr;
+    boardTabs = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -95,7 +92,8 @@ void BoardTabsComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    boardsComponent->setBounds (0, 0, 880, 764);
+    boardTabs->setBounds (0, 0, 880, 764);
+
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -118,7 +116,7 @@ BEGIN_JUCER_METADATA
 <JUCER_COMPONENT documentType="Component" className="BoardTabsComponent" componentName=""
                  parentClasses="public Component" constructorParams="" variableInitialisers=""
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
+                 fixedSize="0" initialWidth="886" initialHeight="766">
   <BACKGROUND backgroundColour="ffffffff"/>
   <TABBEDCOMPONENT name="boards component" id="55247761818d8fa8" memberName="boardsComponent"
                    virtualName="" explicitFocusOrder="0" pos="0 0 880 764" orientation="top"

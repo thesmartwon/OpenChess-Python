@@ -57,7 +57,7 @@ private:
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<TabbedComponent> boardsComponent;
+    ScopedPointer<TabbedComponent> boardTabs;
 
 
     //==============================================================================

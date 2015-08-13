@@ -3,6 +3,22 @@
 
 #pragma once
 
+struct MoveNode
+{
+    MoveNode* continuation;
+    MoveNode* variation;
+    Stockfish::Move move;
+    juce::String comments;
+    MoveNode () {}
+    MoveNode (MoveNode* continuation, MoveNode* variation, Stockfish::Move move, juce::String comments)
+    {
+        this->continuation = continuation;
+        this->variation = variation;
+        this->move = move;
+        this->comments = comments;
+    }
+};
+
 enum MessageType
 {
     MSG_GENERIC_MESSAGE,
@@ -20,6 +36,15 @@ class MoveMessage : public GenericMessage
 {
 public:
     MoveMessage () : GenericMessage (MSG_MOVEMESSAGE){};
+    juce::String moveSAN;
+    juce::String moveUCI;
     Stockfish::Move move;
-	Stockfish::Position* pos;
+};
+
+struct MoveListItem
+{
+    MoveListItem () { moveNode = {}; lblMove = nullptr; }
+    MoveListItem (MoveNode moveNode, Label* lblMove) { this->moveNode = moveNode; this->lblMove = lblMove; }
+    ScopedPointer<Label> lblMove;
+    MoveNode moveNode;
 };

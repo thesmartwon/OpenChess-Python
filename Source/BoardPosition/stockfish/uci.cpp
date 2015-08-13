@@ -48,40 +48,6 @@ namespace {
 
 } // namespace
 
-namespace MoveGen
-{
-    template<PieceType Pt, bool Checks> FORCE_INLINE
-        ExtMove* generate_moves (const Position& pos, ExtMove* moveList, Color us, const CheckInfo* ci)
-    {
-
-        assert (Pt != KING && Pt != PAWN);
-
-        const Square* pl = pos.list<Pt> (us);
-
-        for (Square from = *pl; from != SQ_NONE; from = *++pl)
-        {
-            if (Checks)
-            {
-                if ((Pt == BISHOP || Pt == ROOK || Pt == QUEEN)
-                    && !(PseudoAttacks[Pt][from] & ci->checkSq[Pt]))
-                    continue;
-
-                if (ci->dcCandidates && (ci->dcCandidates & from))
-                    continue;
-            }
-
-            Bitboard b = pos.attacks_from<Pt> (from);
-
-            if (Checks)
-                b &= ci->checkSq[Pt];
-
-            while (b)
-                (moveList++)->move = make_move (from, pop_lsb (&b));
-        }
-
-        return moveList;
-    }
-} //namespace MoveGen
 
 
 
@@ -121,28 +87,17 @@ string UCI::move(Move m, bool chess960) {
   return move;
 }
 
-bool containsTwo (ExtMove moveList[250], Move m)
+Move containsTwo (ExtMove moveList[250], Move m)
 {
-    bool foundOne = false;
-    Move recordedMove = Stockfish::Move::MOVE_NONE;
+    Move recordedMove = Move::MOVE_NONE;
 	for (int i = 0; i < 250; ++i)
     {
 		if (moveList[i].move == MOVE_NONE)
 			break;
-        else if (to_sq(moveList[i].move) == to_sq(m))
-        {
-            if (!foundOne)
-            {
-                foundOne = true;
-                recordedMove = moveList[i].move;
-            }
-            else if (recordedMove != moveList[i].move)
-            {
-                return true;
-            }
-        }
+        else if (to_sq(moveList[i].move) == to_sq(m) && from_sq(moveList[i].move) != from_sq (m))
+            return moveList[i].move;
     }
-    return false;
+    return Move::MOVE_NONE;
 }
 
 bool hasLegalMoves (ExtMove moveList[250], Position p)
@@ -156,132 +111,100 @@ bool hasLegalMoves (ExtMove moveList[250], Position p)
     }
 }
 
-string UCI::movePGN (Move m, Position& p, bool chess960)
+
+
+static const char* PieceToChar[COLOR_NB] = { " PNBRQK", " pnbrqk" };
+
+inline char to_char (File f, bool tolower = true)
 {
+    return char (f - FILE_A + (tolower ? 'a' : 'A'));
+}
+
+inline char to_char (Rank r)
+{
+    return char (r - RANK_1 + '1');
+}
+
+/// makes the PGN version of a move.
+const std::string UCI::move_to_san (Position& pos, Move m)
+{
+
     if (m == MOVE_NONE)
         return "(none)";
 
     if (m == MOVE_NULL)
-        return "0000";
-    string moveTextBefore = move (m, chess960);
-    string moveTextAfter = "";
+        return "(null)";
 
-    if (type_of (m) == CASTLING && !chess960)
-    {
-        if (moveTextBefore == "e1h1" || moveTextBefore == "e8h8")
-            moveTextAfter += "O-O";
-        else
-            moveTextAfter += "O-O-O";
-    }
-    else if (type_of (m) == PROMOTION)
-    {
-        Stockfish::StateInfo* lastState = p.st;
-        p.undo_move (m);
-        // is it a capture?
-        if (p.piece_on (to_sq (m)) != Stockfish::Piece::NO_PIECE)
-            moveTextAfter = moveTextBefore[0] + "x";
-        p.do_move (m, *lastState);
+    assert (MoveList<LEGAL> (pos).contains (m));
 
-        // dxc8=Q
-        moveTextAfter += moveTextBefore.substr (2, 4) + "=" + (char)(toupper(moveTextBefore[5]));
-    }
-    else //normal move
+    Bitboard others, b;
+    string san;
+    Color us = pos.side_to_move ();
+    Square from = from_sq (m);
+    Square to = to_sq (m);
+    Piece pc = pos.piece_on (from);
+    PieceType pt = type_of (pc);
+
+    if (type_of (m) == CASTLING)
+        san = to > from ? "O-O" : "O-O-O";
+    else
     {
-        if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::BISHOP)
+        if (pt != PAWN)
         {
-            moveTextAfter = "B";
-            // if two of the same piece can go to the same square, we have to fix this ambiguity
-            Stockfish::StateInfo* lastState = p.st;
-            p.undo_move (m);
-            ExtMove moveList[250] = { Stockfish::Move::MOVE_NONE };
-            ExtMove* moveListPtr = moveList;
-            const Stockfish::Position tmpPos = Stockfish::Position (p);
-            const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
-            moveListPtr = MoveGen::generate_moves<BISHOP, false> (tmpPos, moveListPtr, p.side_to_move (), chkInfo);
-            if (containsTwo (moveList, m))
-                moveTextAfter += moveTextBefore.substr (0, 2);
-            p.do_move (m, *lastState);
-            moveTextAfter += moveTextBefore.substr (2, 4);
-        }
-        else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::KNIGHT)
-        {
-            moveTextAfter = "N";
-            // if two of the same piece can go to the same square, we have to fix this ambiguity
-            Stockfish::StateInfo* lastState = p.st;
-            p.undo_move (m);
-            ExtMove moveList[250] = { Stockfish::Move::MOVE_NONE };
-            ExtMove* moveListPtr = moveList;
-            const Stockfish::Position tmpPos = Stockfish::Position (p);
-            const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
-            moveListPtr = MoveGen::generate_moves<KNIGHT, false> (tmpPos, moveListPtr, p.side_to_move (), chkInfo);
-            if (containsTwo (moveList, m))
-                moveTextAfter += moveTextBefore.substr (0, 1);
-            p.do_move (m, *lastState);
-			moveTextAfter += moveTextBefore.substr(2, 4);
-        }
-        else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::ROOK)
-        {
-            moveTextAfter = "R";
-            // if two of the same piece can go to the same square, we have to fix this ambiguity
-            Stockfish::StateInfo* lastState = p.st;
-            p.undo_move (m);
-            ExtMove moveList[250] = { Stockfish::Move::MOVE_NONE };
-            ExtMove* moveListPtr = moveList;
-            const Stockfish::Position tmpPos = Stockfish::Position (p);
-            const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
-            moveListPtr = MoveGen::generate_moves<ROOK, false> (tmpPos, moveListPtr, p.side_to_move (), chkInfo);
-            if (containsTwo (moveList, m))
-                moveTextAfter += moveTextBefore.substr (0, 1);
-            p.do_move (m, *lastState);
-            moveTextAfter += moveTextBefore.substr (2, 4);
-        }
-        else if (type_of (p.piece_on (to_sq (m))) == Stockfish::PieceType::QUEEN)
-        {
-            moveTextAfter = "Q";
-            // if two of the same piece can go to the same square, we have to fix this ambiguity
-            Stockfish::StateInfo* lastState = p.st;
-            p.undo_move (m);
-            ExtMove moveList[250] = { Stockfish::Move::MOVE_NONE };
-            ExtMove* moveListPtr = moveList;
-            const Stockfish::Position tmpPos = Stockfish::Position (p);
-            const Stockfish::CheckInfo* chkInfo = &Stockfish::CheckInfo (tmpPos);
-            moveListPtr = MoveGen::generate_moves<QUEEN, false> (tmpPos, moveListPtr, p.side_to_move (), chkInfo);
-            if (containsTwo (moveList, m))
-                moveTextAfter += moveTextBefore.substr (0, 1);
-            p.do_move (m, *lastState);
-            moveTextAfter += moveTextBefore.substr (2, 4);
-        }
-        else //pawn
-        {
-			Stockfish::StateInfo* lastState = p.st;
-            p.undo_move (m);
-            // is it a capture?
-            if (p.piece_on (to_sq (m)) != Stockfish::Piece::NO_PIECE)
-                moveTextAfter = moveTextBefore.substr (0,1) + "x" + moveTextBefore.substr (2, 4);
+            san = PieceToChar[WHITE][pt]; // Upper case
+
+                                          // A disambiguation occurs if we have more then one piece of type 'pt'
+                                          // that can reach 'to' with a legal move.
+            others = b = (pos.attacks_from (pc, to) & pos.pieces (us, pt)) ^ from;
+
+            while (b)
+            {
+                Square s = pop_lsb (&b);
+                if (!pos.legal (make_move (s, to), pos.pinned_pieces (us)))
+                    others ^= s;
+            }
+
+            if (!others)
+            { /* Disambiguation is not needed */
+            }
+
+            else if (!(others & file_bb (from)))
+                san += to_char (file_of (from));
+
+            else if (!(others & rank_bb (from)))
+                san += to_char (rank_of (from));
+
             else
-                moveTextAfter = moveTextBefore.substr (2, 4);
-            p.do_move (m, *lastState);
-        }
-        //check and checkmate
-        if (p.checkers () != 0) //check
-        {
-            ExtMove moveList[250] = { Stockfish::Move::MOVE_NONE };
-            ExtMove* moveListPtr = moveList;
-            const Stockfish::Position tmpPos = Stockfish::Position (p);
-            // TODO: figure out why this sometimes generates illegal moves
-            moveListPtr = Stockfish::generate<Stockfish::GenType::LEGAL> (tmpPos, moveListPtr);
-            if (!hasLegalMoves(moveList, tmpPos))//checkmate?
-                moveTextAfter += "#";
-            else
-                moveTextAfter += "+";
-        }
+            {
+                san += to_char (file_of (from));
+                san += to_char (rank_of (from));
+            }
+        } else if (pos.capture (m))
+            san = to_char (file_of (from));
+
+        if (pos.capture (m))
+            san += 'x';
+
+        san += to_char (file_of (to));
+        san += to_char (rank_of (to));
+
+        if (type_of (m) == PROMOTION)
+            san += string ("=") + PieceToChar[WHITE][promotion_type (m)];
     }
-    return moveTextAfter;
+
+    if (pos.gives_check (m, CheckInfo (pos)))
+    {
+        StateInfo st;
+        pos.do_move (m, st);
+        san += MoveList<LEGAL> (pos).size () ? "+" : "#";
+        pos.undo_move (m);
+    }
+
+    return san;
 }
 
 /// UCI::to_move() converts a string representing a move in coordinate notation
 /// (g1f3, a7a8q) to the corresponding legal Move, if any.
-
 Move UCI::to_move(const Position& pos, string& str) {
 
   if (str.length() == 5) // Junior could send promotion piece in uppercase

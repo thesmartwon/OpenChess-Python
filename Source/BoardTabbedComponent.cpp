@@ -29,46 +29,37 @@
 //==============================================================================
 BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
 {
-    addAndMakeVisible (txtMoveHist = new TextEditor ("move history text editor"));
-    txtMoveHist->setTooltip (TRANS("Move History"));
-    txtMoveHist->setMultiLine (true);
-    txtMoveHist->setReturnKeyStartsNewLine (false);
-    txtMoveHist->setReadOnly (false);
-    txtMoveHist->setScrollbarsShown (true);
-    txtMoveHist->setCaretVisible (true);
-    txtMoveHist->setPopupMenuEnabled (true);
-    txtMoveHist->setText (TRANS(""));
-
+    //[UserPreSize]
     addAndMakeVisible (cmpBoard = new BoardComponent (boardImages, &position));
     cmpBoard->setName ("new board");
 
     addAndMakeVisible (txtEngineOutput = new TextEditor ("new text editor"));
-    txtEngineOutput->setMultiLine (false);
+    txtEngineOutput->setMultiLine (true);
     txtEngineOutput->setReturnKeyStartsNewLine (false);
     txtEngineOutput->setReadOnly (false);
     txtEngineOutput->setScrollbarsShown (true);
     txtEngineOutput->setCaretVisible (true);
     txtEngineOutput->setPopupMenuEnabled (true);
-    txtEngineOutput->setText (TRANS("Engine output"));
+    txtEngineOutput->setText (TRANS ("Engine output"));
 
-    //[UserPreSize]
+    newButton1 = new Label ();
+    newButton1->setText ("abcdefgh", NotificationType::dontSendNotification);
+    newButton1->setEditable (false);
+    newButton1->addMouseListener (this, false);
+    addAndMakeVisible (newButton1);
     //[/UserPreSize]
 
-    setSize (600, 400);
+    setSize (865, 712);
 
 
     //[Constructor] You can add your own custom stuff here..
-    setSize (865, 712);
 
     Stockfish::Bitboards::init ();
     Stockfish::Position::init ();
     Stockfish::Bitbases::init ();
 
-    position.st = (Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo));
     position.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-    //Move m (AGChess::e2, AGChess::e4);      // e2, e4 are defined in Square.h
-    //position.make (m);          // Make the move
-    //cmpBoard->setBoardPosition (position);
+    
     //[/Constructor]
 }
 
@@ -77,10 +68,8 @@ BoardTabbedComponent::~BoardTabbedComponent()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
-    txtMoveHist = nullptr;
     cmpBoard = nullptr;
     txtEngineOutput = nullptr;
-
 
     //[Destructor]. You can add your own custom destruction code here..
     //[/Destructor]
@@ -96,7 +85,6 @@ void BoardTabbedComponent::paint (Graphics& g)
     g.fillAll (Colours::white);
 
     //[UserPaint] Add your own custom painting code here..
-   
     //[/UserPaint]
 }
 
@@ -105,9 +93,10 @@ void BoardTabbedComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    txtMoveHist->setBounds (616, 7, 257, 600);
     cmpBoard->setBounds (8, 6, 600, 600);
     txtEngineOutput->setBounds (8, 615, 864, 103);
+    newButton1->setBounds (865 - 20, 20, 100, 100);
+
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -125,17 +114,45 @@ void BoardTabbedComponent::handleMessage (const Message & message)
         //update movelist
 		//juce::String move = Stockfish::UCI::move(((MoveMessage*)(&message))->move, false);
         MoveMessage* moveMessage = ((MoveMessage*)(&message));
-		juce::String a = Stockfish::UCI::movePGN (moveMessage->move, *moveMessage->pos, false);
+		juce::String moveText = moveMessage->moveSAN;
 
 		// TODO: Option to have inline or have with a newline between every ply
-		if (((MoveMessage*)(&message))->pos->game_ply() % 2 == 1)
+       /* std::stringstream stream;
+		if (position.game_ply() % 2 == 1)
 		{
-			txtMoveHist->setText(txtMoveHist->getText() + std::to_string(moveMessage->pos->game_ply() - moveMessage->pos->game_ply() / 2) + ".  ");
-			txtMoveHist->setText(txtMoveHist->getText() + a + "    ");
+            stream << txtMoveHist->getText ()
+                   << std::right << std::setw (3) << std::setfill (' ')
+                   << std::to_string (position.game_ply () - position.game_ply () / 2)
+                   << ".";
+            stream << std::left << std::setw (8) << std::setfill (' ')
+                   << moveText;
+			txtMoveHist->setText(stream.str());
 		}
-		else
-			txtMoveHist->setText(txtMoveHist->getText() + a + "\n");
-
+        else
+        {
+            stream << txtMoveHist->getText ()
+                   << std::left << std::setw (8) << std::setfill (' ') << moveText << "\n";
+            txtMoveHist->setText (stream.str ());
+        }*/
+        MoveNode newNode;
+        newNode.comments = String::empty;
+        newNode.continuation = nullptr;
+        newNode.move = moveMessage->move;
+        newNode.variation = nullptr;
+        Label* newLabel = new Label ();
+        if (position.game_ply () % 2 == 1)
+            newLabel->setText(std::to_string (position.game_ply () - position.game_ply () / 2) + "." + moveText, NotificationType::dontSendNotification);
+        else
+            newLabel->setText (moveText, NotificationType::dontSendNotification);
+        newLabel->setTopLeftPosition (865 - 20, 20);
+        this->toFront (newLabel);
+        newLabel->setEditable (false);
+        newLabel->setBounds (865 - 20, 20, 100, 100);
+        newLabel->addMouseListener (this, false);
+        addAndMakeVisible (newLabel);
+        MoveListItem* newMoveListItem = new MoveListItem (newNode, newLabel);
+        moveListLabels.add (newMoveListItem);
+        repaint ();
         //update engine
     }
     //txtMoveHist->setText (txtMoveHist->getText () + message);
@@ -148,27 +165,23 @@ void BoardTabbedComponent::handleMessage (const Message & message)
 #if 0
 /*  -- Introjucer information section --
 
-    This is where the Introjucer stores the metadata that describe this GUI layout, so
-    make changes in here at your peril!
+This is where the Introjucer stores the metadata that describe this GUI layout, so
+make changes in here at your peril!
 
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="BoardTabbedComponent" componentName=""
-                 parentClasses="public Component" constructorParams="" variableInitialisers=""
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
-  <BACKGROUND backgroundColour="ffffffff"/>
-  <TEXTEDITOR name="move history text editor" id="bd474a33f39524" memberName="txtMoveHist"
-              virtualName="" explicitFocusOrder="0" pos="616 7 257 600" tooltip="Move History"
-              initialText="1. e4  2. e5  3. Nf3  4. Nf6  5. Nxe5" multiline="0"
-              retKeyStartsLine="0" readonly="0" scrollbars="1" caret="1" popupmenu="1"/>
-  <GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="cmpBoard"
-                    virtualName="" explicitFocusOrder="0" pos="8 6 600 600" class="BoardComponent"
-                    params=""/>
-  <TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
-              virtualName="" explicitFocusOrder="0" pos="8 615 864 103" initialText="Engine output"
-              multiline="0" retKeyStartsLine="0" readonly="0" scrollbars="1"
-              caret="1" popupmenu="1"/>
+parentClasses="public Component" constructorParams="" variableInitialisers=""
+snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
+fixedSize="0" initialWidth="600" initialHeight="400">
+<BACKGROUND backgroundColour="ffffffff"/>
+<GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="cmpBoard"
+virtualName="" explicitFocusOrder="0" pos="8 6 600 600" class="BoardComponent"
+params=""/>
+<TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
+virtualName="" explicitFocusOrder="0" pos="8 615 864 103" initialText="Engine output"
+multiline="1" retKeyStartsLine="0" readonly="0" scrollbars="1"
+caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

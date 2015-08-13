@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{617ACFB6-6CF8-8D31-984F-918018D460F6}</ProjectGuid>
     <PlatformToolset>v140</PlatformToolset>
+    <TargetPlatformVersion>10.0.10069.0</TargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -80,6 +81,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -122,6 +125,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -129,6 +134,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\BoardPosition\game.cpp" />
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp" />
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp" />
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp" />
@@ -136,7 +142,7 @@
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp" />
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp" />
     <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp" />
-    <ClCompile Include="..\..\Source\MainComponent.cpp" />
+    <ClCompile Include="..\..\Source\ContentComponent.cpp" />
     <ClCompile Include="..\..\Source\MainWindow.cpp" />
     <ClCompile Include="..\..\Source\BoardComponent.cpp" />
     <ClCompile Include="..\..\Source\BoardTabsComponent.cpp" />
@@ -1129,8 +1135,10 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_gui_extra\juce_gui_extra.cpp" />
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.cpp" />
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.cpp" />
+    <ClCompile Include="..\..\Source\MoveListComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\BoardPosition\game.h" />
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h" />
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h" />
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h" />
@@ -1140,7 +1148,7 @@
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h" />
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h" />
     <ClInclude Include="..\..\Source\BoardTabbedComponent.h" />
-    <ClInclude Include="..\..\Source\MainComponent.h" />
+    <ClInclude Include="..\..\Source\ContentComponent.h" />
     <ClInclude Include="..\..\Source\MainWindow.h" />
     <ClInclude Include="..\..\Source\BoardComponent.h" />
     <ClInclude Include="..\..\Source\BoardTabsComponent.h" />
@@ -1554,6 +1562,7 @@
     <ClInclude Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.h" />
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h" />
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h" />
+    <ClInclude Include="..\..\Source\MoveListComponent.h" />
     <ClInclude Include="..\..\Source\types.h" />
   </ItemGroup>
   <ItemGroup>

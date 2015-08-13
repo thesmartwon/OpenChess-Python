@@ -268,6 +268,9 @@
     <Filter Include="Juce Modules\juce_video\juce_opengl\native">
       <UniqueIdentifier>{151B49D8-6102-F802-1C07-D59931BC0574}</UniqueIdentifier>
     </Filter>
+    <Filter Include="OpenChess\Source\BoardPosition\stockfish">
+      <UniqueIdentifier>{93c33f5e-a9a7-4d55-9c9b-86c5479cfba5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\BoardTabbedComponent.cpp">
@@ -1299,25 +1302,31 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_video\juce_video.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\movegen.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\movegen.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\position.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\stockfish\uci.cpp">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\game.cpp">
       <Filter>OpenChess\Source\BoardPosition</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\MainComponent.cpp">
+    <ClCompile Include="..\..\Source\ContentComponent.cpp">
+      <Filter>OpenChess\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\MoveListComponent.cpp">
       <Filter>OpenChess\Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2564,34 +2573,40 @@
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\position.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\movegen.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\platform.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h">
-      <Filter>OpenChess\Source\BoardPosition</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MainComponent.h">
+    <ClInclude Include="..\..\Source\types.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\types.h">
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\misc.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\movegen.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\platform.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\position.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\types.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\stockfish\uci.h">
+      <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\game.h">
+      <Filter>OpenChess\Source\BoardPosition</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ContentComponent.h">
+      <Filter>OpenChess\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\MoveListComponent.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
   </ItemGroup>

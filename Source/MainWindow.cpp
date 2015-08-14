@@ -21,18 +21,18 @@ MainWindow::MainWindow (String name)
     triggerAsyncUpdate ();
 
 
-    #if JUCE_OPENGL
-        openGLContext.attachTo (*getTopLevelComponent ());
-    #endif
+    //#if JUCE_OPENGL
+        //openGLContext.attachTo (*mainComponent);
+        //openGLContext.setContinuousRepainting (true);
+    //#endif
 }
 
 MainWindow::~MainWindow ()
 {
     applicationCommandManager = nullptr;
 
-    #if JUCE_OPENGL
-        openGLContext.detach ();
-    #endif
+    //if (openGLContext.isAttached())
+    //    openGLContext.detach ();
 }
 
 void MainWindow::closeButtonPressed ()

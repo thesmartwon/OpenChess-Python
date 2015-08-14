@@ -76,7 +76,9 @@ private:
     bool mouseIsDown;
     int squareWidth;
 
-    OpenGLContext openGLContext;
+    #if JUCE_OPENGL
+        OpenGLContext openGLContext;
+    #endif
 
     void mouseDown (const MouseEvent& event) override;
     void mouseUp (const MouseEvent& event) override;

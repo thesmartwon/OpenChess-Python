@@ -65,8 +65,10 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
         pieceOnBoard[i] = true;
     mouseIsDown = false;
     squareWidth = getWidth() / 8;
-    //openGLContext.attachTo (*this);
-    //openGLContext.setContinuousRepainting (true);
+    #if JUCE_OPENGL
+        openGLContext.attachTo (*this);
+        //openGLContext.setContinuousRepainting (true);
+    #endif
     //[/Constructor]
 }
 
@@ -78,7 +80,10 @@ BoardComponent::~BoardComponent()
 
 
     //[Destructor]. You can add your own custom destruction code here..
-    openGLContext.detach ();
+    #if JUCE_OPENGL
+        if (openGLContext.getTargetComponent() == this)
+            openGLContext.detach ();
+    #endif
     //[/Destructor]
 }
 
@@ -89,6 +94,7 @@ void BoardComponent::paint (Graphics& g)
     bool pieceHovering = false;
     Image myHoveringImage;
     //[/UserPrePaint]
+    g.drawLine (1, 3, 4, 5, 6);
 
     g.fillAll (Colours::white);
 

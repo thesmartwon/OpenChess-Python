@@ -36,9 +36,9 @@ private:
                                  // just need to create one of these and leave it
                                  // there to do its work..
 
-    #if JUCE_OPENGL
-        OpenGLContext openGLContext;
-    #endif
+    //#if JUCE_OPENGL
+    //    OpenGLContext openGLContext;
+    //#endif
 
 
     void showMessageBubble (const String&);

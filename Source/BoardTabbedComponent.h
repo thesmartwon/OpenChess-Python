@@ -7,12 +7,12 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Introjucer version: 3.1.0
+  Created with Introjucer version: 3.2.0
 
   ------------------------------------------------------------------------------
 
   The Introjucer is part of the JUCE library - "Jules' Utility Class Extensions"
-  Copyright 2004-13 by Raw Material Software Ltd.
+  Copyright (c) 2015 - ROLI Ltd.
 
   ==============================================================================
 */
@@ -22,8 +22,8 @@
 
 //[Headers]     -- You can add your own extra header files here --
 #include "BoardComponent.h"
-#include "JuceHeader.h"
 #include "MoveListComponent.h"
+#include "JuceHeader.h"
 #include <sstream>
 #include <iomanip>
 
@@ -61,13 +61,14 @@ private:
     Stockfish::Position position;
     void handleMessage (const Message & message) override;
     Array<ScopedPointer<MoveListItem>> moveListLabels;
-    ScopedPointer<Label> newButton1;
+    MoveListComponent moveListComp;
     //[/UserVariables]
 
     //==============================================================================
     ScopedPointer<BoardComponent> cmpBoard;
     ScopedPointer<TextEditor> txtEngineOutput;
-    
+    ScopedPointer<Viewport> vwMoveList;
+
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BoardTabbedComponent)

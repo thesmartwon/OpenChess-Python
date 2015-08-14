@@ -7,12 +7,12 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Introjucer version: 3.1.0
+  Created with Introjucer version: 3.2.0
 
   ------------------------------------------------------------------------------
 
   The Introjucer is part of the JUCE library - "Jules' Utility Class Extensions"
-  Copyright 2004-13 by Raw Material Software Ltd.
+  Copyright (c) 2015 - ROLI Ltd.
 
   ==============================================================================
 */
@@ -29,7 +29,9 @@
 //==============================================================================
 BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
 {
-    //[UserPreSize]
+    //[Constructor_pre] You can add your own custom stuff here..
+    //[/Constructor_pre]
+
     addAndMakeVisible (cmpBoard = new BoardComponent (boardImages, &position));
     cmpBoard->setName ("new board");
 
@@ -40,26 +42,27 @@ BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
     txtEngineOutput->setScrollbarsShown (true);
     txtEngineOutput->setCaretVisible (true);
     txtEngineOutput->setPopupMenuEnabled (true);
-    txtEngineOutput->setText (TRANS ("Engine output"));
+    txtEngineOutput->setText (TRANS("Engine output"));
 
-    newButton1 = new Label ();
-    newButton1->setText ("abcdefgh", NotificationType::dontSendNotification);
-    newButton1->setEditable (false);
-    newButton1->addMouseListener (this, false);
-    addAndMakeVisible (newButton1);
+    addAndMakeVisible (vwMoveList = new Viewport ("new viewport"));
+
+
+    //[UserPreSize]
+    vwMoveList->setViewedComponent (new MoveListComponent());
     //[/UserPreSize]
 
-    setSize (865, 712);
+    setSize (1351, 748);
 
 
     //[Constructor] You can add your own custom stuff here..
+    //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
 
     Stockfish::Bitboards::init ();
     Stockfish::Position::init ();
     Stockfish::Bitbases::init ();
 
     position.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-    
+
     //[/Constructor]
 }
 
@@ -70,6 +73,8 @@ BoardTabbedComponent::~BoardTabbedComponent()
 
     cmpBoard = nullptr;
     txtEngineOutput = nullptr;
+    vwMoveList = nullptr;
+
 
     //[Destructor]. You can add your own custom destruction code here..
     //[/Destructor]
@@ -93,10 +98,9 @@ void BoardTabbedComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    cmpBoard->setBounds (8, 6, 600, 600);
-    txtEngineOutput->setBounds (8, 615, 864, 103);
-    newButton1->setBounds (865 - 20, 20, 100, 100);
-
+    cmpBoard->setBounds (5, 5, proportionOfWidth (0.5387f), proportionOfHeight (0.9733f));
+    txtEngineOutput->setBounds (getWidth() - 8 - proportionOfWidth (0.4478f), 728 - 278, proportionOfWidth (0.4478f), 278);
+    vwMoveList->setBounds (getWidth() - 7 - proportionOfWidth (0.4449f), 5, proportionOfWidth (0.4449f), 435);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
@@ -165,23 +169,27 @@ void BoardTabbedComponent::handleMessage (const Message & message)
 #if 0
 /*  -- Introjucer information section --
 
-This is where the Introjucer stores the metadata that describe this GUI layout, so
-make changes in here at your peril!
+    This is where the Introjucer stores the metadata that describe this GUI layout, so
+    make changes in here at your peril!
 
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="BoardTabbedComponent" componentName=""
-parentClasses="public Component" constructorParams="" variableInitialisers=""
-snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-fixedSize="0" initialWidth="600" initialHeight="400">
-<BACKGROUND backgroundColour="ffffffff"/>
-<GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="cmpBoard"
-virtualName="" explicitFocusOrder="0" pos="8 6 600 600" class="BoardComponent"
-params=""/>
-<TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
-virtualName="" explicitFocusOrder="0" pos="8 615 864 103" initialText="Engine output"
-multiline="1" retKeyStartsLine="0" readonly="0" scrollbars="1"
-caret="1" popupmenu="1"/>
+                 parentClasses="public Component, public MessageListener" constructorParams="juce::Array&lt;Image&gt; boardImages"
+                 variableInitialisers="" snapPixels="8" snapActive="0" snapShown="1"
+                 overlayOpacity="0.330" fixedSize="1" initialWidth="1351" initialHeight="748">
+  <BACKGROUND backgroundColour="ffffffff"/>
+  <GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="cmpBoard"
+                    virtualName="" explicitFocusOrder="0" pos="5 5 53.886% 97.326%"
+                    class="BoardComponent" params="boardImages, &amp;position"/>
+  <TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
+              virtualName="" explicitFocusOrder="0" pos="8Rr 728r 44.782% 278"
+              initialText="Engine output" multiline="1" retKeyStartsLine="0"
+              readonly="0" scrollbars="1" caret="1" popupmenu="1"/>
+  <VIEWPORT name="new viewport" id="fee84cd0278f227b" memberName="vwMoveList"
+            virtualName="" explicitFocusOrder="0" pos="7Rr 5 44.486% 435"
+            vscroll="1" hscroll="1" scrollbarThickness="18" contentType="2"
+            jucerFile="MoveListComponent.h" contentClass="" constructorParams=""/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

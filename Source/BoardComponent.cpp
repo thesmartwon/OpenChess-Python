@@ -36,25 +36,24 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
     //[UserPreSize]
     //[/UserPreSize]
 
-    setSize (886, 766);
+    setSize (728, 728);
 
 
     //[Constructor] You can add your own custom stuff here..
-
+    //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
     boardImage = boardImages[0];
-    piecesImage = boardImages[1];
-    wKingImage = boardImages[2];
-    wQueenImage = boardImages[3];
-    wBishopImage = boardImages[4];
-    wKnightImage = boardImages[5];
-    wRookImage = boardImages[6];
-    wPawnImage = boardImages[7];
-    bKingImage = boardImages[8];
-    bQueenImage = boardImages[9];
-    bBishopImage = boardImages[10];
-    bKnightImage = boardImages[11];
-    bRookImage = boardImages[12];
-    bPawnImage = boardImages[13];
+    wKingImage = boardImages[1];
+    wQueenImage = boardImages[2];
+    wBishopImage = boardImages[3];
+    wKnightImage = boardImages[4];
+    wRookImage = boardImages[5];
+    wPawnImage = boardImages[6];
+    bKingImage = boardImages[7];
+    bQueenImage = boardImages[8];
+    bBishopImage = boardImages[9];
+    bKnightImage = boardImages[10];
+    bRookImage = boardImages[11];
+    bPawnImage = boardImages[12];
     position = pos;
     sidePerspective = white;
     mouseDownRankFile.addXY (-1, -1);
@@ -65,7 +64,7 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
     for (int i = 0; i < 64; i++)
         pieceOnBoard[i] = true;
     mouseIsDown = false;
-
+    squareWidth = getWidth() / 8;
     //openGLContext.attachTo (*this);
     //openGLContext.setContinuousRepainting (true);
     //[/Constructor]
@@ -87,8 +86,6 @@ BoardComponent::~BoardComponent()
 void BoardComponent::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
-    int leftPadding = 0;
-    int topPadding = 1;
     bool pieceHovering = false;
     Image myHoveringImage;
     //[/UserPrePaint]
@@ -97,8 +94,8 @@ void BoardComponent::paint (Graphics& g)
 
     //[UserPaint] Add your own custom painting code here..
     g.drawImage (boardImage,
-        leftPadding, topPadding, 600 + leftPadding, 600 + topPadding,
-        leftPadding, topPadding, boardImage.getWidth (), boardImage.getHeight ());
+        0, 0, getWidth(), getHeight(),
+        0, 0, boardImage.getWidth (), boardImage.getHeight ());
     if (mouseIsDown)
         g.setColour (Colours::green);
     else
@@ -108,14 +105,14 @@ void BoardComponent::paint (Graphics& g)
     for (int i = 0; i < 8; ++i)
         for (int j = 0; j < 4; ++j)
         {
-            g.fillRect (j * 150 + !(i%2) * 75 + leftPadding, i*75 + topPadding, 75, 75);
+            g.fillRect (j * squareWidth * 2 + !(i%2) * squareWidth, i*squareWidth, squareWidth, squareWidth);
         }
     g.setColour (Colours::black);
     //gridlines
     for (int i = 0; i < 7; ++i)
     {
-        g.drawLine (75 * (i + 1) + leftPadding, topPadding, 75 * (i + 1) + leftPadding, 600 + topPadding, 2);
-        g.drawLine (leftPadding, 75 * (i + 1) + topPadding, 600 + leftPadding, 75 * (i + 1) + topPadding, 2);
+        g.drawLine (squareWidth * (i + 1), 0, squareWidth * (i + 1), getWidth(), 2);
+        g.drawLine (0, squareWidth * (i + 1), getWidth(), squareWidth * (i + 1), 2);
     }
     //pieces
     for (Stockfish::Rank ranks = Stockfish::RANK_1; ranks <= Stockfish::RANK_8; ++ranks)
@@ -154,10 +151,10 @@ void BoardComponent::paint (Graphics& g)
                 if (pieceOnBoard[Stockfish::square_of (ranks, files)])
                 {
                     g.drawImage (myImage,
-                        75 * (files)+leftPadding,
-                        sidePerspective == white ? 525 - 75 * (ranks)+topPadding : 75 * (ranks)+topPadding,
-                        75,
-                        75,
+                        squareWidth * (files),
+                        sidePerspective == white ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
+                        squareWidth,
+                        squareWidth,
                         0, 0, myImage.getWidth(), myImage.getHeight());
                 } else
                 {
@@ -176,23 +173,26 @@ void BoardComponent::paint (Graphics& g)
         //Rectangle<int> r;
 
         g.drawRect (
-            75 * (file)+leftPadding,
-            sidePerspective == black ? 525 - 75 * (rank)+topPadding : 75 * (rank)+topPadding,
-            75,
-            75,
+            squareWidth * (file),
+            sidePerspective == black ? squareWidth * 7 - squareWidth * (rank): squareWidth * (rank),
+            squareWidth,
+            squareWidth,
             4);
     }
     //hovering piece
     if (pieceHovering)
     {
         g.drawImage (myHoveringImage,
-            mouseXY.getX () - 38,
-            mouseXY.getY () - 38,
-            75,
-            75,
+            mouseXY.getX () - squareWidth / 2,
+            mouseXY.getY () - squareWidth / 2,
+            squareWidth,
+            squareWidth,
             0, 0, myHoveringImage.getWidth (), myHoveringImage.getHeight ());
         pieceHovering = false;
     }
+    //for debugging
+    g.setColour (Colours::red);
+    g.drawRect (0,0,getWidth(),getHeight(), 2);
     //[/UserPaint]
 }
 
@@ -202,6 +202,21 @@ void BoardComponent::resized()
     //[/UserPreResize]
 
     //[UserResized] Add your own custom resize handling here..
+    if (getHeight() > getWidth ())
+    {
+        juce::Rectangle<int> newBounds = getBounds();
+        newBounds.setHeight (getWidth() - getWidth () % 8);
+        setBounds (newBounds);
+        squareWidth = getWidth() / 8;
+    }
+    else
+    {
+        juce::Rectangle<int> newBounds = getBounds();
+        newBounds.setWidth (getHeight() - getHeight() % 8);
+        setBounds (newBounds);
+        squareWidth = getHeight() / 8;
+    }
+
     //[/UserResized]
 }
 
@@ -259,9 +274,9 @@ void BoardComponent::mouseDown (const MouseEvent& event)
         mouseIsDown = true;
         mouseXY.setXY (event.x, event.y);
         if (sidePerspective == white)
-            mouseDownRankFile.setXY (7 - event.y / 75, event.x / 75);
+            mouseDownRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
-            mouseDownRankFile.setXY (event.y / 75, event.x / 75);
+            mouseDownRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
         pieceOnBoard[Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
     }
 }
@@ -272,9 +287,9 @@ void BoardComponent::mouseUp (const MouseEvent& event)
     {
         mouseXY.setXY (event.x, event.y);
         if (sidePerspective == white)
-            mouseUpRankFile.setXY (7 - event.y / 75, event.x / 75);
+            mouseUpRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
-            mouseUpRankFile.setXY (event.y / 75, event.x / 75);
+            mouseUpRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
 
         Stockfish::Move myMove = Stockfish::Move::MOVE_NONE;
         if (mouseDownRankFile.getX () == mouseUpRankFile.getX () && mouseDownRankFile.getY () == mouseUpRankFile.getY () && selectedSquare.getX () == -1)
@@ -336,8 +351,6 @@ void BoardComponent::doMove (const Stockfish::Move move)
         mes->moveUCI = Stockfish::UCI::move (move, false);
         //Stockfish wants a new stateinfo for each move.... /sigh
         position->do_move (move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-        moveList.add (move);
-
 
         if (const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
             cm->postMessage (mes);
@@ -361,7 +374,7 @@ BEGIN_JUCER_METADATA
                  parentClasses="public Component, public MouseListener, public MessageListener"
                  constructorParams="juce::Array&lt;Image&gt; boardImages, Stockfish::Position* pos"
                  variableInitialisers="" snapPixels="8" snapActive="1" snapShown="1"
-                 overlayOpacity="0.330" fixedSize="0" initialWidth="886" initialHeight="766">
+                 overlayOpacity="0.330" fixedSize="0" initialWidth="728" initialHeight="728">
   <BACKGROUND backgroundColour="ffffffff"/>
 </JUCER_COMPONENT>
 

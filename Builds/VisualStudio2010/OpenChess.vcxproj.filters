@@ -274,9 +274,6 @@
     <ClCompile Include="..\..\Source\MainWindow.cpp">
       <Filter>OpenChess\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\MoveListComponent.cpp">
-      <Filter>OpenChess\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp">
       <Filter>OpenChess\Source\BoardPosition\stockfish</Filter>
     </ClCompile>
@@ -1344,6 +1341,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\MoveListComponent.h">
+      <Filter>OpenChess\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\BoardComponent.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
@@ -1357,9 +1357,6 @@
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MainWindow.h">
-      <Filter>OpenChess\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MoveListComponent.h">
       <Filter>OpenChess\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\types.h">

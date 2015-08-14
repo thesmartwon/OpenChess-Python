@@ -55,7 +55,6 @@ OBJECTS := \
   $(OBJDIR)/MainContentComponent_19da5e66.o \
   $(OBJDIR)/Main_90ebc5c2.o \
   $(OBJDIR)/MainWindow_499ac812.o \
-  $(OBJDIR)/MoveListComponent_762f700f.o \
   $(OBJDIR)/bitbase_1b2588be.o \
   $(OBJDIR)/bitboard_58bb85e3.o \
   $(OBJDIR)/misc_90c689d6.o \
@@ -119,11 +118,6 @@ $(OBJDIR)/Main_90ebc5c2.o: ../../Source/Main.cpp
 $(OBJDIR)/MainWindow_499ac812.o: ../../Source/MainWindow.cpp
 	-@mkdir -p $(OBJDIR)
 	@echo "Compiling MainWindow.cpp"
-	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
-
-$(OBJDIR)/MoveListComponent_762f700f.o: ../../Source/MoveListComponent.cpp
-	-@mkdir -p $(OBJDIR)
-	@echo "Compiling MoveListComponent.cpp"
 	@$(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 
 $(OBJDIR)/bitbase_1b2588be.o: ../../Source/BoardPosition/stockfish/bitbase.cpp

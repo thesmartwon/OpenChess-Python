@@ -23,7 +23,6 @@
 		50A2ABBE1A5211986FDFCF4A = {isa = PBXBuildFile; fileRef = 468578E9C8ABA4225947E7DB; };
 		1037173DB58D71728E15CFB9 = {isa = PBXBuildFile; fileRef = D793A17EB9895B6917460714; };
 		41189CAEDE11AAF15B954830 = {isa = PBXBuildFile; fileRef = B43E95D5D7DCE2973DA67D68; };
-		9BA1824BB54213BB4861FECF = {isa = PBXBuildFile; fileRef = 8085E1CF0FB605196D3AA050; };
 		16A71DA1B04D40E42819FCEF = {isa = PBXBuildFile; fileRef = C1A33344F2B0C80E821CB829; };
 		CDC7BDFCEAD488B2EAD6DD7A = {isa = PBXBuildFile; fileRef = 0C12D547760843DA68AFA65F; };
 		DC03732ECD5D4AD2DE25DDF2 = {isa = PBXBuildFile; fileRef = 59F662C9B49EF204F0309EC0; };
@@ -448,7 +447,6 @@
 		8048DB734CDBE3242C625341 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_CodeTokeniser.h"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_gui_extra/code_editor/juce_CodeTokeniser.h"; sourceTree = "SOURCE_ROOT"; };
 		805F2C0C4189C448044836CE = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_ProgressBar.h"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_gui_basics/widgets/juce_ProgressBar.h"; sourceTree = "SOURCE_ROOT"; };
 		806597C63A755AA4EFE4C4D9 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_CoreAudioFormat.h"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_audio_formats/codecs/juce_CoreAudioFormat.h"; sourceTree = "SOURCE_ROOT"; };
-		8085E1CF0FB605196D3AA050 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MoveListComponent.cpp; path = ../../Source/MoveListComponent.cpp; sourceTree = "SOURCE_ROOT"; };
 		8093CEBBB0BD7A11441E808B = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_LAMEEncoderAudioFormat.cpp"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_audio_formats/codecs/juce_LAMEEncoderAudioFormat.cpp"; sourceTree = "SOURCE_ROOT"; };
 		809C22E0DBB2984BA517C6B8 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_OwnedArray.h"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_core/containers/juce_OwnedArray.h"; sourceTree = "SOURCE_ROOT"; };
 		80B8A30CD5ADB3B60C1A4B78 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_ReverbAudioSource.h"; path = "../../../../Dev/JUCE-WINDOWS/modules/juce_audio_basics/sources/juce_ReverbAudioSource.h"; sourceTree = "SOURCE_ROOT"; };
@@ -869,6 +867,7 @@
 					53B3B1FF91E13B8020BD3912,
 					57BE586BD898B6523CD6FB0B, ); name = BoardPosition; sourceTree = "<group>"; };
 		943ED1495177F407694CED62 = {isa = PBXGroup; children = (
+					5ED62BEAB4939C5D4F8DEA1D,
 					E71E4B2D270D874B9C794A67,
 					715BAD72D8B9ECF3360D4E58,
 					FD6AC6AFB25C0ED4BB4F5109,
@@ -880,8 +879,6 @@
 					D793A17EB9895B6917460714,
 					B43E95D5D7DCE2973DA67D68,
 					99EE79B3718A7615A0A693F9,
-					8085E1CF0FB605196D3AA050,
-					5ED62BEAB4939C5D4F8DEA1D,
 					85CC213BCF86EFF8067CDCF3,
 					54E6D02441EA7038C99F6D75,
 					9F1BDA78E33152EB00C8A172, ); name = Source; sourceTree = "<group>"; };
@@ -1913,7 +1910,6 @@
 					50A2ABBE1A5211986FDFCF4A,
 					1037173DB58D71728E15CFB9,
 					41189CAEDE11AAF15B954830,
-					9BA1824BB54213BB4861FECF,
 					16A71DA1B04D40E42819FCEF,
 					CDC7BDFCEAD488B2EAD6DD7A,
 					DC03732ECD5D4AD2DE25DDF2,

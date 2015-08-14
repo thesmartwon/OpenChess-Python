@@ -5,6 +5,8 @@
               jucerVersion="3.2.0">
   <MAINGROUP id="i8PJNo" name="OpenChess">
     <GROUP id="{96BAAB6A-1C9E-96C7-7221-D7D5AAAA5B2F}" name="Source">
+      <FILE id="gDIeGP" name="MoveListComponent.h" compile="0" resource="0"
+            file="Source/MoveListComponent.h"/>
       <FILE id="x5wa5Y" name="BoardComponent.cpp" compile="1" resource="0"
             file="Source/BoardComponent.cpp"/>
       <FILE id="r42KYW" name="BoardComponent.h" compile="0" resource="0"
@@ -24,10 +26,6 @@
       <FILE id="gbW69r" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="YLJY14" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
       <FILE id="CDPlcf" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
-      <FILE id="TZ0cH3" name="MoveListComponent.cpp" compile="1" resource="0"
-            file="Source/MoveListComponent.cpp"/>
-      <FILE id="g9SeC9" name="MoveListComponent.h" compile="0" resource="0"
-            file="Source/MoveListComponent.h"/>
       <FILE id="wZREyq" name="types.h" compile="0" resource="0" file="Source/types.h"/>
       <GROUP id="{09F1C8D7-ACAF-175E-DFB3-1E7EC5D69DCC}" name="Resources">
         <FILE id="G5CzDa" name="board.jpg" compile="0" resource="1" file="Source/Resources/board.jpg"/>

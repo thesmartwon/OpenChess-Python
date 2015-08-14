@@ -11,14 +11,15 @@
 //==============================================================================
 MainContentComponent::MainContentComponent ()
 {
+    menuBarHeight = 24;
     addAndMakeVisible (menuBar = new MenuBarComponent(this));
-    menuBar->setBounds (0, 0, 886, 24);
+    menuBar->setBounds (0, 0, 1351, menuBarHeight);
     addAndMakeVisible (boardTabsComponent = new BoardTabsComponent ());
     boardTabsComponent->setBounds (0,
-                                  24,
+                                  menuBarHeight,
                                   boardTabsComponent->getWidth (),
                                   boardTabsComponent->getHeight ());
-    setSize (886, 790);
+    setSize (1351, 792);
 
 
 }
@@ -58,9 +59,10 @@ void MainContentComponent::resized()
     // update their positions.
     setBounds (getBoundsInParent ());
     boardTabsComponent->setBounds (0,
-                                   24,
-                                   boardTabsComponent->getWidth (),
-                                   boardTabsComponent->getHeight ());
+                                   menuBarHeight,
+                                   getWidth (),
+                                   getHeight ());
+    menuBar->setBounds (0, 0, boardTabsComponent->getWidth (), menuBarHeight);
 }
 
 PopupMenu MainContentComponent::getDummyPopupMenu ()

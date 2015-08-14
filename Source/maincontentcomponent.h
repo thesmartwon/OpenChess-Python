@@ -42,7 +42,7 @@ private:
     ScopedPointer<BoardTabsComponent> boardTabsComponent;
     ScopedPointer<MenuBarComponent> menuBar;
     PopupMenu getDummyPopupMenu ();
-    
+    int menuBarHeight;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

@@ -70,18 +70,17 @@ private:
     Image bPawnImage, bRookImage, bKnightImage, bBishopImage, bKingImage, bQueenImage;
 
     Stockfish::Position* position;
-    juce::Array<Stockfish::Move> moveList;
     int sidePerspective;
     Point<int> mouseDownRankFile, mouseUpRankFile, mouseXY, selectedSquare;
     bool pieceOnBoard[64];
     bool mouseIsDown;
+    int squareWidth;
+
+    OpenGLContext openGLContext;
 
     void mouseDown (const MouseEvent& event) override;
     void mouseUp (const MouseEvent& event) override;
     void mouseDrag (const MouseEvent& event) override;
-
-    OpenGLContext openGLContext;
-
     virtual void handleMessage (const Message & message) override {};
     //[/UserVariables]
 

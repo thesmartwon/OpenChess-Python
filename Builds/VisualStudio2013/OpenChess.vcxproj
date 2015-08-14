@@ -135,7 +135,6 @@
     <ClCompile Include="..\..\Source\MainContentComponent.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
     <ClCompile Include="..\..\Source\MainWindow.cpp"/>
-    <ClCompile Include="..\..\Source\MoveListComponent.cpp"/>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitbase.cpp"/>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\bitboard.cpp"/>
     <ClCompile Include="..\..\Source\BoardPosition\stockfish\misc.cpp"/>
@@ -1109,12 +1108,12 @@
     <ClCompile Include="..\..\..\..\Dev\JUCE-WINDOWS\modules\juce_opengl\juce_opengl.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\MoveListComponent.h"/>
     <ClInclude Include="..\..\Source\BoardComponent.h"/>
     <ClInclude Include="..\..\Source\BoardTabbedComponent.h"/>
     <ClInclude Include="..\..\Source\BoardTabsComponent.h"/>
     <ClInclude Include="..\..\Source\MainContentComponent.h"/>
     <ClInclude Include="..\..\Source\MainWindow.h"/>
-    <ClInclude Include="..\..\Source\MoveListComponent.h"/>
     <ClInclude Include="..\..\Source\types.h"/>
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitboard.h"/>
     <ClInclude Include="..\..\Source\BoardPosition\stockfish\bitcount.h"/>

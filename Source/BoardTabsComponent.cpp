@@ -64,6 +64,7 @@ BoardTabsComponent::BoardTabsComponent ()
 
 
     //[Constructor] You can add your own custom stuff here..
+    setOpaque (true);
     //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
     //[/Constructor]
 }

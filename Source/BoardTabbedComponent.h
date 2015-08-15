@@ -24,6 +24,7 @@
 #include "BoardComponent.h"
 #include "MoveListComponent.h"
 #include "JuceHeader.h"
+#include "types.h"
 #include <sstream>
 #include <iomanip>
 

@@ -19,6 +19,13 @@ struct MoveNode
     }
 };
 
+enum PieceColor
+{
+    white = 0,
+    black = 1,
+    noColor = 2
+};
+
 enum MessageType
 {
     MSG_GENERIC_MESSAGE,

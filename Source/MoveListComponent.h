@@ -39,12 +39,12 @@ public:
            drawing code..
         */
 
-        g.fillAll (Colours::white);   // clear the background
+        g.fillAll (Colours::aquamarine);   // clear the background
 
-        g.setColour (Colours::grey);
+        g.setColour (Colours::black);
         g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
 
-        g.setColour (Colours::lightblue);
+        g.setColour (Colours::white);
         g.setFont (14.0f);
         g.drawText ("MoveListRectangle", getLocalBounds(),
                     Justification::centred, true);   // draw some placeholder text
@@ -54,7 +54,8 @@ public:
     {
         // This method is where you should set the bounds of any child
         // components that your component contains..
-        setBounds(0,0,601,435);
+        //scrollbasrwidth is 16
+        //setBounds(0,0,getBoundsInParent().getWidth() - 8,600);
     }
 
 private:

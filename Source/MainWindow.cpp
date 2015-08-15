@@ -8,6 +8,7 @@ MainWindow::MainWindow (String name)
                    DocumentWindow::allButtons) 
 {
     setUsingNativeTitleBar (true);
+    assert (JUCE_OPENGL, "No OpenGL drivers found");
     //mainContentComponent = new MainContentComponent ();
     setContentOwned (mainComponent = new MainContentComponent (), true);
 

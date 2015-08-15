@@ -38,10 +38,10 @@ BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
     addAndMakeVisible (txtEngineOutput = new TextEditor ("new text editor"));
     txtEngineOutput->setMultiLine (true);
     txtEngineOutput->setReturnKeyStartsNewLine (false);
-    txtEngineOutput->setReadOnly (false);
+    txtEngineOutput->setReadOnly (true);
     txtEngineOutput->setScrollbarsShown (true);
     txtEngineOutput->setCaretVisible (true);
-    txtEngineOutput->setPopupMenuEnabled (true);
+    txtEngineOutput->setPopupMenuEnabled (false);
     txtEngineOutput->setText (TRANS("Engine output"));
 
     addAndMakeVisible (vwMoveList = new Viewport ("new viewport"));
@@ -84,7 +84,6 @@ BoardTabbedComponent::~BoardTabbedComponent()
 void BoardTabbedComponent::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
-
     //[/UserPrePaint]
 
     g.fillAll (Colours::white);
@@ -98,10 +97,14 @@ void BoardTabbedComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    cmpBoard->setBounds (5, 5, proportionOfWidth (0.5387f), proportionOfHeight (0.9733f));
+    cmpBoard->setBounds (5, 5, proportionOfWidth (0.5389f), proportionOfHeight (0.9733f));
     txtEngineOutput->setBounds (getWidth() - 8 - proportionOfWidth (0.4478f), 728 - 278, proportionOfWidth (0.4478f), 278);
     vwMoveList->setBounds (getWidth() - 7 - proportionOfWidth (0.4449f), 5, proportionOfWidth (0.4449f), 435);
     //[UserResized] Add your own custom resize handling here..
+    vwMoveList->getViewedComponent()->setBounds (getWidth () - 7 - proportionOfWidth (0.4449f),
+                                                 5,
+        vwMoveList->getVerticalScrollBar ()->isVisible () ? proportionOfWidth (0.4449f) - vwMoveList->getVerticalScrollBar()->getWidth() : proportionOfWidth (0.4449f),
+                                                 800);
     //[/UserResized]
 }
 
@@ -111,7 +114,7 @@ void BoardTabbedComponent::resized()
 void BoardTabbedComponent::handleMessage (const Message & message)
 {
     // this method is called by the board when a (half) move has happened, so we should send the info
-    // other placesc.
+    // other places.
 
     if (((GenericMessage*)(&message))->messageType = MSG_MOVEMESSAGE)
     {
@@ -185,7 +188,7 @@ BEGIN_JUCER_METADATA
   <TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
               virtualName="" explicitFocusOrder="0" pos="8Rr 728r 44.782% 278"
               initialText="Engine output" multiline="1" retKeyStartsLine="0"
-              readonly="0" scrollbars="1" caret="1" popupmenu="1"/>
+              readonly="1" scrollbars="1" caret="1" popupmenu="0"/>
   <VIEWPORT name="new viewport" id="fee84cd0278f227b" memberName="vwMoveList"
             virtualName="" explicitFocusOrder="0" pos="7Rr 5 44.486% 435"
             vscroll="1" hscroll="1" scrollbarThickness="18" contentType="2"

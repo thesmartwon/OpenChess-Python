@@ -17,6 +17,13 @@ struct MoveNode
         this->move = move;
         this->comments = comments;
     }
+    bool MoveNode::operator==(MoveNode &rhs)
+    {
+        if (this->continuation == rhs.continuation && this->variation == rhs.variation
+            && this->move == rhs.move && this->comments == rhs.comments)
+            return true;
+        return false;
+    }
 };
 
 enum PieceColor
@@ -48,10 +55,18 @@ public:
     Stockfish::Move move;
 };
 
+// contains a node in the movelist tree and the text of the move
 struct MoveListItem
 {
-    MoveListItem () { moveNode = {}; lblMove = nullptr; }
-    MoveListItem (MoveNode moveNode, Label* lblMove) { this->moveNode = moveNode; this->lblMove = lblMove; }
-    ScopedPointer<Label> lblMove;
+    MoveListItem () { moveNode = {}; moveLabelText = String::empty; }
+    MoveListItem (const MoveListItem& m) { this->moveNode = m.moveNode; this->moveLabelText = m.moveLabelText; }
+    MoveListItem (MoveNode moveNode, String moveText) { this->moveNode = moveNode; this->moveLabelText = moveText; }
+    String moveLabelText;
     MoveNode moveNode;
+    bool MoveListItem::operator==(MoveListItem &rhs)
+    {
+        if (this->moveNode == rhs.moveNode && this->moveLabelText == rhs.moveLabelText)
+            return true;
+        return false;
+    }
 };

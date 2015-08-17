@@ -2,23 +2,37 @@
 
 BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Position* pos)
 {
+    squareWidth = getWidth() / 8;
+    boardImageOriginal = boardImages[0];
+    wKingImageOriginal = boardImages[1];
+    wQueenImageOriginal = boardImages[2];
+    wBishopImageOriginal = boardImages[3];
+    wKnightImageOriginal = boardImages[4];
+    wRookImageOriginal = boardImages[5];
+    wPawnImageOriginal = boardImages[6];
+    bKingImageOriginal = boardImages[7];
+    bQueenImageOriginal = boardImages[8];
+    bBishopImageOriginal = boardImages[9];
+    bKnightImageOriginal = boardImages[10];
+    bRookImageOriginal = boardImages[11];
+    bPawnImageOriginal = boardImages[12];
 
     setSize (728, 728);
 
-
-    boardImage = boardImages[0];
-    wKingImage = boardImages[1];
-    wQueenImage = boardImages[2];
-    wBishopImage = boardImages[3];
-    wKnightImage = boardImages[4];
-    wRookImage = boardImages[5];
-    wPawnImage = boardImages[6];
-    bKingImage = boardImages[7];
-    bQueenImage = boardImages[8];
-    bBishopImage = boardImages[9];
-    bKnightImage = boardImages[10];
-    bRookImage = boardImages[11];
-    bPawnImage = boardImages[12];
+    boardImage = boardImageOriginal.rescaled (getWidth (), getHeight ());
+    wKingImage = wKingImageOriginal.rescaled (squareWidth, squareWidth);
+    wQueenImage = wQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    wBishopImage = wBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    wKnightImage = wKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    wRookImage = wRookImageOriginal.rescaled (squareWidth, squareWidth);
+    wPawnImage = wPawnImageOriginal.rescaled (squareWidth, squareWidth);
+    bKingImage = bKingImageOriginal.rescaled (squareWidth, squareWidth);
+    bQueenImage = bQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    bBishopImage = bBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
+    bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
+    
     position = pos;
     sidePerspective = white;
     mouseDownRankFile.addXY (-1, -1);
@@ -28,33 +42,53 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
     //a1 is 0, b1 is 2, etc.
     for (int i = 0; i < 64; i++)
         pieceOnBoard[i] = true;
-    mouseIsDown = false;
-    squareWidth = getWidth() / 8;
+    mouseIsDown = resizing = false;
 
     setOpaque (true);
-    //openGLContext.setRenderer (this);
-    //openGLContext.setContinuousRepainting (true);
-    //openGLContext.setComponentPaintingEnabled (true);
-    openGLContext.attachTo (*this);
+    setSize (728, 728);
 }
 
 BoardComponent::~BoardComponent()
 {
-    if (openGLContext.getTargetComponent() == this)
-        openGLContext.detach ();
+
 }
 
 
 void BoardComponent::paint (Graphics& g)
 {
-    bool pieceHovering = false;
-    Image myHoveringImage;
+    // we only want to resize our pieces once, constant resizing every frame is expensive
+    if (!boardImage.isNull () && !resizing && boardImage.getWidth () != getWidth () && getWidth () != 0)
+        boardImage = boardImageOriginal.rescaled (getWidth (), getHeight ());
+    if (!wKingImage.isNull () && !resizing && wKingImage.getWidth () != squareWidth && squareWidth != 0)
+        wKingImage = wKingImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wQueenImage.isNull () && !resizing && wQueenImage.getWidth () != squareWidth && squareWidth != 0)
+        wQueenImage = wQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wBishopImage.isNull () && !resizing && wBishopImage.getWidth () != squareWidth && squareWidth != 0)
+        wBishopImage = wBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wKnightImage.isNull () && !resizing && wKnightImage.getWidth () != squareWidth && squareWidth != 0)
+        wKnightImage = wKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wRookImage.isNull () && !resizing && wRookImage.getWidth () != squareWidth && squareWidth != 0)
+        wRookImage = wRookImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wPawnImage.isNull () && !resizing && wPawnImage.getWidth () != squareWidth && squareWidth != 0)
+        wPawnImage = wPawnImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bKingImage.isNull () && !resizing && bKingImage.getWidth () != squareWidth && squareWidth != 0)
+        bKingImage = bKingImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bQueenImage.isNull () && !resizing && bQueenImage.getWidth () != squareWidth && squareWidth != 0)
+        bQueenImage = bQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bBishopImage.isNull () && !resizing && bBishopImage.getWidth () != squareWidth && squareWidth != 0)
+        bBishopImage = bBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bKnightImage.isNull () && !resizing && bKnightImage.getWidth () != squareWidth && squareWidth != 0)
+        bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bRookImage.isNull () && !resizing && bRookImage.getWidth () != squareWidth && squareWidth != 0)
+        bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bPawnImage.isNull () && !resizing && bPawnImage.getWidth () != squareWidth && squareWidth != 0)
+        bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
 
     //the background
     g.drawImage (boardImage,
         0, 0, getWidth(), getHeight(),
         0, 0, boardImage.getWidth (), boardImage.getHeight ());
-    
+
     //shading the darker squares
     g.setColour (Colour::fromRGBA (0x00, 0x00, 0x00, 0x42));
     for (int i = 0; i < 8; ++i)
@@ -63,13 +97,17 @@ void BoardComponent::paint (Graphics& g)
             g.fillRect (j * squareWidth * 2 + !(i%2) * squareWidth, i*squareWidth, squareWidth, squareWidth);
         }
     g.setColour (Colours::black);
+
     //gridlines
     for (int i = 0; i < 7; ++i)
     {
         g.drawLine (squareWidth * (i + 1), 0, squareWidth * (i + 1), getWidth(), 2);
         g.drawLine (0, squareWidth * (i + 1), getWidth(), squareWidth * (i + 1), 2);
     }
+
     //pieces
+    bool pieceHovering = false;
+    Image myHoveringImage;
     for (Stockfish::Rank ranks = Stockfish::RANK_1; ranks <= Stockfish::RANK_8; ++ranks)
     {
         for (Stockfish::File files = Stockfish::FILE_A; files <= Stockfish::FILE_H; ++files)
@@ -144,9 +182,10 @@ void BoardComponent::paint (Graphics& g)
             0, 0, myHoveringImage.getWidth (), myHoveringImage.getHeight ());
         pieceHovering = false;
     }
+    resizing = false;
     //for debugging
     g.setColour (Colours::red);
-    g.drawRect (0,0,getWidth(),getHeight(), 2);
+    g.drawRect (0, 0, getWidth(),getHeight(), 2);
 }
 
 void BoardComponent::resized()
@@ -165,8 +204,8 @@ void BoardComponent::resized()
         setBounds (newBounds);
         squareWidth = getHeight() / 8;
     }
+    resizing = true;
 }
-
 
 //Stockfish isn't easy going about special moves like castling and promotions. It wants to encode
 //those moves with its own special codes and is particular about the way you create them.
@@ -297,6 +336,7 @@ void BoardComponent::doMove (const Stockfish::Move move)
         mes->move = move;
         mes->moveSAN = Stockfish::UCI::move_to_san (*position, move);
         mes->moveUCI = Stockfish::UCI::move (move, false);
+
         //Stockfish wants a new stateinfo for each move.... /sigh
         position->do_move (move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
 

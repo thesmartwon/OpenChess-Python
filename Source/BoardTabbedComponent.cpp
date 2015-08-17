@@ -52,9 +52,11 @@ BoardTabbedComponent::BoardTabbedComponent ()
 
     addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
     tabbedComponent->setTabBarDepth (30);
-    tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 2"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    for (int i = 0; i < tabComponents.size (); ++i)
+        tabbedComponent->addTab (TRANS ("Game " + String(i)), Colours::lightgrey, tabComponents[i], true);
     tabbedComponent->setCurrentTabIndex (0);
 
 
@@ -106,7 +108,17 @@ void BoardTabbedComponent::resized()
 
 
 
+
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
+const void BoardTabbedComponent::undoMove ()
+{
+    tabComponents[tabbedComponent->getCurrentTabIndex ()]->undoMove();
+}
+
+const void BoardTabbedComponent::redoMove ()
+{
+    tabComponents[tabbedComponent->getCurrentTabIndex ()]->redoMove ();
+}
 //[/MiscUserCode]
 
 

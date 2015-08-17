@@ -23,10 +23,6 @@ class MainContentComponent   : public Component,
 							   public ApplicationCommandTarget
 {
 public:
-    ApplicationCommandTarget * getNextCommandTarget () override;
-    bool perform (const InvocationInfo & info) override;
-    void getAllCommands (Array<CommandID>& commands) override {};
-    void getCommandInfo (CommandID commandID, ApplicationCommandInfo & result) override {};
     //==============================================================================
     MainContentComponent ();
     ~MainContentComponent ();
@@ -41,9 +37,18 @@ private:
     //==============================================================================
     ScopedPointer<BoardTabbedComponent> boardTabbedComponent;
     ScopedPointer<MenuBarComponent> menuBar;
+    ApplicationCommandTarget * getNextCommandTarget () override;
+    bool perform (const InvocationInfo & info) override;
+    void getAllCommands (Array<CommandID>& commands) override;
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo & result) override;
     PopupMenu getDummyPopupMenu ();
     int menuBarHeight;
 
+    LookAndFeel_V1 lookAndFeelV1;
+    LookAndFeel_V2 lookAndFeelV2;
+    LookAndFeel_V3 lookAndFeelV3;
+
+    OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

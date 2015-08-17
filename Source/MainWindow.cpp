@@ -8,9 +8,9 @@ MainWindow::MainWindow (String name)
                    DocumentWindow::allButtons) 
 {
     setUsingNativeTitleBar (true);
-    assert (JUCE_OPENGL, "No OpenGL drivers found");
+    jassert (JUCE_OPENGL);
     //mainContentComponent = new MainContentComponent ();
-    setContentOwned (mainComponent = new MainContentComponent (), true);
+    setContentOwned (mainContentComponent = new MainContentComponent (), true);
 
     centreWithSize (getWidth (), getHeight ());
     setVisible (true);
@@ -31,7 +31,7 @@ MainWindow::MainWindow (String name)
 MainWindow::~MainWindow ()
 {
     applicationCommandManager = nullptr;
-
+    mainContentComponent = nullptr;
     //if (openGLContext.isAttached())
     //    openGLContext.detach ();
 }
@@ -58,6 +58,7 @@ void MainWindow::handleAsyncUpdate ()
     // This registers all of our commands with the command manager but has to be done after the window has
     // been created so we can find the number of rendering engines available
     ApplicationCommandManager& commandManager = MainWindow::getApplicationCommandManager ();
+    commandManager.registerAllCommandsForTarget (dynamic_cast<MainContentComponent*> (mainContentComponent.get()));
     commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance ());
 }
 

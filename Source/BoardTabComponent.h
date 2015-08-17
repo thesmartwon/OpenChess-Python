@@ -50,6 +50,8 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    void undoMove();
+    void redoMove();
     //[/UserMethods]
 
     void paint (Graphics& g);
@@ -61,14 +63,16 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Stockfish::Position position;
     void handleMessage (const Message & message) override;
-    Array<ScopedPointer<MoveListItem>> moveListLabels;
-    MoveListComponent moveListComp;
+    OwnedArray<MoveListItem> moveListItems;
+    OwnedArray<MoveListItem> moveListRedoQueue;
+    MoveListComponent* moveListComp;
+    void updatePosition ();
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<BoardComponent> cmpBoard;
-    ScopedPointer<TextEditor> txtEngineOutput;
-    ScopedPointer<Viewport> vwMoveList;
+    ScopedPointer<BoardComponent> boardComponent;
+    ScopedPointer<TextEditor> engineOutputText;
+    ScopedPointer<Viewport> moveListView;
 
 
     //==============================================================================

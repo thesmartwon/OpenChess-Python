@@ -44,16 +44,18 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+    const void undoMove();
+    const void redoMove();
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
 
 
-
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     juce::Array<Image> boardImages;
+    juce::Array<BoardTabComponent*> tabComponents;
     //[/UserVariables]
 
     //==============================================================================

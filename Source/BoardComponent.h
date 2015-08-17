@@ -7,7 +7,6 @@
 #include "types.h"
 
 class BoardComponent  : public Component,
-                        public MouseListener,
                         public MessageListener
 {
 public:
@@ -18,6 +17,9 @@ public:
     void resized();
 
 private:
+    Image boardImageOriginal;
+    Image wPawnImageOriginal, wRookImageOriginal, wKnightImageOriginal, wBishopImageOriginal, wKingImageOriginal, wQueenImageOriginal;
+    Image bPawnImageOriginal, bRookImageOriginal, bKnightImageOriginal, bBishopImageOriginal, bKingImageOriginal, bQueenImageOriginal;
     Image boardImage;
     Image wPawnImage, wRookImage, wKnightImage, wBishopImage, wKingImage, wQueenImage;
     Image bPawnImage, bRookImage, bKnightImage, bBishopImage, bKingImage, bQueenImage;
@@ -30,7 +32,7 @@ private:
     bool mouseIsDown;
     int squareWidth;
 
-    OpenGLContext openGLContext;
+    bool resizing;
 
     void doMove (const Stockfish::Move m);
     Stockfish::Move createMove (Stockfish::Square fromSquare, Stockfish::Square toSquare);

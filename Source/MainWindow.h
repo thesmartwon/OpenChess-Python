@@ -25,10 +25,24 @@ public:
     you really have to override any DocumentWindow methods, make sure your
     subclass also calls the superclass's method.
     */
+    //==============================================================================
+    enum CommandIDs
+    {
+        undo = 0x2100,
+        redo = 0x2101,
+
+        newFile = 0x2000,
+        openFile = 0x2001,
+        recentFiles = 0x2002,
+        saveFiles = 0x2003,
+
+        useLookAndFeelV1 = 0x200b,
+        useLookAndFeelV2 = 0x200c,
+        useLookAndFeelV3 = 0x200d,
+    };
 
 private:
-    //ScopedPointer<Component> mainContentComponent;
-    ScopedPointer<Component> mainComponent;
+    ScopedPointer<Component> mainContentComponent;
     ScopedPointer<BubbleMessageComponent> currentBubbleMessage;
     void handleAsyncUpdate () override;
 

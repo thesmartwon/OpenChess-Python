@@ -13,20 +13,13 @@ MainContentComponent::MainContentComponent ()
 {
     menuBarHeight = 24;
     addAndMakeVisible (menuBar = new MenuBarComponent(this));
-    menuBar->setBounds (0, 0, 1351, menuBarHeight);
-    addAndMakeVisible (boardTabsComponent = new BoardTabsComponent ());
-    boardTabsComponent->setBounds (0,
-                                  menuBarHeight,
-                                  boardTabsComponent->getWidth (),
-                                  boardTabsComponent->getHeight ());
+    addAndMakeVisible (boardTabbedComponent = new BoardTabbedComponent ());
     setSize (1351, 792);
-
 
 }
 
 MainContentComponent::~MainContentComponent ()
 {
-    //this is a test hello therr yayyyy
 }
 
 void MainContentComponent::paint (Graphics& g)
@@ -58,11 +51,11 @@ void MainContentComponent::resized()
     // If you add any child components, this is where you should
     // update their positions.
     setBounds (getBoundsInParent ());
-    boardTabsComponent->setBounds (0,
+	boardTabbedComponent->setBounds (0,
                                    menuBarHeight,
                                    getWidth (),
-                                   getHeight ());
-    menuBar->setBounds (0, 0, boardTabsComponent->getWidth (), menuBarHeight);
+                                   getHeight () - menuBarHeight);
+    menuBar->setBounds (0, 0, boardTabbedComponent->getWidth (), menuBarHeight);
 }
 
 PopupMenu MainContentComponent::getDummyPopupMenu ()
@@ -116,7 +109,14 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& /*
     } else if (menuIndex == 1)
     {
         menu.addSeparator ();
-    }  else if (menuIndex == 3)
+    } else if (menuIndex == 2)
+	{
+		menu.addItem(3000, "Tabs at Top", true, false);
+		menu.addItem(3001, "Tabs at Bottom", true, false);
+		menu.addItem(3002, "Tabs at Left", true, false);
+		menu.addItem(3003, "Tabs at Right", true, false);
+		menu.addSeparator();
+	} else if (menuIndex == 3)
     {
         return getDummyPopupMenu ();
     }
@@ -128,7 +128,7 @@ void MainContentComponent::menuItemSelected (int menuItemID, int)
 {
     if (menuItemID >= 3000 && menuItemID <= 3003)
     {
-        if (TabbedComponent* tabs = findParentComponentOfClass<TabbedComponent> ())
+        if (boardTabbedComponent != nullptr)
         {
             TabbedButtonBar::Orientation o = TabbedButtonBar::TabsAtTop;
 
@@ -136,7 +136,7 @@ void MainContentComponent::menuItemSelected (int menuItemID, int)
             if (menuItemID == 3002) o = TabbedButtonBar::TabsAtLeft;
             if (menuItemID == 3003) o = TabbedButtonBar::TabsAtRight;
 
-            tabs->setOrientation (o);
+			//boardTabbedComponent->setOrientation(o);
         }
     }
 }

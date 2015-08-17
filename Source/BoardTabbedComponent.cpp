@@ -18,6 +18,7 @@
 */
 
 //[Headers] You can add your own extra header files here...
+
 //[/Headers]
 
 #include "BoardTabbedComponent.h"
@@ -27,42 +28,45 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-BoardTabbedComponent::BoardTabbedComponent (juce::Array<Image> boardImages)
+BoardTabbedComponent::BoardTabbedComponent ()
 {
     //[Constructor_pre] You can add your own custom stuff here..
+    boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/board.jpg")));
+    boardImages.add (ImageCache::getFromFile (File::getCurrentWorkingDirectory ().getChildFile ("/Resources/Chess_Pieces_Sprite.png")));
+
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (0, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 2, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 3, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 4, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 5, 0, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (0, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 2, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 3, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 4, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 5, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
+    boardImages.remove (1); //don't need the image with all the pieces anymore
     //[/Constructor_pre]
 
-    addAndMakeVisible (cmpBoard = new BoardComponent (boardImages, &position));
-    cmpBoard->setName ("new board");
-
-    addAndMakeVisible (txtEngineOutput = new TextEditor ("new text editor"));
-    txtEngineOutput->setMultiLine (true);
-    txtEngineOutput->setReturnKeyStartsNewLine (false);
-    txtEngineOutput->setReadOnly (true);
-    txtEngineOutput->setScrollbarsShown (true);
-    txtEngineOutput->setCaretVisible (true);
-    txtEngineOutput->setPopupMenuEnabled (false);
-    txtEngineOutput->setText (TRANS("Engine output"));
-
-    addAndMakeVisible (vwMoveList = new Viewport ("new viewport"));
+    addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
+    tabbedComponent->setTabBarDepth (30);
+    tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
+    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
+    tabbedComponent->addTab (TRANS("Game 2"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
+    tabbedComponent->setCurrentTabIndex (0);
 
 
     //[UserPreSize]
-    vwMoveList->setViewedComponent (new MoveListComponent());
     //[/UserPreSize]
 
-    setSize (1351, 748);
+    setSize (1351, 778);
 
 
     //[Constructor] You can add your own custom stuff here..
+    setOpaque (true);
     //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
-
-    Stockfish::Bitboards::init ();
-    Stockfish::Position::init ();
-    Stockfish::Bitbases::init ();
-
-    position.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-
     //[/Constructor]
 }
 
@@ -71,9 +75,7 @@ BoardTabbedComponent::~BoardTabbedComponent()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
-    cmpBoard = nullptr;
-    txtEngineOutput = nullptr;
-    vwMoveList = nullptr;
+    tabbedComponent = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -97,74 +99,14 @@ void BoardTabbedComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    cmpBoard->setBounds (5, 5, proportionOfWidth (0.5389f), proportionOfHeight (0.9733f));
-    txtEngineOutput->setBounds (getWidth() - 8 - proportionOfWidth (0.4478f), 728 - 278, proportionOfWidth (0.4478f), 278);
-    vwMoveList->setBounds (getWidth() - 7 - proportionOfWidth (0.4449f), 5, proportionOfWidth (0.4449f), 435);
+    tabbedComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
     //[UserResized] Add your own custom resize handling here..
-    vwMoveList->getViewedComponent()->setBounds (getWidth () - 7 - proportionOfWidth (0.4449f),
-                                                 5,
-        vwMoveList->getVerticalScrollBar ()->isVisible () ? proportionOfWidth (0.4449f) - vwMoveList->getVerticalScrollBar()->getWidth() : proportionOfWidth (0.4449f),
-                                                 800);
     //[/UserResized]
 }
 
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-void BoardTabbedComponent::handleMessage (const Message & message)
-{
-    // this method is called by the board when a (half) move has happened, so we should send the info
-    // other places.
-
-    if (((GenericMessage*)(&message))->messageType = MSG_MOVEMESSAGE)
-    {
-        //update movelist
-		//juce::String move = Stockfish::UCI::move(((MoveMessage*)(&message))->move, false);
-        MoveMessage* moveMessage = ((MoveMessage*)(&message));
-		juce::String moveText = moveMessage->moveSAN;
-
-		// TODO: Option to have inline or have with a newline between every ply
-       /* std::stringstream stream;
-		if (position.game_ply() % 2 == 1)
-		{
-            stream << txtMoveHist->getText ()
-                   << std::right << std::setw (3) << std::setfill (' ')
-                   << std::to_string (position.game_ply () - position.game_ply () / 2)
-                   << ".";
-            stream << std::left << std::setw (8) << std::setfill (' ')
-                   << moveText;
-			txtMoveHist->setText(stream.str());
-		}
-        else
-        {
-            stream << txtMoveHist->getText ()
-                   << std::left << std::setw (8) << std::setfill (' ') << moveText << "\n";
-            txtMoveHist->setText (stream.str ());
-        }*/
-        MoveNode newNode;
-        newNode.comments = String::empty;
-        newNode.continuation = nullptr;
-        newNode.move = moveMessage->move;
-        newNode.variation = nullptr;
-        Label* newLabel = new Label ();
-        if (position.game_ply () % 2 == 1)
-            newLabel->setText(std::to_string (position.game_ply () - position.game_ply () / 2) + "." + moveText, NotificationType::dontSendNotification);
-        else
-            newLabel->setText (moveText, NotificationType::dontSendNotification);
-        newLabel->setTopLeftPosition (865 - 20, 20);
-        this->toFront (newLabel);
-        newLabel->setEditable (false);
-        newLabel->setBounds (865 - 20, 20, 100, 100);
-        newLabel->addMouseListener (this, false);
-        addAndMakeVisible (newLabel);
-        MoveListItem* newMoveListItem = new MoveListItem (newNode, newLabel);
-        moveListLabels.add (newMoveListItem);
-        repaint ();
-        //update engine
-    }
-    //txtMoveHist->setText (txtMoveHist->getText () + message);
-
-}
 //[/MiscUserCode]
 
 
@@ -178,21 +120,20 @@ void BoardTabbedComponent::handleMessage (const Message & message)
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="BoardTabbedComponent" componentName=""
-                 parentClasses="public Component, public MessageListener" constructorParams="juce::Array&lt;Image&gt; boardImages"
-                 variableInitialisers="" snapPixels="8" snapActive="0" snapShown="1"
-                 overlayOpacity="0.330" fixedSize="1" initialWidth="1351" initialHeight="748">
+                 parentClasses="public Component" constructorParams="" variableInitialisers=""
+                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
+                 fixedSize="0" initialWidth="1351" initialHeight="778">
   <BACKGROUND backgroundColour="ffffffff"/>
-  <GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="cmpBoard"
-                    virtualName="" explicitFocusOrder="0" pos="5 5 53.886% 97.326%"
-                    class="BoardComponent" params="boardImages, &amp;position"/>
-  <TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="txtEngineOutput"
-              virtualName="" explicitFocusOrder="0" pos="8Rr 728r 44.782% 278"
-              initialText="Engine output" multiline="1" retKeyStartsLine="0"
-              readonly="1" scrollbars="1" caret="1" popupmenu="0"/>
-  <VIEWPORT name="new viewport" id="fee84cd0278f227b" memberName="vwMoveList"
-            virtualName="" explicitFocusOrder="0" pos="7Rr 5 44.486% 435"
-            vscroll="1" hscroll="1" scrollbarThickness="18" contentType="2"
-            jucerFile="MoveListComponent.h" contentClass="" constructorParams=""/>
+  <TABBEDCOMPONENT name="new tabbed component" id="d965c7f735419935" memberName="tabbedComponent"
+                   virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" orientation="top"
+                   tabBarDepth="30" initialTab="0">
+    <TAB name="Game 0" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
+         constructorParams="boardImages" jucerComponentFile=""/>
+    <TAB name="Game 1" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
+         constructorParams="boardImages" jucerComponentFile=""/>
+    <TAB name="Game 2" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
+         constructorParams="boardImages" jucerComponentFile=""/>
+  </TABBEDCOMPONENT>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

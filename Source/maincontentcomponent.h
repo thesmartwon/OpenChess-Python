@@ -10,7 +10,7 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "BoardTabsComponent.h"
+#include "BoardTabbedComponent.h"
 #include "MainWindow.h"
 
 //==============================================================================
@@ -19,8 +19,8 @@
     your controls and content.
 */
 class MainContentComponent   : public Component,
-                           public MenuBarModel,
-                           public ApplicationCommandTarget
+							   public MenuBarModel,
+							   public ApplicationCommandTarget
 {
 public:
     ApplicationCommandTarget * getNextCommandTarget () override;
@@ -39,7 +39,7 @@ public:
 
 private:
     //==============================================================================
-    ScopedPointer<BoardTabsComponent> boardTabsComponent;
+    ScopedPointer<BoardTabbedComponent> boardTabbedComponent;
     ScopedPointer<MenuBarComponent> menuBar;
     PopupMenu getDummyPopupMenu ();
     int menuBarHeight;

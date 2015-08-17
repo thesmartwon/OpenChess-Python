@@ -21,13 +21,8 @@
 #define __JUCE_HEADER_14880CE2C5F867EA__
 
 //[Headers]     -- You can add your own extra header files here --
-#include "BoardComponent.h"
-#include "MoveListComponent.h"
+#include "BoardTabComponent.h"
 #include "JuceHeader.h"
-#include "types.h"
-#include <sstream>
-#include <iomanip>
-
 //[/Headers]
 
 
@@ -40,12 +35,11 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class BoardTabbedComponent  : public Component,
-                              public MessageListener
+class BoardTabbedComponent  : public Component
 {
 public:
     //==============================================================================
-    BoardTabbedComponent (juce::Array<Image> boardImages);
+    BoardTabbedComponent ();
     ~BoardTabbedComponent();
 
     //==============================================================================
@@ -59,16 +53,11 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    Stockfish::Position position;
-    void handleMessage (const Message & message) override;
-    Array<ScopedPointer<MoveListItem>> moveListLabels;
-    MoveListComponent moveListComp;
+    juce::Array<Image> boardImages;
     //[/UserVariables]
 
     //==============================================================================
-    ScopedPointer<BoardComponent> cmpBoard;
-    ScopedPointer<TextEditor> txtEngineOutput;
-    ScopedPointer<Viewport> vwMoveList;
+    ScopedPointer<TabbedComponent> tabbedComponent;
 
 
     //==============================================================================

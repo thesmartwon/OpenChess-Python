@@ -1,3 +1,12 @@
+practical next things to do
+- work on action manager doing stuff to the board state
+	- add undoing/redoing moves
+	- add save dialog
+
+
+
+
+
 plan for app
 
 X there are are components and chess pieces

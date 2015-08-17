@@ -5,20 +5,20 @@
               jucerVersion="3.2.0">
   <MAINGROUP id="i8PJNo" name="OpenChess">
     <GROUP id="{96BAAB6A-1C9E-96C7-7221-D7D5AAAA5B2F}" name="Source">
+      <FILE id="mBg99Z" name="BoardComponent.cpp" compile="1" resource="0"
+            file="Source/BoardComponent.cpp"/>
       <FILE id="gDIeGP" name="MoveListComponent.h" compile="0" resource="0"
             file="Source/MoveListComponent.h"/>
-      <FILE id="x5wa5Y" name="BoardComponent.cpp" compile="1" resource="0"
-            file="Source/BoardComponent.cpp"/>
       <FILE id="r42KYW" name="BoardComponent.h" compile="0" resource="0"
             file="Source/BoardComponent.h"/>
-      <FILE id="urOSkJ" name="BoardTabbedComponent.cpp" compile="1" resource="0"
+      <FILE id="urOSkJ" name="BoardTabComponent.cpp" compile="1" resource="0"
+            file="Source/BoardTabComponent.cpp"/>
+      <FILE id="tmkSoM" name="BoardTabComponent.h" compile="0" resource="0"
+            file="Source/BoardTabComponent.h"/>
+      <FILE id="R4z9eO" name="BoardTabbedComponent.cpp" compile="1" resource="0"
             file="Source/BoardTabbedComponent.cpp"/>
-      <FILE id="tmkSoM" name="BoardTabbedComponent.h" compile="0" resource="0"
+      <FILE id="Y19tr9" name="BoardTabbedComponent.h" compile="0" resource="0"
             file="Source/BoardTabbedComponent.h"/>
-      <FILE id="R4z9eO" name="BoardTabsComponent.cpp" compile="1" resource="0"
-            file="Source/BoardTabsComponent.cpp"/>
-      <FILE id="Y19tr9" name="BoardTabsComponent.h" compile="0" resource="0"
-            file="Source/BoardTabsComponent.h"/>
       <FILE id="lI1T54" name="MainContentComponent.cpp" compile="1" resource="0"
             file="Source/MainContentComponent.cpp"/>
       <FILE id="sa9GZ9" name="MainContentComponent.h" compile="0" resource="0"
@@ -150,17 +150,51 @@
         <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <CODEBLOCKS_WINDOWS targetFolder="Builds/CodeBlocksWindows">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="OpenChess"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="OpenChess"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_core" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+      </MODULEPATHS>
+    </CODEBLOCKS_WINDOWS>
+    <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="OpenChess"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="OpenChess"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_core" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../Dev/JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../Dev/JUCE-WINDOWS/modules"/>
+      </MODULEPATHS>
+    </CODEBLOCKS_LINUX>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_events" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>

@@ -6,24 +6,21 @@
   ==============================================================================
 */
 
+#include "stdafx.h"
 #include "MainContentComponent.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent ()
 {
+    setOpaque (true);
     menuBarHeight = 24;
     addAndMakeVisible (menuBar = new MenuBarComponent(this));
     addAndMakeVisible (boardTabbedComponent = new BoardTabbedComponent ());
     setSize (1351, 792);
-
-    //openGLContext.setContinuousRepainting (true);
-    openGLContext.attachTo (*this);
 }
 
 MainContentComponent::~MainContentComponent ()
 {
-    if (openGLContext.getTargetComponent () == this)
-        openGLContext.detach ();
 }
 
 void MainContentComponent::paint (Graphics& g)

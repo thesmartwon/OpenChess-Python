@@ -1,7 +1,10 @@
+#include "stdafx.h"
 #include "BoardComponent.h"
 
 BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Position* pos)
 {
+    setOpaque (true);
+
     squareWidth = getWidth() / 8;
     boardImageOriginal = boardImages[0];
     wKingImageOriginal = boardImages[1];
@@ -32,7 +35,7 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
     bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
     bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
     bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
-    
+
     position = pos;
     sidePerspective = white;
     mouseDownRankFile.addXY (-1, -1);
@@ -43,149 +46,19 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Stockfish::Posit
     for (int i = 0; i < 64; i++)
         pieceOnBoard[i] = true;
     mouseIsDown = resizing = false;
+    renderedFrames = 0;
 
-    setOpaque (true);
+    //openGLContext.setComponentPaintingEnabled (true);
+    openGLContext.setRenderer (this);
+    openGLContext.attachTo (*this);
+    openGLContext.setContinuousRepainting (true);
     setSize (728, 728);
 }
 
 BoardComponent::~BoardComponent()
 {
-
-}
-
-
-void BoardComponent::paint (Graphics& g)
-{
-    // we only want to resize our pieces once, constant resizing every frame is expensive
-    if (!boardImage.isNull () && !resizing && boardImage.getWidth () != getWidth () && getWidth () != 0)
-        boardImage = boardImageOriginal.rescaled (getWidth (), getHeight ());
-    if (!wKingImage.isNull () && !resizing && wKingImage.getWidth () != squareWidth && squareWidth != 0)
-        wKingImage = wKingImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!wQueenImage.isNull () && !resizing && wQueenImage.getWidth () != squareWidth && squareWidth != 0)
-        wQueenImage = wQueenImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!wBishopImage.isNull () && !resizing && wBishopImage.getWidth () != squareWidth && squareWidth != 0)
-        wBishopImage = wBishopImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!wKnightImage.isNull () && !resizing && wKnightImage.getWidth () != squareWidth && squareWidth != 0)
-        wKnightImage = wKnightImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!wRookImage.isNull () && !resizing && wRookImage.getWidth () != squareWidth && squareWidth != 0)
-        wRookImage = wRookImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!wPawnImage.isNull () && !resizing && wPawnImage.getWidth () != squareWidth && squareWidth != 0)
-        wPawnImage = wPawnImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bKingImage.isNull () && !resizing && bKingImage.getWidth () != squareWidth && squareWidth != 0)
-        bKingImage = bKingImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bQueenImage.isNull () && !resizing && bQueenImage.getWidth () != squareWidth && squareWidth != 0)
-        bQueenImage = bQueenImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bBishopImage.isNull () && !resizing && bBishopImage.getWidth () != squareWidth && squareWidth != 0)
-        bBishopImage = bBishopImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bKnightImage.isNull () && !resizing && bKnightImage.getWidth () != squareWidth && squareWidth != 0)
-        bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bRookImage.isNull () && !resizing && bRookImage.getWidth () != squareWidth && squareWidth != 0)
-        bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
-    if (!bPawnImage.isNull () && !resizing && bPawnImage.getWidth () != squareWidth && squareWidth != 0)
-        bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
-
-    //the background
-    g.drawImage (boardImage,
-        0, 0, getWidth(), getHeight(),
-        0, 0, boardImage.getWidth (), boardImage.getHeight ());
-
-    //shading the darker squares
-    g.setColour (Colour::fromRGBA (0x00, 0x00, 0x00, 0x42));
-    for (int i = 0; i < 8; ++i)
-        for (int j = 0; j < 4; ++j)
-        {
-            g.fillRect (j * squareWidth * 2 + !(i%2) * squareWidth, i*squareWidth, squareWidth, squareWidth);
-        }
-    g.setColour (Colours::black);
-
-    //gridlines
-    for (int i = 0; i < 7; ++i)
-    {
-        g.drawLine (squareWidth * (i + 1), 0, squareWidth * (i + 1), getWidth(), 2);
-        g.drawLine (0, squareWidth * (i + 1), getWidth(), squareWidth * (i + 1), 2);
-    }
-
-    //pieces
-    bool pieceHovering = false;
-    Image myHoveringImage;
-    for (Stockfish::Rank ranks = Stockfish::RANK_1; ranks <= Stockfish::RANK_8; ++ranks)
-    {
-        for (Stockfish::File files = Stockfish::FILE_A; files <= Stockfish::FILE_H; ++files)
-        {
-            if (position->piece_on (Stockfish::square_of (ranks, files)) != Stockfish::Piece::NO_PIECE)
-            {
-                Stockfish::Piece piece = position->piece_on (Stockfish::square_of (ranks, files));
-                Image myImage;
-                if (piece == Stockfish::Piece::W_KING)
-                    myImage = wKingImage;
-                else if (piece == Stockfish::Piece::W_BISHOP)
-                    myImage = wBishopImage;
-                else if (piece == Stockfish::Piece::W_KNIGHT)
-                    myImage = wKnightImage;
-                else if (piece == Stockfish::Piece::W_ROOK)
-                    myImage = wRookImage;
-                else if (piece == Stockfish::Piece::W_QUEEN)
-                    myImage = wQueenImage;
-                else if (piece == Stockfish::Piece::W_PAWN)
-                    myImage = wPawnImage;
-                else if (piece == Stockfish::Piece::B_KING)
-                    myImage = bKingImage;
-                else if (piece == Stockfish::Piece::B_BISHOP)
-                    myImage = bBishopImage;
-                else if (piece == Stockfish::Piece::B_KNIGHT)
-                    myImage = bKnightImage;
-                else if (piece == Stockfish::Piece::B_ROOK)
-                    myImage = bRookImage;
-                else if (piece == Stockfish::Piece::B_QUEEN)
-                    myImage = bQueenImage;
-                else if (piece == Stockfish::Piece::B_PAWN)
-                    myImage = bPawnImage;
-
-                if (pieceOnBoard[Stockfish::square_of (ranks, files)])
-                {
-                    g.drawImage (myImage,
-                        squareWidth * (files),
-                        sidePerspective == white ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
-                        squareWidth,
-                        squareWidth,
-                        0, 0, myImage.getWidth(), myImage.getHeight());
-                } else
-                {
-                    myHoveringImage = myImage;
-                    pieceHovering = true;
-                }
-            }
-        }
-    }
-    //selected square outline
-    g.setColour (Colours::red);
-    if (selectedSquare.getX () != -1)
-    {
-        int rank = 7 - selectedSquare.getX ();
-        int file = selectedSquare.getY ();
-
-        g.drawRect (
-            squareWidth * (file),
-            sidePerspective == black ? squareWidth * 7 - squareWidth * (rank): squareWidth * (rank),
-            squareWidth,
-            squareWidth,
-            4);
-    }
-    //hovering piece
-    if (pieceHovering)
-    {
-        g.drawImage (myHoveringImage,
-            mouseXY.getX () - squareWidth / 2,
-            mouseXY.getY () - squareWidth / 2,
-            squareWidth,
-            squareWidth,
-            0, 0, myHoveringImage.getWidth (), myHoveringImage.getHeight ());
-        pieceHovering = false;
-    }
-    resizing = false;
-    //for debugging
-    g.setColour (Colours::red);
-    g.drawRect (0, 0, getWidth(),getHeight(), 2);
+    if (openGLContext.getTargetComponent () == this)
+        openGLContext.detach ();
 }
 
 void BoardComponent::resized()
@@ -325,6 +198,166 @@ void BoardComponent::mouseDrag (const MouseEvent & event)
 }
 
 void BoardComponent::handleMessage (const Message & message)
+{
+}
+
+void BoardComponent::scaleImages ()
+{
+    // we only want to resize our pieces once, constant resizing every frame is expensive
+    if (!boardImage.isNull () && !resizing && boardImage.getWidth () != getWidth () && getWidth () != 0)
+        boardImage = boardImageOriginal.rescaled (getWidth (), getHeight ());
+    if (!wKingImage.isNull () && !resizing && wKingImage.getWidth () != squareWidth && squareWidth != 0)
+        wKingImage = wKingImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wQueenImage.isNull () && !resizing && wQueenImage.getWidth () != squareWidth && squareWidth != 0)
+        wQueenImage = wQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wBishopImage.isNull () && !resizing && wBishopImage.getWidth () != squareWidth && squareWidth != 0)
+        wBishopImage = wBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wKnightImage.isNull () && !resizing && wKnightImage.getWidth () != squareWidth && squareWidth != 0)
+        wKnightImage = wKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wRookImage.isNull () && !resizing && wRookImage.getWidth () != squareWidth && squareWidth != 0)
+        wRookImage = wRookImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!wPawnImage.isNull () && !resizing && wPawnImage.getWidth () != squareWidth && squareWidth != 0)
+        wPawnImage = wPawnImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bKingImage.isNull () && !resizing && bKingImage.getWidth () != squareWidth && squareWidth != 0)
+        bKingImage = bKingImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bQueenImage.isNull () && !resizing && bQueenImage.getWidth () != squareWidth && squareWidth != 0)
+        bQueenImage = bQueenImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bBishopImage.isNull () && !resizing && bBishopImage.getWidth () != squareWidth && squareWidth != 0)
+        bBishopImage = bBishopImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bKnightImage.isNull () && !resizing && bKnightImage.getWidth () != squareWidth && squareWidth != 0)
+        bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bRookImage.isNull () && !resizing && bRookImage.getWidth () != squareWidth && squareWidth != 0)
+        bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
+    if (!bPawnImage.isNull () && !resizing && bPawnImage.getWidth () != squareWidth && squareWidth != 0)
+        bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
+}
+
+void BoardComponent::newOpenGLContextCreated()
+{
+    scaleImages ();
+}
+
+void BoardComponent::renderOpenGL()
+{
+    jassert (OpenGLHelpers::isContextActive ());
+    // Create an OpenGLGraphicsContext that will draw into this GL window..
+    const float desktopScale = (float)openGLContext.getRenderingScale ();
+    ScopedPointer<juce::LowLevelGraphicsContext> glRenderer (createOpenGLGraphicsContext (openGLContext,
+                                                                                    roundToInt (desktopScale * getWidth ()),
+                                                                                    roundToInt (desktopScale * getHeight ())));
+
+    if (glRenderer != nullptr)
+    {
+        Graphics g (*glRenderer);
+        scaleImages();
+        //the background
+        g.drawImage (boardImage,
+            0, 0, getWidth (), getHeight (),
+            0, 0, boardImage.getWidth (), boardImage.getHeight ());
+
+        //shading the darker squares
+        g.setColour (Colour::fromRGBA (0x00, 0x00, 0x00, 0x42));
+        for (int i = 0; i < 8; ++i)
+            for (int j = 0; j < 4; ++j)
+            {
+                g.fillRect (j * squareWidth * 2 + !(i % 2) * squareWidth, i*squareWidth, squareWidth, squareWidth);
+            }
+        g.setColour (Colours::black);
+
+        //gridlines
+        for (int i = 0; i < 7; ++i)
+        {
+            g.drawLine (squareWidth * (i + 1), 0, squareWidth * (i + 1), getWidth (), 2);
+            g.drawLine (0, squareWidth * (i + 1), getWidth (), squareWidth * (i + 1), 2);
+        }
+
+        //pieces
+        bool pieceHovering = false;
+        Image myHoveringImage;
+        for (Stockfish::Rank ranks = Stockfish::RANK_1; ranks <= Stockfish::RANK_8; ++ranks)
+        {
+            for (Stockfish::File files = Stockfish::FILE_A; files <= Stockfish::FILE_H; ++files)
+            {
+                if (position->piece_on (Stockfish::square_of (ranks, files)) != Stockfish::Piece::NO_PIECE)
+                {
+                    Stockfish::Piece piece = position->piece_on (Stockfish::square_of (ranks, files));
+                    Image myImage;
+                    if (piece == Stockfish::Piece::W_KING)
+                        myImage = wKingImage;
+                    else if (piece == Stockfish::Piece::W_BISHOP)
+                        myImage = wBishopImage;
+                    else if (piece == Stockfish::Piece::W_KNIGHT)
+                        myImage = wKnightImage;
+                    else if (piece == Stockfish::Piece::W_ROOK)
+                        myImage = wRookImage;
+                    else if (piece == Stockfish::Piece::W_QUEEN)
+                        myImage = wQueenImage;
+                    else if (piece == Stockfish::Piece::W_PAWN)
+                        myImage = wPawnImage;
+                    else if (piece == Stockfish::Piece::B_KING)
+                        myImage = bKingImage;
+                    else if (piece == Stockfish::Piece::B_BISHOP)
+                        myImage = bBishopImage;
+                    else if (piece == Stockfish::Piece::B_KNIGHT)
+                        myImage = bKnightImage;
+                    else if (piece == Stockfish::Piece::B_ROOK)
+                        myImage = bRookImage;
+                    else if (piece == Stockfish::Piece::B_QUEEN)
+                        myImage = bQueenImage;
+                    else if (piece == Stockfish::Piece::B_PAWN)
+                        myImage = bPawnImage;
+
+                    if (pieceOnBoard[Stockfish::square_of (ranks, files)])
+                    {
+                        g.drawImage (myImage,
+                            squareWidth * (files),
+                            sidePerspective == white ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
+                            squareWidth,
+                            squareWidth,
+                            0, 0, myImage.getWidth (), myImage.getHeight ());
+                    } else
+                    {
+                        myHoveringImage = myImage;
+                        pieceHovering = true;
+                    }
+                }
+            }
+        }
+        //selected square outline
+        g.setColour (Colours::red);
+        if (selectedSquare.getX () != -1)
+        {
+            int rank = 7 - selectedSquare.getX ();
+            int file = selectedSquare.getY ();
+
+            g.drawRect (
+                squareWidth * (file),
+                sidePerspective == black ? squareWidth * 7 - squareWidth * (rank) : squareWidth * (rank),
+                squareWidth,
+                squareWidth,
+                4);
+        }
+        //hovering piece
+        if (pieceHovering)
+        {
+            g.drawImage (myHoveringImage,
+                mouseXY.getX () - squareWidth / 2,
+                mouseXY.getY () - squareWidth / 2,
+                squareWidth,
+                squareWidth,
+                0, 0, myHoveringImage.getWidth (), myHoveringImage.getHeight ());
+            pieceHovering = false;
+        }
+        resizing = false;
+        //for debugging
+        g.setColour (Colours::red);
+        g.drawRect (0, 0, getWidth (), getHeight (), 2);
+        renderedFrames++;
+        g.drawText (String (renderedFrames), 5, 5, 200, 20, Justification::left);
+    }
+}
+
+void BoardComponent::openGLContextClosing()
 {
 }
 

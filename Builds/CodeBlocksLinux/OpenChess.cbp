@@ -23,8 +23,8 @@
           <Add option="-DDEBUG=1"/>
           <Add option="-D_DEBUG=1"/>
           <Add option="-DJUCER_CODEBLOCKS_LINUX_191E0897=1"/>
-          <Add option="-DJUCE_APP_VERSION=1.0.0"/>
-          <Add option="-DJUCE_APP_VERSION_HEX=0x10000"/>
+          <Add option="-DJUCE_APP_VERSION=0.0.1"/>
+          <Add option="-DJUCE_APP_VERSION_HEX=0x1"/>
           <Add directory="."/>
           <Add directory="..\..\JuceLibraryCode"/>
           <Add directory="/usr/include/freetype2"/>
@@ -54,8 +54,8 @@
           <Add option="-DLINUX=1"/>
           <Add option="-DNDEBUG=1"/>
           <Add option="-DJUCER_CODEBLOCKS_LINUX_191E0897=1"/>
-          <Add option="-DJUCE_APP_VERSION=1.0.0"/>
-          <Add option="-DJUCE_APP_VERSION_HEX=0x10000"/>
+          <Add option="-DJUCE_APP_VERSION=0.0.1"/>
+          <Add option="-DJUCE_APP_VERSION_HEX=0x1"/>
           <Add directory="."/>
           <Add directory="..\..\JuceLibraryCode"/>
           <Add directory="/usr/include/freetype2"/>
@@ -79,6 +79,11 @@
       <Add option="-Wno-strict-overflow"/>
     </Compiler>
     <Linker/>
+    <Unit filename="../../Source/stdafx.cpp"/>
+    <Unit filename="../../Source/stdafx.h">
+      <Option compile="0"/>
+      <Option link="0"/>
+    </Unit>
     <Unit filename="../../Source/BoardComponent.cpp"/>
     <Unit filename="../../Source/MoveListComponent.h">
       <Option compile="0"/>

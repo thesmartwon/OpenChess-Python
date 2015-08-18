@@ -22,7 +22,7 @@ public:
     MoveListComponent ()
     {
         setBounds (0, 0, 601, 435);
-        horizontalPadding = verticalPadding = 5;
+        horizontalPadding = verticalPadding = 7;
         nextLabelXY.setXY (horizontalPadding, verticalPadding);
     }
     MoveListComponent (const juce::OwnedArray<MoveListItem>& updatedMoveListItems)
@@ -45,25 +45,33 @@ public:
         // since a move can be inserted or deleted anywhere, it's best to recreate the movelist every time
         // where it is different than the last move list
         moveListItems.resize (updatedMoveListItems.size());
+        const int numToAdd = updatedMoveListItems.size() - moveLabels.size();
+        if (numToAdd > 0)
+            for (int i = 0; i < numToAdd; ++i)
+                moveLabels.add (new Label ());
+        else if (numToAdd < 0)
+        {
+            nextLabelXY.setXY (moveLabels.getLast ()->getBounds ().getX (), moveLabels.getLast ()->getBounds ().getY ());
+            moveLabels.removeRange (updatedMoveListItems.size (), -numToAdd);
+        }
         for (int i = 0; i < updatedMoveListItems.size (); ++i)
         {
             jassert (updatedMoveListItems[i] != nullptr);
             if (! (moveListItems[i] == updatedMoveListItems[i]))
             { // a difference!
-                Label* newLabel = new Label();
-                newLabel->setFont (Font(Font::getDefaultMonospacedFontName(), 18.0f, 0));
+                Label* newLabel = moveLabels[i];
+                newLabel->setFont (18.0f);
                 newLabel->setText (updatedMoveListItems[i]->moveLabelText, NotificationType::dontSendNotification);
-                if (nextLabelXY.getX () + newLabel->getFont ().getStringWidth (newLabel->getText ()) > getWidth ())
-                    nextLabelXY.setXY (horizontalPadding, nextLabelXY.getY () + newLabel->getFont ().getHeight () + verticalPadding);
+                if (nextLabelXY.getX() + newLabel->getFont().getStringWidthFloat (newLabel->getText()) + 3 > getWidth())
+                    nextLabelXY.setXY (horizontalPadding, nextLabelXY.getY() + newLabel->getFont().getHeight() + verticalPadding);
                 newLabel->setEditable (false);
                 newLabel->setBounds (nextLabelXY.getX(), nextLabelXY.getY (),
-                                     newLabel->getFont().getStringWidth (newLabel->getText ()) + 1,
-                                     newLabel->getFont().getHeight () + 1);
+                                     newLabel->getFont().getStringWidthFloat (newLabel->getText()) + horizontalPadding,
+                                     newLabel->getFont().getHeight () + 2);
                 this->toFront (newLabel);
                 newLabel->addMouseListener (this, false);
-                moveLabels.add (newLabel);
                 addAndMakeVisible (newLabel);
-                nextLabelXY.setX (nextLabelXY.getX () + newLabel->getWidth() + horizontalPadding);
+                nextLabelXY.setX (nextLabelXY.getX() + newLabel->getWidth());
             }
         }
 
@@ -98,6 +106,22 @@ public:
         // This method is where you should set the bounds of any child
         // components that your component contains..
         //setBounds(0,0,getBoundsInParent().getWidth() - 8,600);
+        /*for (int i = 0; i < moveLabels.size (); ++i)
+        {
+            if (moveLabels[i]->getX () + moveLabels[i]->getWidth () > getWidth ())
+            {
+                for (int j = i; j < moveLabels.size () - i; ++j)
+                {
+                    if (nextLabelXY.getX () + moveLabels[j]->getFont ().getStringWidthFloat (moveLabels[j]->getText ()) + 3 > getWidth ())
+                        nextLabelXY.setXY (horizontalPadding, nextLabelXY.getY () + moveLabels[j]->getFont ().getHeight () + verticalPadding);
+                    moveLabels[j]->setBounds (nextLabelXY.getX (), nextLabelXY.getY (),
+                        moveLabels[j]->getFont ().getStringWidthFloat (moveLabels[j]->getText ()) + horizontalPadding,
+                        moveLabels[j]->getFont ().getHeight () + 2);
+                    nextLabelXY.setX (nextLabelXY.getX () + moveLabels[j]->getWidth ());
+                }
+                break;
+            }
+        }*/
     }
 
     int horizontalPadding, verticalPadding;

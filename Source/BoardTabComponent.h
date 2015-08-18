@@ -21,9 +21,9 @@
 #define __JUCE_HEADER_B83DEE5E40890FBC__
 
 //[Headers]     -- You can add your own extra header files here --
+#include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardComponent.h"
 #include "MoveListComponent.h"
-#include "JuceHeader.h"
 #include "types.h"
 #include <sstream>
 #include <iomanip>

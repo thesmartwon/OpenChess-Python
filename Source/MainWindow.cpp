@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "MainWindow.h"
 
 static ScopedPointer<ApplicationCommandManager> applicationCommandManager;

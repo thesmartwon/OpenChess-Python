@@ -21,8 +21,8 @@
 #define __JUCE_HEADER_14880CE2C5F867EA__
 
 //[Headers]     -- You can add your own extra header files here --
-#include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardTabComponent.h"
+#include "JuceHeader.h"
 //[/Headers]
 
 
@@ -50,7 +50,6 @@ public:
 
     void paint (Graphics& g);
     void resized();
-
 
 
 private:

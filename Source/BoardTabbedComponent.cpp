@@ -18,7 +18,7 @@
 */
 
 //[Headers] You can add your own extra header files here...
-#include "stdafx.h"
+
 //[/Headers]
 
 #include "BoardTabbedComponent.h"
@@ -52,9 +52,11 @@ BoardTabbedComponent::BoardTabbedComponent ()
 
     addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
     tabbedComponent->setTabBarDepth (30);
-    tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 2"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    for (int i = 0; i < tabComponents.size (); ++i)
+        tabbedComponent->addTab (TRANS ("Game " + String(i)), Colours::lightgrey, tabComponents[i], true);
     tabbedComponent->setCurrentTabIndex (0);
 
 
@@ -103,6 +105,7 @@ void BoardTabbedComponent::resized()
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
+
 
 
 

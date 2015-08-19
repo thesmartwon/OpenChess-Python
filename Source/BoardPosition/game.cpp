@@ -1,4 +1,3 @@
-#include "stdafx.h" //if this doesnt compile, change it to #include "../stdafx/h". very annoying
 #include "game.h"
 
 Game::Game ()

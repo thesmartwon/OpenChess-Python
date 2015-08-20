@@ -4,6 +4,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardPosition/stockfish/position.h"
 #include "BoardPosition/stockfish/uci.h"
+#include "BoardPosition/game.h"
 #include "types.h"
 
 class BoardComponent  : public Component,
@@ -11,12 +12,11 @@ class BoardComponent  : public Component,
                         public OpenGLRenderer
 {
 public:
-    BoardComponent (juce::Array<Image> boardImages, Stockfish::Position* pos);
+    BoardComponent (juce::Array<Image> boardImages, Game* game);
     ~BoardComponent();
 
     void paint (Graphics& g) {};
     void resized();
-    void swag () { int a = 3; };
 
 private:
     Image boardImageOriginal;
@@ -26,7 +26,7 @@ private:
     Image wPawnImage, wRookImage, wKnightImage, wBishopImage, wKingImage, wQueenImage;
     Image bPawnImage, bRookImage, bKnightImage, bBishopImage, bKingImage, bQueenImage;
 
-    Stockfish::Position* position;
+    Game* activeGame;
 
     int sidePerspective;
     Point<int> mouseDownRankFile, mouseUpRankFile, mouseXY, selectedSquare;
@@ -35,7 +35,7 @@ private:
     int squareWidth;
 
     OpenGLContext openGLContext;
-    int renderedFrames;
+    String lastMeasuredFPS;
     void scaleImages ();
     bool resizing;
 

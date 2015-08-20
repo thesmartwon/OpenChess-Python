@@ -20,14 +20,20 @@ public:
     /**
     If node doesn't exist will return rootPosition
     */
-    Stockfish::Position positionAtNode (MoveNode* referenceNode) const;
-    void appendMove (MoveNode* referenceNode, MoveNode* toAppend, bool isVariation = false) const;
+    void appendMove (MoveNode* referenceNode, MoveNode* toAppend, bool isVariation = false);
     void appendMoveToMainline (MoveNode* toAppend, bool isVariation = false);
-    InsertionResult insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert);
+    bool insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert);
     
     bool hasRootNode () const;
+    MoveNode* getCurrentlyViewedNode () const;
+    void setCurrentlyViewedNode (MoveNode* nodeToView);
+
+    Stockfish::Position positionAtNode (MoveNode* referenceNode) const;
+    Stockfish::Position getCurrentlyViewedPosition () const;
 
 private:
     Stockfish::Position rootPosition;
     MoveNode* rootNode;
+    MoveNode* currentlyViewedNode;
+
 };

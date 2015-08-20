@@ -24,6 +24,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardComponent.h"
 #include "MoveListComponent.h"
+#include "BoardPosition/game.h"
 #include "types.h"
 #include <sstream>
 #include <iomanip>
@@ -61,7 +62,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-    Stockfish::Position position;
+    Game activeGame;
     void handleMessage (const Message & message) override;
     OwnedArray<MoveListItem> moveListItems;
     OwnedArray<MoveListItem> moveListRedoQueue;

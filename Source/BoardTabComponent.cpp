@@ -33,7 +33,7 @@ BoardTabComponent::BoardTabComponent (juce::Array<Image> boardImages)
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
-    addAndMakeVisible (boardComponent = new BoardComponent (boardImages, &position));
+    addAndMakeVisible (boardComponent = new BoardComponent (boardImages, &activeGame));
     boardComponent->setName ("new board");
 
     addAndMakeVisible (engineOutputText = new TextEditor ("new text editor"));
@@ -50,7 +50,7 @@ BoardTabComponent::BoardTabComponent (juce::Array<Image> boardImages)
 
 
     //[UserPreSize]
-    moveListView->setViewedComponent (moveListComp = new MoveListComponent(moveListItems));
+    moveListView->setViewedComponent (moveListComp = new MoveListComponent());
     //[/UserPreSize]
 
     setSize (1351, 748);
@@ -58,12 +58,6 @@ BoardTabComponent::BoardTabComponent (juce::Array<Image> boardImages)
 
     //[Constructor] You can add your own custom stuff here..
     //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
-
-    Stockfish::Bitboards::init ();
-    Stockfish::Position::init ();
-    Stockfish::Bitbases::init ();
-
-    position.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
 
     //[/Constructor]
 }
@@ -133,14 +127,13 @@ void BoardTabComponent::updatePosition()
 {
     moveListComp->updateMoveList (moveListItems);
     moveListComp->repaint();
-    boardComponent->repaint();
 }
 
 void BoardTabComponent::undoMove()
 {
     if (moveListItems.size() < 1)
         return;
-    position.undo_move (moveListItems.getLast ()->moveNode.move);
+    activeGame.setCurrentlyViewedNode (moveListItems.getLast ()->moveNode->parent);
     moveListRedoQueue.add (moveListItems.removeAndReturn (moveListItems.size() - 1));
     updatePosition();
 }
@@ -149,7 +142,7 @@ void BoardTabComponent::redoMove ()
 {
     if (moveListRedoQueue.size() < 1)
         return;
-    position.do_move (moveListRedoQueue.getLast()->moveNode.move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
+    activeGame.appendMoveToMainline (moveListItems.getLast ()->moveNode, false);
     moveListItems.add (moveListRedoQueue.removeAndReturn (moveListRedoQueue.size () - 1));
     updatePosition();
 }
@@ -162,25 +155,25 @@ void BoardTabComponent::handleMessage (const Message & message)
     if (((GenericMessage*)(&message))->messageType == MSG_MOVEMESSAGE)
     {
         //update movelist
-		//juce::String move = Stockfish::UCI::move(((MoveMessage*)(&message))->move, false);
         MoveMessage* moveMessage = ((MoveMessage*)(&message));
 		juce::String moveText = moveMessage->moveSAN;
 
         moveListRedoQueue.clear();
-        MoveNode newNode;
-        newNode.comments = String::empty;
-        newNode.continuation = nullptr;
-        newNode.move = moveMessage->move;
-        newNode.variation = nullptr;
+        MoveNode* newNode = new MoveNode();
+        newNode->parent = activeGame.getCurrentlyViewedNode ();
+        newNode->comments = String::empty;
+        newNode->continuation = nullptr;
+        newNode->move = moveMessage->move;
+        newNode->variation = nullptr;
         String labelText;
-        if (position.game_ply () % 2 == 1)
-            labelText = std::to_string (position.game_ply () - position.game_ply () / 2) + ". " + moveText, NotificationType::dontSendNotification;
+        if (activeGame.getCurrentlyViewedPosition().game_ply () % 2 == 1)
+            labelText = std::to_string (activeGame.getCurrentlyViewedPosition ().game_ply () - activeGame.getCurrentlyViewedPosition ().game_ply () / 2) + ". " + moveText, NotificationType::dontSendNotification;
         else
             labelText = moveText + " ";
+        activeGame.appendMoveToMainline (newNode);
         moveListItems.add (new MoveListItem (newNode, labelText));
         updatePosition ();
     }
-    //txtMoveHist->setText (txtMoveHist->getText () + message);
 }
 //[/MiscUserCode]
 

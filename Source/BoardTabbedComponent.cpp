@@ -52,13 +52,17 @@ BoardTabbedComponent::BoardTabbedComponent ()
 
     addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));
     tabbedComponent->setTabBarDepth (30);
-    tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->addTab (TRANS("Game 2"), Colours::lightgrey, new BoardTabComponent (boardImages), true);
-    tabbedComponent->setCurrentTabIndex (0);
+    tabbedComponent->setCurrentTabIndex (-1);
 
 
     //[UserPreSize]
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabComponents.add (new BoardTabComponent (boardImages));
+    tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, tabComponents[0], false);
+    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, tabComponents[1], false);
+    tabbedComponent->addTab (TRANS("Game 2"), Colour (0xff6abd97), tabComponents[2], false);
+    tabbedComponent->setCurrentTabIndex (0);
     //[/UserPreSize]
 
     setSize (1351, 778);
@@ -135,14 +139,7 @@ BEGIN_JUCER_METADATA
   <BACKGROUND backgroundColour="ffffffff"/>
   <TABBEDCOMPONENT name="new tabbed component" id="d965c7f735419935" memberName="tabbedComponent"
                    virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" orientation="top"
-                   tabBarDepth="30" initialTab="0">
-    <TAB name="Game 0" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
-         constructorParams="boardImages" jucerComponentFile=""/>
-    <TAB name="Game 1" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
-         constructorParams="boardImages" jucerComponentFile=""/>
-    <TAB name="Game 2" colour="ffd3d3d3" useJucerComp="0" contentClassName="BoardTabComponent"
-         constructorParams="boardImages" jucerComponentFile=""/>
-  </TABBEDCOMPONENT>
+                   tabBarDepth="30" initialTab="-1"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

@@ -4,11 +4,13 @@
 Game::Game ()
 {
     rootPosition.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
+    rootNode = nullptr;
 }
 
 Game::Game (const juce::String startingFEN)
 {
-    rootPosition.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
+    rootPosition.set (startingFEN.toStdString(), false);
+    rootNode = nullptr;
 }
 
 Stockfish::Position Game::positionAtNode (MoveNode* referenceNode) const
@@ -20,7 +22,7 @@ Stockfish::Position Game::positionAtNode (MoveNode* referenceNode) const
         return rootPosition;
     }
     path.push(rootNode);
-    while (path.top () != referenceNode && path.empty() == false)
+    while (path.empty () == false && path.top () != referenceNode)
     {
         // Pop the top item from stack
         MoveNode *node = path.top ();
@@ -39,41 +41,64 @@ Stockfish::Position Game::positionAtNode (MoveNode* referenceNode) const
         path.pop ();
         reversedPath.push (node);
     }
+    tmpPos.do_move (rootNode->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
     while (reversedPath.empty () == false)
     {
         MoveNode *node = reversedPath.top ();
         reversedPath.pop ();
         tmpPos.do_move (node->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
     }
+
     return tmpPos;
 }
 
-void Game::appendMove (MoveNode * referenceMove, MoveNode * toAppend, bool isVariation) const
+Stockfish::Position Game::getCurrentlyViewedPosition () const
+{
+    if (currentlyViewedNode != nullptr)
+        return positionAtNode(currentlyViewedNode);
+    else return rootPosition;
+}
+
+void Game::appendMove (MoveNode* referenceMove, MoveNode* toAppend, bool isVariation)
 {
     if (isVariation)
+    {
+        jassert (referenceMove->variation != nullptr);
         referenceMove->variation = toAppend;
+    }
     else
+    {
+        jassert (referenceMove->continuation != nullptr);
         referenceMove->continuation = toAppend;
+    }
+    currentlyViewedNode = referenceMove;
 }
 
 void Game::appendMoveToMainline (MoveNode* toAppend, bool isVariation)
 {
+    if (rootNode == nullptr)
+    {
+        rootNode = toAppend;
+        return;
+    }
     MoveNode* curNode = rootNode;
-    while (curNode != nullptr)
-        if (curNode->continuation != nullptr)
+    while (curNode->continuation != nullptr)
             curNode = curNode->continuation;
-        else
-        {
-            if (isVariation)
-                curNode->variation = toAppend;
-            else
-                curNode->continuation = toAppend;
-        }
-    // no root node
-    rootNode = curNode;
+
+    if (isVariation)
+    {
+        jassert (curNode->variation == nullptr);
+        curNode->variation = toAppend;
+    }
+    else
+    {
+        jassert (curNode->continuation == nullptr);
+        curNode->continuation = toAppend;
+    }
+    currentlyViewedNode = toAppend;
 }
 
-InsertionResult Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
+bool Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
 {
     InsertionResult result = {};
     Stockfish::Position tmpPos = positionAtNode(referenceNode);
@@ -92,11 +117,11 @@ InsertionResult Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toIns
         else
         {
             result.continuationBrokenNode = curNode;
-            break;
+            return false;
         }
     }
-
-    return result;
+    currentlyViewedNode = toInsert;
+    return true;
 }
 
 bool Game::hasRootNode () const
@@ -104,4 +129,14 @@ bool Game::hasRootNode () const
     if (rootNode == nullptr)
         return false;
     else return true;
+}
+
+void Game::setCurrentlyViewedNode (MoveNode* nodeToView)
+{
+    currentlyViewedNode = nodeToView;
+}
+
+MoveNode* Game::getCurrentlyViewedNode () const
+{
+    return currentlyViewedNode;
 }

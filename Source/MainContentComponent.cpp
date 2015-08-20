@@ -15,6 +15,10 @@ MainContentComponent::MainContentComponent ()
     setOpaque (true);
     menuBarHeight = 24;
     addAndMakeVisible (menuBar = new MenuBarComponent(this));
+    // no instances of game can be created until these are run!
+    Stockfish::Bitboards::init ();
+    Stockfish::Position::init ();
+    Stockfish::Bitbases::init ();
     addAndMakeVisible (boardTabbedComponent = new BoardTabbedComponent ());
     setSize (1351, 792);
 }

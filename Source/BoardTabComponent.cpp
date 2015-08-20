@@ -18,6 +18,7 @@
 */
 
 //[Headers] You can add your own extra header files here...
+#include "stdafx.h"
 //[/Headers]
 
 #include "BoardTabComponent.h"
@@ -45,6 +46,7 @@ BoardTabComponent::BoardTabComponent (juce::Array<Image> boardImages)
     engineOutputText->setText (TRANS("Engine output"));
 
     addAndMakeVisible (moveListView = new Viewport ("new viewport"));
+    moveListView->setScrollBarsShown (false, false);
 
 
     //[UserPreSize]
@@ -80,7 +82,6 @@ BoardTabComponent::~BoardTabComponent()
     //[/Destructor]
 }
 
-
 //==============================================================================
 void BoardTabComponent::paint (Graphics& g)
 {
@@ -98,16 +99,34 @@ void BoardTabComponent::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    boardComponent->setBounds (5, 5, proportionOfWidth (0.5389f), proportionOfHeight (0.9733f));
-    engineOutputText->setBounds (getWidth() - 8 - proportionOfWidth (0.4478f), 728 - 278, proportionOfWidth (0.4478f), 278);
-    moveListView->setBounds (getWidth() - 7 - proportionOfWidth (0.4449f), 5, proportionOfWidth (0.4449f), 435);
+    boardComponent->setBounds (5, 5, proportionOfWidth (0.5389f), proportionOfHeight (0.9826f));
+    engineOutputText->setBounds (getWidth() - 8 - proportionOfWidth (0.4478f), getHeight() - 8 - proportionOfHeight (0.2166f), proportionOfWidth (0.4478f), proportionOfHeight (0.2166f));
+    moveListView->setBounds (getWidth() - 7 - proportionOfWidth (0.4478f), 5, proportionOfWidth (0.4478f), proportionOfHeight (0.7540f));
     //[UserResized] Add your own custom resize handling here..
-    moveListView->getViewedComponent()->setBounds (getWidth () - 7 - proportionOfWidth (0.4449f),
-                                                 5,
-        moveListView->getVerticalScrollBar ()->isVisible () ? proportionOfWidth (0.4449f) - moveListView->getVerticalScrollBar()->getWidth() : proportionOfWidth (0.4449f),
-                                                 800);
+    const int moveListViewWidth = moveListView->getVerticalScrollBar ()->isVisible () ?
+                                  moveListView->getWidth() - moveListView->getVerticalScrollBar ()->getWidth () :
+                                  moveListView->getWidth ();
+    juce::Rectangle<int> moveListViewBounds = moveListView->getBounds ();
+    moveListViewBounds.setWidth (moveListViewWidth);
+    moveListView->getViewedComponent()->setBounds (moveListViewBounds);
+    if (getHeight () - boardComponent->getHeight () + 8 > engineOutputText->getHeight ())
+    { //engine output can fit under board
+        engineOutputText->setBounds (boardComponent->getX (),
+                                     boardComponent->getHeight () + 8,
+                                     boardComponent->getWidth (),
+                                     getHeight() - boardComponent->getHeight () - 8 - 5);
+        moveListViewBounds = moveListView->getBounds ();
+        moveListViewBounds.setHeight (proportionOfHeight (0.9845f));
+        moveListView->setBounds (moveListViewBounds);
+        moveListView->getViewedComponent ()->setBounds (getWidth () - 7 - proportionOfWidth (0.4449f),
+            5,
+            moveListViewWidth,
+            proportionOfHeight (0.9845f));
+    }
     //[/UserResized]
 }
+
+
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 void BoardTabComponent::updatePosition()
@@ -181,15 +200,15 @@ BEGIN_JUCER_METADATA
                  overlayOpacity="0.330" fixedSize="1" initialWidth="1351" initialHeight="748">
   <BACKGROUND backgroundColour="ffffffff"/>
   <GENERICCOMPONENT name="new board" id="d369032067fd1f6a" memberName="boardComponent"
-                    virtualName="" explicitFocusOrder="0" pos="5 5 53.886% 97.326%"
+                    virtualName="" explicitFocusOrder="0" pos="5 5 53.886% 98.262%"
                     class="BoardComponent" params="boardImages, &amp;position"/>
   <TEXTEDITOR name="new text editor" id="dd91023bd06fbf77" memberName="engineOutputText"
-              virtualName="" explicitFocusOrder="0" pos="8Rr 728r 44.782% 278"
+              virtualName="" explicitFocusOrder="0" pos="8Rr 8Rr 44.782% 21.658%"
               initialText="Engine output" multiline="1" retKeyStartsLine="0"
               readonly="1" scrollbars="1" caret="0" popupmenu="0"/>
   <VIEWPORT name="new viewport" id="fee84cd0278f227b" memberName="moveListView"
-            virtualName="" explicitFocusOrder="0" pos="7Rr 5 44.486% 435"
-            vscroll="1" hscroll="1" scrollbarThickness="18" contentType="2"
+            virtualName="" explicitFocusOrder="0" pos="7Rr 5 44.782% 75.401%"
+            vscroll="0" hscroll="0" scrollbarThickness="18" contentType="2"
             jucerFile="MoveListComponent.h" contentClass="" constructorParams=""/>
 </JUCER_COMPONENT>
 

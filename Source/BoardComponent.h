@@ -1,20 +1,22 @@
 #ifndef __JUCE_HEADER_E4DE0C7D386BE276__
 #define __JUCE_HEADER_E4DE0C7D386BE276__
 
-#include <JuceHeader.h>
+#include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardPosition/stockfish/position.h"
 #include "BoardPosition/stockfish/uci.h"
 #include "types.h"
 
 class BoardComponent  : public Component,
-                        public MessageListener
+                        public MessageListener,
+                        public OpenGLRenderer
 {
 public:
     BoardComponent (juce::Array<Image> boardImages, Stockfish::Position* pos);
     ~BoardComponent();
 
-    void paint (Graphics& g);
+    void paint (Graphics& g) {};
     void resized();
+    void swag () { int a = 3; };
 
 private:
     Image boardImageOriginal;
@@ -32,6 +34,9 @@ private:
     bool mouseIsDown;
     int squareWidth;
 
+    OpenGLContext openGLContext;
+    int renderedFrames;
+    void scaleImages ();
     bool resizing;
 
     void doMove (const Stockfish::Move m);
@@ -41,8 +46,13 @@ private:
     void mouseDrag (const MouseEvent& event) override;
     // Inherited via MessageListener
     virtual void handleMessage (const Message & message) override;
+    // Inherited via OpenGLRenderer
+    virtual void newOpenGLContextCreated () override;
+    virtual void renderOpenGL () override;
+    virtual void openGLContextClosing () override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BoardComponent)
+
 
 };
 

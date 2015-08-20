@@ -8,6 +8,7 @@
   ==============================================================================
 */
 
+#include "stdafx.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MainWindow.h"
 

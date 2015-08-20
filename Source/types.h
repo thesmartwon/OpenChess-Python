@@ -1,4 +1,4 @@
-#include "JuceHeader.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardPosition/stockfish/position.h"
 
 #pragma once

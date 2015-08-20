@@ -20,7 +20,7 @@ class MoveLabel : public Label
 {
 public:
     MoveLabel () {};
-    MoveLabel (MoveListItem* m) {moveListItem = m;};
+    MoveLabel (MoveNode* m) { moveNode = m; };
     ~MoveLabel () {};
     void mouseDown (const MouseEvent& event) override
     {
@@ -29,7 +29,7 @@ public:
         }
     }
 private:
-    MoveListItem* moveListItem;
+	MoveNode* moveNode;
 };
 
 class MoveListComponent    : public Component
@@ -46,11 +46,11 @@ public:
     {
     }
 
-    void updateMoveList (const juce::OwnedArray<MoveListItem>& updatedMoveListItems)
+    void updateMoveList (Game* g)
     {
         // since a move can be inserted or deleted anywhere, it's best to recreate the movelist every time
         moveLabels.clear ();
-        for (int i = 0; i < updatedMoveListItems.size (); ++i)
+        /*for (int i = 0; i < updatedMoveListItems.size (); ++i)
         {
             moveLabels.add (new MoveLabel (updatedMoveListItems[i]));
             
@@ -60,7 +60,7 @@ public:
             toFront (moveLabels.getLast());
             moveLabels.getLast()->addMouseListener (this, false);
             addAndMakeVisible (moveLabels.getLast());
-        }
+        }*/
         fixLabelCoords ();
     }
 

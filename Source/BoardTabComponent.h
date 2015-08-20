@@ -64,8 +64,6 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Game activeGame;
     void handleMessage (const Message & message) override;
-    OwnedArray<MoveListItem> moveListItems;
-    OwnedArray<MoveListItem> moveListRedoQueue;
     MoveListComponent* moveListComp;
     void updatePosition ();
     //[/UserVariables]

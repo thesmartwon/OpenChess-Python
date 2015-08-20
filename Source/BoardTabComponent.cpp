@@ -125,25 +125,18 @@ void BoardTabComponent::resized()
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
 void BoardTabComponent::updatePosition()
 {
-    moveListComp->updateMoveList (moveListItems);
-    moveListComp->repaint();
+    moveListComp->updateMoveList (&activeGame);
 }
 
 void BoardTabComponent::undoMove()
 {
-    if (moveListItems.size() < 1)
-        return;
-    activeGame.setCurrentlyViewedNode (moveListItems.getLast ()->moveNode->parent);
-    moveListRedoQueue.add (moveListItems.removeAndReturn (moveListItems.size() - 1));
+	activeGame.undoMove();
     updatePosition();
 }
 
 void BoardTabComponent::redoMove ()
 {
-    if (moveListRedoQueue.size() < 1)
-        return;
-    activeGame.appendMoveToMainline (moveListItems.getLast ()->moveNode, false);
-    moveListItems.add (moveListRedoQueue.removeAndReturn (moveListRedoQueue.size () - 1));
+	activeGame.redoMove();
     updatePosition();
 }
 
@@ -158,7 +151,6 @@ void BoardTabComponent::handleMessage (const Message & message)
         MoveMessage* moveMessage = ((MoveMessage*)(&message));
 		juce::String moveText = moveMessage->moveSAN;
 
-        moveListRedoQueue.clear();
         MoveNode* newNode = new MoveNode();
         newNode->parent = activeGame.getCurrentlyViewedNode ();
         newNode->comments = String::empty;
@@ -170,8 +162,11 @@ void BoardTabComponent::handleMessage (const Message & message)
             labelText = std::to_string (activeGame.getCurrentlyViewedPosition ().game_ply () - activeGame.getCurrentlyViewedPosition ().game_ply () / 2) + ". " + moveText, NotificationType::dontSendNotification;
         else
             labelText = moveText + " ";
+		newNode->moveLabelText = labelText;
+		Stockfish::Position newPos(activeGame.getCurrentlyViewedPosition());
+		newPos.do_move(newNode->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
+		newNode->position = newPos;
         activeGame.appendMoveToMainline (newNode);
-        moveListItems.add (new MoveListItem (newNode, labelText));
         updatePosition ();
     }
 }

@@ -13,49 +13,10 @@ Game::Game (const juce::String startingFEN)
     rootNode = nullptr;
 }
 
-Stockfish::Position Game::positionAtNode (MoveNode* referenceNode) const
-{
-    Stockfish::Position tmpPos = Stockfish::Position(rootPosition);
-    std::stack<MoveNode*> path;
-    if (rootNode == nullptr || rootNode == referenceNode)
-    {
-        return rootPosition;
-    }
-    path.push(rootNode);
-    while (path.empty () == false && path.top () != referenceNode)
-    {
-        // Pop the top item from stack
-        MoveNode *node = path.top ();
-        path.pop ();
-
-        // Push right and left children of the popped node to stack
-        if (node->variation)
-            path.push (node->variation);
-        if (node->continuation)
-            path.push (node->continuation);
-    }
-    std::stack<MoveNode*> reversedPath;
-    while (path.empty() == false)
-    {
-        MoveNode *node = path.top ();
-        path.pop ();
-        reversedPath.push (node);
-    }
-    tmpPos.do_move (rootNode->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-    while (reversedPath.empty () == false)
-    {
-        MoveNode *node = reversedPath.top ();
-        reversedPath.pop ();
-        tmpPos.do_move (node->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-    }
-
-    return tmpPos;
-}
-
 Stockfish::Position Game::getCurrentlyViewedPosition () const
 {
     if (currentlyViewedNode != nullptr)
-        return positionAtNode(currentlyViewedNode);
+        return currentlyViewedNode->position;
     else return rootPosition;
 }
 
@@ -101,7 +62,7 @@ void Game::appendMoveToMainline (MoveNode* toAppend, bool isVariation)
 bool Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
 {
     InsertionResult result = {};
-    Stockfish::Position tmpPos = positionAtNode(referenceNode);
+    Stockfish::Position tmpPos = referenceNode->position;
     MoveNode* curNode = referenceNode;
     // test if move can be inserted legally
     tmpPos.do_move (toInsert->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
@@ -124,11 +85,12 @@ bool Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
     return true;
 }
 
-bool Game::hasRootNode () const
+void Game::undoMove()
 {
-    if (rootNode == nullptr)
-        return false;
-    else return true;
+}
+
+void Game::redoMove()
+{
 }
 
 void Game::setCurrentlyViewedNode (MoveNode* nodeToView)

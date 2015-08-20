@@ -9,6 +9,8 @@ struct MoveNode
     MoveNode* continuation;
     MoveNode* variation;
     Stockfish::Move move;
+	Stockfish::Position position;
+	juce::String moveLabelText;
     juce::String comments;
     MoveNode () { parent = continuation = variation = nullptr; move = Stockfish::Move::MOVE_NONE; comments = String::empty; }
     MoveNode (const MoveNode* other)
@@ -63,20 +65,4 @@ public:
     juce::String moveSAN;
     juce::String moveUCI;
     Stockfish::Move move;
-};
-
-// contains a node in the movelist tree and the text of the move
-struct MoveListItem
-{
-    MoveListItem () { moveNode = {}; moveLabelText = String::empty; }
-    MoveListItem (const MoveListItem& m) { this->moveNode = new MoveNode(m.moveNode); this->moveLabelText = String (m.moveLabelText); }
-    MoveListItem (MoveNode* moveNode, String moveText) { this->moveNode = moveNode; this->moveLabelText = moveText; }
-    String moveLabelText;
-    MoveNode* moveNode;
-    bool MoveListItem::operator==(MoveListItem &rhs)
-    {
-        if (this->moveNode == rhs.moveNode && this->moveLabelText == rhs.moveLabelText)
-            return true;
-        return false;
-    }
 };

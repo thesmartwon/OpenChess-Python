@@ -23,12 +23,12 @@ public:
     void appendMove (MoveNode* referenceNode, MoveNode* toAppend, bool isVariation = false);
     void appendMoveToMainline (MoveNode* toAppend, bool isVariation = false);
     bool insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert);
+	void undoMove();
+	void redoMove();
     
-    bool hasRootNode () const;
     MoveNode* getCurrentlyViewedNode () const;
     void setCurrentlyViewedNode (MoveNode* nodeToView);
 
-    Stockfish::Position positionAtNode (MoveNode* referenceNode) const;
     Stockfish::Position getCurrentlyViewedPosition () const;
 
 private:

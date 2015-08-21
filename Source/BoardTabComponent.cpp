@@ -140,33 +140,14 @@ void BoardTabComponent::redoMove ()
     updatePosition();
 }
 
+// All events after doing a move start here
 void BoardTabComponent::handleMessage (const Message & message)
 {
-    // this method is called by the board when a (half) move has happened, so we should send the info
-    // other places.
-
     if (((GenericMessage*)(&message))->messageType == MSG_MOVEMESSAGE)
     {
-        //update movelist
         MoveMessage* moveMessage = ((MoveMessage*)(&message));
-		juce::String moveText = moveMessage->moveSAN;
-
-        MoveNode* newNode = new MoveNode();
-        newNode->parent = activeGame.getCurrentlyViewedNode ();
-        newNode->comments = String::empty;
-        newNode->continuation = nullptr;
-        newNode->move = moveMessage->move;
-        newNode->variation = nullptr;
-        String labelText;
-        if (activeGame.getCurrentlyViewedPosition().game_ply () % 2 == 1)
-            labelText = std::to_string (activeGame.getCurrentlyViewedPosition ().game_ply () - activeGame.getCurrentlyViewedPosition ().game_ply () / 2) + ". " + moveText, NotificationType::dontSendNotification;
-        else
-            labelText = moveText + " ";
-		newNode->moveLabelText = labelText;
-		Stockfish::Position newPos(activeGame.getCurrentlyViewedPosition());
-		newPos.do_move(newNode->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
-		newNode->position = newPos;
-        activeGame.appendMoveToMainline (newNode);
+		activeGame.doMainlineMove(moveMessage->move, moveMessage->moveSAN);
+		
         updatePosition ();
     }
 }

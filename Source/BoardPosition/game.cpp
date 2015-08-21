@@ -4,23 +4,24 @@
 Game::Game ()
 {
     rootPosition.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-    rootNode = nullptr;
+	currentlyViewedPosition.set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
+    rootNode = currentlyViewedNode = nullptr;
 }
 
 Game::Game (const juce::String startingFEN)
 {
     rootPosition.set (startingFEN.toStdString(), false);
-    rootNode = nullptr;
+	currentlyViewedPosition.set(startingFEN.toStdString(), false);
+
+    rootNode = currentlyViewedNode = nullptr;
 }
 
 Stockfish::Position Game::getCurrentlyViewedPosition () const
 {
-    if (currentlyViewedNode != nullptr)
-        return currentlyViewedNode->position;
-    else return rootPosition;
+	return currentlyViewedPosition;
 }
 
-void Game::appendMove (MoveNode* referenceMove, MoveNode* toAppend, bool isVariation)
+void Game::appendNode(MoveNode* referenceMove, MoveNode* toAppend, bool isVariation)
 {
     if (isVariation)
     {
@@ -35,11 +36,11 @@ void Game::appendMove (MoveNode* referenceMove, MoveNode* toAppend, bool isVaria
     currentlyViewedNode = referenceMove;
 }
 
-void Game::appendMoveToMainline (MoveNode* toAppend, bool isVariation)
+void Game::appendNodeToMainline (MoveNode* toAppend, bool isVariation)
 {
     if (rootNode == nullptr)
     {
-        rootNode = toAppend;
+        rootNode = currentlyViewedNode = toAppend;
         return;
     }
     MoveNode* curNode = rootNode;
@@ -59,10 +60,10 @@ void Game::appendMoveToMainline (MoveNode* toAppend, bool isVariation)
     currentlyViewedNode = toAppend;
 }
 
-bool Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
+bool Game::insertNodeBefore (MoveNode* referenceNode, MoveNode* toInsert)
 {
     InsertionResult result = {};
-    Stockfish::Position tmpPos = referenceNode->position;
+    Stockfish::Position tmpPos = currentlyViewedPosition;
     MoveNode* curNode = referenceNode;
     // test if move can be inserted legally
     tmpPos.do_move (toInsert->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
@@ -85,12 +86,41 @@ bool Game::insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert)
     return true;
 }
 
+void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN)
+{
+    // create the new node to put in the binary tree
+	MoveNode* newNode = new MoveNode();
+	newNode->parent = currentlyViewedNode;
+	newNode->continuation = nullptr;
+	newNode->variation = nullptr;
+	newNode->move = m;
+	newNode->comments = String::empty;
+	String labelText;
+	if (currentlyViewedPosition.game_ply() % 2 == 1)
+		labelText = std::to_string(currentlyViewedPosition.game_ply() - currentlyViewedPosition.game_ply() / 2) + ". " + moveSAN, NotificationType::dontSendNotification;
+	else
+		labelText = moveSAN + " ";
+	newNode->moveLabelText = labelText;
+
+    redoStack.clear();
+	currentlyViewedPosition.do_move(newNode->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
+	appendNodeToMainline(newNode);
+}
+
 void Game::undoMove()
 {
+	currentlyViewedPosition.undo_move(currentlyViewedNode->move);
+	redoStack.add(currentlyViewedNode);
+	currentlyViewedNode = currentlyViewedNode->parent;
 }
 
 void Game::redoMove()
 {
+	if (redoStack.size() > 0)
+	{
+		currentlyViewedPosition.do_move(redoStack.getLast()->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
+		currentlyViewedNode = redoStack.remove(redoStack.size() - 1);
+	}
 }
 
 void Game::setCurrentlyViewedNode (MoveNode* nodeToView)

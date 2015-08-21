@@ -9,7 +9,6 @@ struct MoveNode
     MoveNode* continuation;
     MoveNode* variation;
     Stockfish::Move move;
-	Stockfish::Position position;
 	juce::String moveLabelText;
     juce::String comments;
     MoveNode () { parent = continuation = variation = nullptr; move = Stockfish::Move::MOVE_NONE; comments = String::empty; }

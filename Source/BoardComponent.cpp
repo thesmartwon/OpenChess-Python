@@ -172,7 +172,6 @@ void BoardComponent::mouseUp (const MouseEvent& event)
             doMove (myMove);
         }
 
-
         for (int i = 0; i < 64; ++i)
             pieceOnBoard[i] = true;
         repaint ();
@@ -381,9 +380,6 @@ void BoardComponent::doMove (const Stockfish::Move move)
         mes->move = move;
         mes->moveSAN = Stockfish::UCI::move_to_san (activeGame->getCurrentlyViewedPosition(), move);
         mes->moveUCI = Stockfish::UCI::move (move, false);
-
-        //Stockfish wants a new stateinfo for each move.... /sigh
-        activeGame->getCurrentlyViewedPosition().do_move (move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
 
         if (const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
             cm->postMessage (mes);

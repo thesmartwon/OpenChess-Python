@@ -10,6 +10,11 @@ struct InsertionResult
     juce::Array<MoveNode*> variationBrokenNodes;
 };
 
+//==============================================================================
+/**
+The game class is composed of moveNodes in a simple binary tree.
+One side represents variations, the other the mainline.
+*/
 class Game
 {
 public:
@@ -20,9 +25,10 @@ public:
     /**
     If node doesn't exist will return rootPosition
     */
-    void appendMove (MoveNode* referenceNode, MoveNode* toAppend, bool isVariation = false);
-    void appendMoveToMainline (MoveNode* toAppend, bool isVariation = false);
-    bool insertMoveBefore (MoveNode* referenceNode, MoveNode* toInsert);
+    void appendNode (MoveNode* referenceNode, MoveNode* toAppend, bool isVariation = false);
+    void appendNodeToMainline (MoveNode* toAppend, bool isVariation = false);
+    bool insertNodeBefore (MoveNode* referenceNode, MoveNode* toInsert);
+	void doMainlineMove(Stockfish::Move m, juce::String moveSAN);
 	void undoMove();
 	void redoMove();
     
@@ -32,8 +38,9 @@ public:
     Stockfish::Position getCurrentlyViewedPosition () const;
 
 private:
-    Stockfish::Position rootPosition;
+    Stockfish::Position rootPosition, currentlyViewedPosition;
     MoveNode* rootNode;
     MoveNode* currentlyViewedNode;
+	juce::Array<MoveNode*> redoStack;
 
 };

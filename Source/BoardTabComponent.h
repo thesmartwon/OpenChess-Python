@@ -42,7 +42,7 @@
                                                                     //[/Comments]
 */
 class BoardTabComponent  : public Component,
-                           public MessageListener
+                           public ChangeListener
 {
 public:
     //==============================================================================
@@ -63,7 +63,7 @@ public:
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     Game activeGame;
-    void handleMessage (const Message & message) override;
+    void changeListenerCallback (ChangeBroadcaster* source) override;
     MoveListComponent* moveListComp;
     void updatePosition ();
     //[/UserVariables]

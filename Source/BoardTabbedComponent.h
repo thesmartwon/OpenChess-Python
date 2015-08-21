@@ -56,7 +56,6 @@ public:
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     juce::Array<Image> boardImages;
-    juce::Array<Image> boardImagesScaled;
     juce::OwnedArray<BoardTabComponent> tabComponents;
     void scaleImages ();
     //[/UserVariables]

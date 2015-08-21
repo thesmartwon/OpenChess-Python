@@ -48,6 +48,21 @@ BoardTabbedComponent::BoardTabbedComponent ()
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 4, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.add (boardImages[1].getClippedImage (juce::Rectangle<int> (boardImages[1].getWidth () / 6.0 * 5, boardImages[1].getHeight () / 2, boardImages[1].getWidth () / 6.0, boardImages[1].getHeight () / 2)));
     boardImages.remove (1); //don't need the image with all the pieces anymore
+    int boardWidth = 720;
+    int squareWidth = boardWidth / 8;
+    boardImages.add (boardImages[0].rescaled (boardWidth, boardWidth));
+    boardImages.add (boardImages[1].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[2].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[3].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[4].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[5].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[6].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[7].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[8].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[9].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[10].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[11].rescaled (squareWidth, squareWidth));
+    boardImages.add (boardImages[12].rescaled (squareWidth, squareWidth));
     //[/Constructor_pre]
 
     addAndMakeVisible (tabbedComponent = new TabbedComponent (TabbedButtonBar::TabsAtTop));

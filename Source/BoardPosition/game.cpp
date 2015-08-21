@@ -86,7 +86,7 @@ bool Game::insertNodeBefore (MoveNode* referenceNode, MoveNode* toInsert)
     return true;
 }
 
-void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN)
+void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN, bool isRedo)
 {
     // create the new node to put in the binary tree
 	MoveNode* newNode = new MoveNode();
@@ -96,29 +96,52 @@ void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN)
 	newNode->move = m;
 	newNode->comments = String::empty;
 	String labelText;
-	if (currentlyViewedPosition.game_ply() % 2 == 1)
-		labelText = std::to_string(currentlyViewedPosition.game_ply() - currentlyViewedPosition.game_ply() / 2) + ". " + moveSAN, NotificationType::dontSendNotification;
+	if (currentlyViewedPosition.game_ply() % 2 == 0)
+		labelText = std::to_string(currentlyViewedPosition.game_ply() - currentlyViewedPosition.game_ply() / 2 + 1) + ". " + moveSAN, NotificationType::dontSendNotification;
 	else
 		labelText = moveSAN + " ";
 	newNode->moveLabelText = labelText;
 
-    redoStack.clear();
+    if (!isRedo)
+        redoStack.clear();
 	currentlyViewedPosition.do_move(newNode->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
 	appendNodeToMainline(newNode);
 }
 
 void Game::undoMove()
 {
-	currentlyViewedPosition.undo_move(currentlyViewedNode->move);
-	redoStack.add(currentlyViewedNode);
-	currentlyViewedNode = currentlyViewedNode->parent;
+    currentlyViewedPosition.undo_move (currentlyViewedNode->move);
+    redoStack.add (new MoveNode(currentlyViewedNode));
+    if (currentlyViewedNode != rootNode)
+    {
+        MoveNode* toDelete = currentlyViewedNode;
+        currentlyViewedNode = currentlyViewedNode->parent;
+        if (currentlyViewedNode->continuation == toDelete)
+        {
+            delete currentlyViewedNode->continuation;
+            currentlyViewedNode->continuation = nullptr;
+        }
+        else
+        {
+            delete currentlyViewedNode->variation;
+            currentlyViewedNode->variation = nullptr;
+        }
+    }
+    else
+    {
+        delete rootNode;
+        rootNode = nullptr;
+    }
 }
 
 void Game::redoMove()
 {
 	if (redoStack.size() > 0)
 	{
-		currentlyViewedPosition.do_move(redoStack.getLast()->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
+        int index = String(redoStack.getLast ()->moveLabelText).indexOf (".");
+        if (index != -1)
+            doMainlineMove (redoStack.getLast ()->move, redoStack.getLast ()->moveLabelText.substring (index + 1), true);
+        else doMainlineMove (redoStack.getLast ()->move, redoStack.getLast ()->moveLabelText, true);
 		currentlyViewedNode = redoStack.remove(redoStack.size() - 1);
 	}
 }
@@ -126,6 +149,11 @@ void Game::redoMove()
 void Game::setCurrentlyViewedNode (MoveNode* nodeToView)
 {
     currentlyViewedNode = nodeToView;
+}
+
+MoveNode * Game::getRootNode () const
+{
+    return rootNode;
 }
 
 MoveNode* Game::getCurrentlyViewedNode () const

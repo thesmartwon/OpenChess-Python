@@ -46,32 +46,42 @@ public:
     {
     }
 
+    // This recreates the entire movelist and makes sure the labels are inside the parent
     void updateMoveList (Game* g)
     {
-        // since a move can be inserted or deleted anywhere, it's best to recreate the movelist every time
         moveLabels.clear ();
-        /*for (int i = 0; i < updatedMoveListItems.size (); ++i)
+
+        // let's use morris inorder to traverse the tree
+        MoveNode* current, *pre;
+        current = g->getRootNode();
+        while (current != nullptr)
         {
-            moveLabels.add (new MoveLabel (updatedMoveListItems[i]));
-            
-            moveLabels.getLast()->setFont (18.0f);
-            moveLabels.getLast()->setText (updatedMoveListItems[i]->moveLabelText, NotificationType::dontSendNotification);
-            moveLabels.getLast()->setEditable (false);
-            toFront (moveLabels.getLast());
-            moveLabels.getLast()->addMouseListener (this, false);
-            addAndMakeVisible (moveLabels.getLast());
-        }*/
+            if (current->variation == nullptr)
+            {
+                addMoveLabel (current->moveLabelText, false);
+                current = current->continuation;
+            } else
+            {
+                pre = current->variation;
+                while (pre->continuation != nullptr && pre->continuation != current)
+                    pre = pre->continuation;
+                if (pre->continuation == nullptr)
+                {
+                    pre->continuation = current;
+                    current = current->variation;
+                } else
+                {
+                    pre->continuation = nullptr;
+                    addMoveLabel (current->moveLabelText, false);
+                    current = current->continuation;
+                }
+            }
+        }
         fixLabelCoords ();
     }
 
     void paint (Graphics& g)
     {
-        /* This demo code just fills the component's background and
-           draws some placeholder text to get you started.
-
-           You should replace everything in this method with your own
-           drawing code..
-        */
 
         g.fillAll (Colours::aquamarine);   // clear the background
 
@@ -112,6 +122,17 @@ private:
             nextLabelXY.setX (nextLabelXY.getX () + moveLabels[i]->getWidth ());
         }
     };
+    void addMoveLabel (const juce::String &moveText, bool isVariation)
+    {
+        moveLabels.add (new MoveLabel ());
+        moveLabels.getLast ()->setColour (juce::Label::textColourId, Colours::brown);
+        moveLabels.getLast ()->setFont (18.0f);
+        moveLabels.getLast ()->setText (moveText, NotificationType::dontSendNotification);
+        moveLabels.getLast ()->setEditable (false);
+        toFront (moveLabels.getLast ());
+        moveLabels.getLast ()->addMouseListener (this, false);
+        addAndMakeVisible (moveLabels.getLast ());
+    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MoveListComponent)
 };

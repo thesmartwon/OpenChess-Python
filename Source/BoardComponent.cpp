@@ -1,10 +1,41 @@
 #include "stdafx.h"
 #include "BoardComponent.h"
 
+class PiecesMenuComponent : public PopupMenu::CustomComponent
+{
+public:
+    PiecesMenuComponent (Image pieceImage, int squareWidth)
+    {
+        this->pieceImage = pieceImage;
+        this->squareWidth = squareWidth;
+    }
+
+    void getIdealSize (int& idealWidth, int& idealHeight) override
+    {
+        idealWidth = squareWidth - 4;
+        idealHeight = squareWidth;
+    }
+
+    void paint (Graphics& g) override
+    {
+        g.fillAll (Colours::black.withAlpha (0.3f));
+
+        g.drawImage (pieceImage, 0, 0, squareWidth - 4, squareWidth, 0, 0, pieceImage.getWidth (), pieceImage.getHeight ());
+
+        //g.setColour (Colours::black);
+        //g.drawEllipse (getLocalBounds ().toFloat(), 1);
+    }
+
+private:
+    Image pieceImage;
+    int squareWidth;
+};
+
 BoardComponent::BoardComponent (juce::Array<Image> boardImages, Game* game)
 {
     setOpaque (true);
 
+    int a = boardImages.size ();
     activeGame = game;
 
     squareWidth = getWidth() / 8;
@@ -24,21 +55,21 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Game* game)
 
     setSize (728, 728);
 
-    boardImage = boardImageOriginal.rescaled (getWidth (), getHeight ());
-    wKingImage = wKingImageOriginal.rescaled (squareWidth, squareWidth);
-    wQueenImage = wQueenImageOriginal.rescaled (squareWidth, squareWidth);
-    wBishopImage = wBishopImageOriginal.rescaled (squareWidth, squareWidth);
-    wKnightImage = wKnightImageOriginal.rescaled (squareWidth, squareWidth);
-    wRookImage = wRookImageOriginal.rescaled (squareWidth, squareWidth);
-    wPawnImage = wPawnImageOriginal.rescaled (squareWidth, squareWidth);
-    bKingImage = bKingImageOriginal.rescaled (squareWidth, squareWidth);
-    bQueenImage = bQueenImageOriginal.rescaled (squareWidth, squareWidth);
-    bBishopImage = bBishopImageOriginal.rescaled (squareWidth, squareWidth);
-    bKnightImage = bKnightImageOriginal.rescaled (squareWidth, squareWidth);
-    bRookImage = bRookImageOriginal.rescaled (squareWidth, squareWidth);
-    bPawnImage = bPawnImageOriginal.rescaled (squareWidth, squareWidth);
+    boardImage = boardImages[13];
+    wKingImage = boardImages[14];
+    wQueenImage = boardImages[15];
+    wBishopImage = boardImages[16];
+    wKnightImage = boardImages[17];
+    wRookImage = boardImages[18];
+    wPawnImage = boardImages[19];
+    bKingImage = boardImages[20];
+    bQueenImage = boardImages[21];
+    bBishopImage = boardImages[22];
+    bKnightImage = boardImages[23];
+    bRookImage = boardImages[24];
+    bPawnImage = boardImages[25];
 
-    sidePerspective = white;
+    sidePerspective = Stockfish::WHITE;
     mouseDownRankFile.addXY (-1, -1);
     mouseUpRankFile.addXY (-1, -1);
     selectedSquare.addXY (-1, -1);
@@ -48,7 +79,10 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Game* game)
         pieceOnBoard[i] = true;
     mouseIsDown = resizing = false;
     lastMeasuredFPS = "0";
-    //openGLContext.setComponentPaintingEnabled (true);
+    lastMoveMessage.move = Stockfish::Move::MOVE_NONE;
+    lastMoveMessage.moveSAN = String::empty;
+    lastMoveMessage.moveUCI = String::empty;
+
     openGLContext.setRenderer (this);
     openGLContext.attachTo (*this);
     openGLContext.setContinuousRepainting (true);
@@ -59,6 +93,11 @@ BoardComponent::~BoardComponent()
 {
     if (openGLContext.getTargetComponent () == this)
         openGLContext.detach ();
+}
+
+MoveMessage* BoardComponent::getLastMoveMessage ()
+{
+    return &lastMoveMessage;
 }
 
 void BoardComponent::resized()
@@ -117,7 +156,28 @@ Stockfish::Move BoardComponent::createMove (Stockfish::Square fromSquare, Stockf
          || (activeGame->getCurrentlyViewedPosition().piece_on (fromSquare) == Stockfish::Piece::B_PAWN && Stockfish::rank_of (fromSquare) == Stockfish::RANK_2))
     {
         //promotion by white or black.
-        return Stockfish::make<Stockfish::MoveType::PROMOTION> (fromSquare, toSquare, Stockfish::PieceType::BISHOP);
+        PopupMenu m;
+        if (activeGame->getCurrentlyViewedPosition ().side_to_move () == Stockfish::WHITE)
+        {
+            m.addCustomItem (Stockfish::PieceType::QUEEN, new PiecesMenuComponent (wQueenImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::KNIGHT, new PiecesMenuComponent (wKnightImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::ROOK, new PiecesMenuComponent (wRookImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::BISHOP, new PiecesMenuComponent (wBishopImage, squareWidth));
+        }
+        else
+        {
+            m.addCustomItem (Stockfish::PieceType::BISHOP, new PiecesMenuComponent (bBishopImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::ROOK, new PiecesMenuComponent (bRookImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::KNIGHT, new PiecesMenuComponent (bKnightImage, squareWidth));
+            m.addCustomItem (Stockfish::PieceType::QUEEN, new PiecesMenuComponent (bQueenImage, squareWidth));
+        }
+        int popupY = getScreenBounds ().getY ();
+        popupY += activeGame->getCurrentlyViewedPosition ().side_to_move () == Stockfish::WHITE ? 0 : 8 * squareWidth;
+        Stockfish::PieceType p = Stockfish::PieceType(m.showAt(juce::Rectangle<int>(getScreenBounds().getX() + squareWidth * (Stockfish::file_of (toSquare)),
+                                                                                    popupY,
+                                                                                    0,
+                                                                                    0)));
+        return Stockfish::make<Stockfish::MoveType::PROMOTION> (fromSquare, toSquare, p);
     }
     return Stockfish::make<Stockfish::MoveType::NORMAL> (fromSquare, toSquare);
 
@@ -129,7 +189,7 @@ void BoardComponent::mouseDown (const MouseEvent& event)
     {
         mouseIsDown = true;
         mouseXY.setXY (event.x, event.y);
-        if (sidePerspective == white)
+        if (sidePerspective == Stockfish::WHITE)
             mouseDownRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
             mouseDownRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
@@ -142,7 +202,7 @@ void BoardComponent::mouseUp (const MouseEvent& event)
     if (event.mods == juce::ModifierKeys::leftButtonModifier)
     {
         mouseXY.setXY (event.x, event.y);
-        if (sidePerspective == white)
+        if (sidePerspective == Stockfish::WHITE)
             mouseUpRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
             mouseUpRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
@@ -160,16 +220,16 @@ void BoardComponent::mouseUp (const MouseEvent& event)
             else
             {
                 myMove = createMove (Stockfish::square_of (selectedSquare.getX (), selectedSquare.getY ()),
-                    Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
-                doMove (myMove);
+                                     Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
+                sendMove (myMove);
             }
         }
         //drag
         else
         {
             myMove = createMove (Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ()),
-                Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
-            doMove (myMove);
+                                 Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
+            sendMove (myMove);
         }
 
         for (int i = 0; i < 64; ++i)
@@ -194,10 +254,6 @@ void BoardComponent::mouseDrag (const MouseEvent & event)
         }
         repaint ();
     }
-}
-
-void BoardComponent::handleMessage (const Message & message)
-{
 }
 
 void BoardComponent::scaleImages ()
@@ -310,7 +366,7 @@ void BoardComponent::renderOpenGL()
                     {
                         g.drawImage (myImage,
                             squareWidth * (files),
-                            sidePerspective == white ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
+                            sidePerspective == Stockfish::WHITE ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
                             squareWidth,
                             squareWidth,
                             0, 0, myImage.getWidth (), myImage.getHeight ());
@@ -331,7 +387,7 @@ void BoardComponent::renderOpenGL()
 
             g.drawRect (
                 squareWidth * (file),
-                sidePerspective == black ? squareWidth * 7 - squareWidth * (rank) : squareWidth * (rank),
+                sidePerspective == Stockfish::BLACK ? squareWidth * 7 - squareWidth * (rank) : squareWidth * (rank),
                 squareWidth,
                 squareWidth,
                 4);
@@ -372,17 +428,21 @@ void BoardComponent::openGLContextClosing()
 {
 }
 
-void BoardComponent::doMove (const Stockfish::Move move)
+void BoardComponent::sendMove (const Stockfish::Move move)
 {
-    if (activeGame->getCurrentlyViewedPosition().pseudo_legal (move) && activeGame->getCurrentlyViewedPosition().legal (move, activeGame->getCurrentlyViewedPosition().pinned_pieces (activeGame->getCurrentlyViewedPosition().side_to_move ())))
+    if (activeGame->getCurrentlyViewedPosition().pseudo_legal (move) &&
+        activeGame->getCurrentlyViewedPosition().legal (move, activeGame->getCurrentlyViewedPosition().pinned_pieces (activeGame->getCurrentlyViewedPosition().side_to_move ())))
     {
-        MoveMessage* mes = new MoveMessage ();
-        mes->move = move;
-        mes->moveSAN = Stockfish::UCI::move_to_san (activeGame->getCurrentlyViewedPosition(), move);
-        mes->moveUCI = Stockfish::UCI::move (move, false);
+        lastMoveMessage.move = move;
+        lastMoveMessage.moveSAN = Stockfish::UCI::move_to_san (activeGame->getCurrentlyViewedPosition(), move);
+        lastMoveMessage.moveUCI = Stockfish::UCI::move (move, false);
 
-        if (const MessageListener* cm = dynamic_cast<const MessageListener*> (this->getParentComponent ())) //should always be true
-            cm->postMessage (mes);
+        // we do this here for animation and speed's sake
+        activeGame->doMainlineMove (move, lastMoveMessage.moveSAN);
+
+        // tell the boardTabComponenet we have moved
+        sendSynchronousChangeMessage (); // being synchronous allows for extra speed 
+
         selectedSquare.setXY (-1, -1);
     }
 }

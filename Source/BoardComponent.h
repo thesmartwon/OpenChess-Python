@@ -8,12 +8,14 @@
 #include "types.h"
 
 class BoardComponent  : public Component,
-                        public MessageListener,
+                        public ChangeBroadcaster,
                         public OpenGLRenderer
 {
 public:
     BoardComponent (juce::Array<Image> boardImages, Game* game);
     ~BoardComponent();
+
+    MoveMessage* getLastMoveMessage ();
 
     void paint (Graphics& g) {};
     void resized();
@@ -27,6 +29,7 @@ private:
     Image bPawnImage, bRookImage, bKnightImage, bBishopImage, bKingImage, bQueenImage;
 
     Game* activeGame;
+    MoveMessage lastMoveMessage;
 
     int sidePerspective;
     Point<int> mouseDownRankFile, mouseUpRankFile, mouseXY, selectedSquare;
@@ -39,13 +42,11 @@ private:
     void scaleImages ();
     bool resizing;
 
-    void doMove (const Stockfish::Move m);
+    void sendMove (const Stockfish::Move m);
     Stockfish::Move createMove (Stockfish::Square fromSquare, Stockfish::Square toSquare);
     void mouseDown (const MouseEvent& event) override;
     void mouseUp (const MouseEvent& event) override;
     void mouseDrag (const MouseEvent& event) override;
-    // Inherited via MessageListener
-    virtual void handleMessage (const Message & message) override;
     // Inherited via OpenGLRenderer
     virtual void newOpenGLContextCreated () override;
     virtual void renderOpenGL () override;

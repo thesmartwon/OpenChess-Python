@@ -51,13 +51,13 @@ BoardTabComponent::BoardTabComponent (juce::Array<Image> boardImages)
 
     //[UserPreSize]
     moveListView->setViewedComponent (moveListComp = new MoveListComponent());
+    boardComponent->addChangeListener (this);
     //[/UserPreSize]
 
     setSize (1351, 748);
 
 
     //[Constructor] You can add your own custom stuff here..
-    //setSize (getBoundsInParent ().getWidth (), getBoundsInParent ().getHeight ());
 
     //[/Constructor]
 }
@@ -126,6 +126,7 @@ void BoardTabComponent::resized()
 void BoardTabComponent::updatePosition()
 {
     moveListComp->updateMoveList (&activeGame);
+    moveListComp->repaint ();
 }
 
 void BoardTabComponent::undoMove()
@@ -141,13 +142,12 @@ void BoardTabComponent::redoMove ()
 }
 
 // All events after doing a move start here
-void BoardTabComponent::handleMessage (const Message & message)
+// The position has already been updated by the boardComponent, this lags behind by a few milliseconds
+// and does the rest of the events
+void BoardTabComponent::changeListenerCallback (ChangeBroadcaster* source)
 {
-    if (((GenericMessage*)(&message))->messageType == MSG_MOVEMESSAGE)
+    if (BoardComponent* bc = dynamic_cast <BoardComponent*> (source))
     {
-        MoveMessage* moveMessage = ((MoveMessage*)(&message));
-		activeGame.doMainlineMove(moveMessage->move, moveMessage->moveSAN);
-		
         updatePosition ();
     }
 }

@@ -3,7 +3,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "BoardPosition/stockfish/position.h"
-#include "BoardPosition/stockfish/uci.h"
 #include "BoardPosition/game.h"
 #include "types.h"
 

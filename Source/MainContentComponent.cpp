@@ -44,7 +44,6 @@ ApplicationCommandTarget* MainContentComponent::getNextCommandTarget ()
     return findFirstTargetParentComponent ();
 }
 
-
 bool MainContentComponent::perform (const InvocationInfo& info)
 {
     MainWindow* mainWindow = MainWindow::getMainWindow ();
@@ -63,7 +62,16 @@ bool MainContentComponent::perform (const InvocationInfo& info)
     case MainWindow::recentFiles:
         break;
 
+    case MainWindow::saveFile:
+        //boardTabbedComponent->saveGame();
+        break;
+
+    case MainWindow::saveFileAs:
+        //boardTabbedComponent->saveGameAs();
+        break;
+
     case MainWindow::saveFiles:
+        //boardTabbedComponent->saveAllGames();
         break;
 
     case MainWindow::undo:
@@ -151,8 +159,12 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::redo,
                               MainWindow::newFile,
                               MainWindow::openFile,
+                              MainWindow::openFileFromPGN,
+                              MainWindow::openFileFromFEN,
                               MainWindow::recentFiles,
+                              MainWindow::saveFile,
                               MainWindow::saveFiles,
+                              MainWindow::saveFileAs,
                               MainWindow::useLookAndFeelV1,
                               MainWindow::useLookAndFeelV2,
                               MainWindow::useLookAndFeelV3
@@ -178,14 +190,34 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
         result.addDefaultKeypress ('o', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
         break;
 
+    case MainWindow::openFileFromPGN:
+        result.setInfo ("Open Game From PGN", "Open a chess game", fileCategory, 0);
+        result.addDefaultKeypress ('p', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
+        break;
+
+    case MainWindow::openFileFromFEN:
+        result.setInfo ("Open Game From FEN", "Start at an FEN position", fileCategory, 0);
+        result.addDefaultKeypress ('f', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
+        break;
+
     case MainWindow::recentFiles:
         result.setInfo ("Recent files", "Recently opened chess games", fileCategory, 0);
         result.addDefaultKeypress ('p', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
         break;
 
-    case MainWindow::saveFiles:
-        result.setInfo ("Save unsaved files", "New and edited files", fileCategory, 0);
+    case MainWindow::saveFile:
+        result.setInfo ("Save file", "Save current new or edited file", fileCategory, 0);
         result.addDefaultKeypress ('s', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
+        break;
+
+    case MainWindow::saveFileAs:
+        result.setInfo ("Save file as", "Save current new or edited file", fileCategory, 0);
+        result.addDefaultKeypress ('g', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
+        break;
+
+    case MainWindow::saveFiles:
+        result.setInfo ("Save ALL files", "Save new and edited files", fileCategory, 0);
+        result.addDefaultKeypress ('a', juce::ModifierKeys::commandModifier | juce::ModifierKeys::ctrlModifier);
         break;
 
     case MainWindow::undo:
@@ -231,7 +263,14 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& /*
     {
         menu.addCommandItem (commandManager, MainWindow::newFile);
         menu.addCommandItem (commandManager, MainWindow::openFile);
+        PopupMenu subMenu;
+        subMenu.addCommandItem (commandManager, MainWindow::openFileFromPGN);
+        subMenu.addCommandItem (commandManager, MainWindow::openFileFromFEN);
+        subMenu.addItem(3004, "hello");
+        menu.addSubMenu ("Open From...", subMenu);
         menu.addCommandItem (commandManager, MainWindow::recentFiles);
+        menu.addCommandItem (commandManager, MainWindow::saveFile);
+        menu.addCommandItem (commandManager, MainWindow::saveFileAs);
         menu.addCommandItem (commandManager, MainWindow::saveFiles);
         menu.addSeparator ();
         menu.addCommandItem (commandManager, StandardApplicationCommandIDs::quit, "Quit");

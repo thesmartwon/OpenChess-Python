@@ -13,6 +13,12 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+static const juce::Identifier continuation("continuation");
+static const juce::Identifier variation("variation");
+static const juce::Identifier move("move");
+static const juce::Identifier comments("comments");
+static const juce::Identifier moveLabelText("moveLabelText");
+
 //==============================================================================
 /*
 */
@@ -20,8 +26,7 @@ class MoveLabel : public Label
 {
 public:
     MoveLabel () {};
-    MoveLabel (MoveNode* m) { moveNode = m; };
-    ~MoveLabel () {};
+    MoveLabel (juce::ValueTree m) { moveNode = m; };
     void mouseDown (const MouseEvent& event) override
     {
         if (event.mods == juce::ModifierKeys::leftButtonModifier)
@@ -29,7 +34,7 @@ public:
         }
     }
 private:
-	MoveNode* moveNode;
+    juce::ValueTree moveNode;
 };
 
 class MoveListComponent    : public Component
@@ -42,41 +47,11 @@ public:
         nextLabelXY.setXY (horizontalPadding, verticalPadding);
     }
 
-    ~MoveListComponent ()
-    {
-    }
-
     // This recreates the entire movelist and makes sure the labels are inside the parent
     void updateMoveList (Game* g)
     {
         moveLabels.clear ();
-
-        // let's use morris inorder to traverse the tree
-        MoveNode* current, *pre;
-        current = g->getRootNode();
-        while (current != nullptr)
-        {
-            if (current->variation == nullptr)
-            {
-                addMoveLabel (current->moveLabelText, false);
-                current = current->continuation;
-            } else
-            {
-                pre = current->variation;
-                while (pre->continuation != nullptr && pre->continuation != current)
-                    pre = pre->continuation;
-                if (pre->continuation == nullptr)
-                {
-                    pre->continuation = current;
-                    current = current->variation;
-                } else
-                {
-                    pre->continuation = nullptr;
-                    addMoveLabel (current->moveLabelText, false);
-                    current = current->continuation;
-                }
-            }
-        }
+        addNode(g->getRootNode().getChildWithName(continuation));
         fixLabelCoords ();
     }
 
@@ -122,6 +97,20 @@ private:
             nextLabelXY.setX (nextLabelXY.getX () + moveLabels[i]->getWidth ());
         }
     };
+    void addNode(juce::ValueTree vt)
+    {
+        if (vt.isValid())
+        {
+            juce::String text = vt.getProperty(moveLabelText);
+            addMoveLabel(text, false);
+            addNode(vt.getChildWithName(variation));
+            addNode(vt.getChildWithName(continuation));
+        }
+        else
+        {
+            int a = 3;
+        }
+    }
     void addMoveLabel (const juce::String &moveText, bool isVariation)
     {
         moveLabels.add (new MoveLabel ());

@@ -69,15 +69,18 @@ BoardTabbedComponent::BoardTabbedComponent ()
     tabbedComponent->setTabBarDepth (30);
     tabbedComponent->setCurrentTabIndex (-1);
 
+    addAndMakeVisible (newTabButton = new TextButton ("new button"));
+    newTabButton->setTooltip (TRANS("New Tab"));
+    newTabButton->setButtonText (TRANS("+"));
+    newTabButton->addListener (this);
+    newTabButton->setColour (TextButton::buttonColourId, Colours::white);
+
 
     //[UserPreSize]
     tabComponents.add (new BoardTabComponent (boardImages));
-    tabComponents.add (new BoardTabComponent (boardImages));
-    tabComponents.add (new BoardTabComponent (boardImages));
     tabbedComponent->addTab (TRANS("Game 0"), Colours::lightgrey, tabComponents[0], false);
-    tabbedComponent->addTab (TRANS("Game 1"), Colours::lightgrey, tabComponents[1], false);
-    tabbedComponent->addTab (TRANS("Game 2"), Colour (0xff6abd97), tabComponents[2], false);
     tabbedComponent->setCurrentTabIndex (0);
+    //newTabButton->setBounds(tabbedComponent->getTabbedButtonBar().get)
     //[/UserPreSize]
 
     setSize (1351, 778);
@@ -95,6 +98,7 @@ BoardTabbedComponent::~BoardTabbedComponent()
     //[/Destructor_pre]
 
     tabbedComponent = nullptr;
+    newTabButton = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -119,19 +123,35 @@ void BoardTabbedComponent::resized()
     //[/UserPreResize]
 
     tabbedComponent->setBounds (0, 0, proportionOfWidth (1.0000f), proportionOfHeight (1.0000f));
+    newTabButton->setBounds (144, 0, 30, 30);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
+}
+
+void BoardTabbedComponent::buttonClicked (Button* buttonThatWasClicked)
+{
+    //[UserbuttonClicked_Pre]
+    //[/UserbuttonClicked_Pre]
+
+    if (buttonThatWasClicked == newTabButton)
+    {
+        //[UserButtonCode_newTabButton] -- add your button handler code here..
+        //[/UserButtonCode_newTabButton]
+    }
+
+    //[UserbuttonClicked_Post]
+    //[/UserbuttonClicked_Post]
 }
 
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-const void BoardTabbedComponent::undoMove ()
+void BoardTabbedComponent::undoMove ()
 {
     tabComponents[tabbedComponent->getCurrentTabIndex ()]->undoMove();
 }
 
-const void BoardTabbedComponent::redoMove ()
+void BoardTabbedComponent::redoMove ()
 {
     tabComponents[tabbedComponent->getCurrentTabIndex ()]->redoMove ();
 }
@@ -155,6 +175,10 @@ BEGIN_JUCER_METADATA
   <TABBEDCOMPONENT name="new tabbed component" id="d965c7f735419935" memberName="tabbedComponent"
                    virtualName="" explicitFocusOrder="0" pos="0 0 100% 100%" orientation="top"
                    tabBarDepth="30" initialTab="-1"/>
+  <TEXTBUTTON name="new button" id="5ebb34b59ff32d81" memberName="newTabButton"
+              virtualName="" explicitFocusOrder="0" pos="144 0 30 30" tooltip="New Tab"
+              bgColOff="ffffffff" buttonText="+" connectedEdges="0" needsCallback="1"
+              radioGroupId="0"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

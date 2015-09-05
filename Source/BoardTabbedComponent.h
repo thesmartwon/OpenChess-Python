@@ -35,7 +35,8 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class BoardTabbedComponent  : public Component
+class BoardTabbedComponent  : public Component,
+                              public ButtonListener
 {
 public:
     //==============================================================================
@@ -44,12 +45,14 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
-    const void undoMove();
-    const void redoMove();
+    void undoMove();
+    void redoMove();
+    // void saveGames();
     //[/UserMethods]
 
     void paint (Graphics& g);
     void resized();
+    void buttonClicked (Button* buttonThatWasClicked);
 
 
 
@@ -62,6 +65,7 @@ private:
 
     //==============================================================================
     ScopedPointer<TabbedComponent> tabbedComponent;
+    ScopedPointer<TextButton> newTabButton;
 
 
     //==============================================================================

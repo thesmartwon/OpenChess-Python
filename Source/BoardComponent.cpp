@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "BoardComponent.h"
 
+using namespace Stockfish;
+
 class PiecesMenuComponent : public PopupMenu::CustomComponent
 {
 public:
@@ -69,7 +71,7 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Game* game)
     bRookImage = boardImages[24];
     bPawnImage = boardImages[25];
 
-    sidePerspective = Stockfish::WHITE;
+    sidePerspective = WHITE;
     mouseDownRankFile.addXY (-1, -1);
     mouseUpRankFile.addXY (-1, -1);
     selectedSquare.addXY (-1, -1);
@@ -79,7 +81,7 @@ BoardComponent::BoardComponent (juce::Array<Image> boardImages, Game* game)
         pieceOnBoard[i] = true;
     mouseIsDown = resizing = false;
     lastMeasuredFPS = "0";
-    lastMoveMessage.move = Stockfish::Move::MOVE_NONE;
+    lastMoveMessage.move = Move::MOVE_NONE;
     lastMoveMessage.moveSAN = String::empty;
     lastMoveMessage.moveUCI = String::empty;
 
@@ -121,65 +123,65 @@ void BoardComponent::resized()
 
 //Stockfish isn't easy going about special moves like castling and promotions. It wants to encode
 //those moves with its own special codes and is particular about the way you create them.
-Stockfish::Move BoardComponent::createMove (Stockfish::Square fromSquare, Stockfish::Square toSquare)
+Move BoardComponent::createMove (Square fromSquare, Square toSquare)
 {
     //castling
-    if (fromSquare == Stockfish::Square::SQ_E1 && activeGame->getCurrentlyViewedPosition().piece_on (Stockfish::Square::SQ_E1) == Stockfish::Piece::W_KING)
+    if (fromSquare == Square::SQ_E1 && activeGame->piece_on (Square::SQ_E1) == Piece::W_KING)
     {
-        if (toSquare == Stockfish::Square::SQ_G1 || toSquare == Stockfish::Square::SQ_H1) //correct kindside castle
-            return Stockfish::make<Stockfish::MoveType::CASTLING> (fromSquare, Stockfish::Square::SQ_H1);
-        else if (toSquare == Stockfish::Square::SQ_C1 || toSquare == Stockfish::Square::SQ_B1 || toSquare == Stockfish::Square::SQ_A1) //correct queenside castle
-            return Stockfish::make<Stockfish::MoveType::CASTLING> (fromSquare, Stockfish::Square::SQ_A1);
+        if (toSquare == Square::SQ_G1 || toSquare == Square::SQ_H1) //correct kindside castle
+            return make<MoveType::CASTLING> (fromSquare, Square::SQ_H1);
+        else if (toSquare == Square::SQ_C1 || toSquare == Square::SQ_B1 || toSquare == Square::SQ_A1) //correct queenside castle
+            return make<MoveType::CASTLING> (fromSquare, Square::SQ_A1);
     }
-    else if (fromSquare == Stockfish::Square::SQ_E8 && activeGame->getCurrentlyViewedPosition().piece_on (Stockfish::Square::SQ_E8) == Stockfish::Piece::B_KING)
+    else if (fromSquare == Square::SQ_E8 && activeGame->piece_on (Square::SQ_E8) == Piece::B_KING)
     {
-        if (toSquare == Stockfish::Square::SQ_G8 || toSquare == Stockfish::Square::SQ_H8) //correct kindside castle
-            return Stockfish::make<Stockfish::MoveType::CASTLING> (fromSquare, Stockfish::Square::SQ_H8);
-        else if (toSquare == Stockfish::Square::SQ_C8 || toSquare == Stockfish::Square::SQ_B8|| toSquare == Stockfish::Square::SQ_A8) //correct queenside castle
-            return Stockfish::make<Stockfish::MoveType::CASTLING> (fromSquare, Stockfish::Square::SQ_A8);
+        if (toSquare == Square::SQ_G8 || toSquare == Square::SQ_H8) //correct kindside castle
+            return make<MoveType::CASTLING> (fromSquare, Square::SQ_H8);
+        else if (toSquare == Square::SQ_C8 || toSquare == Square::SQ_B8|| toSquare == Square::SQ_A8) //correct queenside castle
+            return make<MoveType::CASTLING> (fromSquare, Square::SQ_A8);
     }
-    else if (activeGame->getCurrentlyViewedPosition().piece_on(fromSquare) == Stockfish::Piece::W_PAWN && Stockfish::rank_of(fromSquare) == Stockfish::RANK_5
-             && activeGame->getCurrentlyViewedPosition().piece_on(toSquare) == Stockfish::Piece::NO_PIECE && Stockfish::rank_of(toSquare) == Stockfish::RANK_6
-             && (toSquare == Stockfish::Square(fromSquare + 7) || toSquare == Stockfish::Square (fromSquare + 9)))
+    else if (activeGame->piece_on(fromSquare) == Piece::W_PAWN && rank_of(fromSquare) == RANK_5
+             && activeGame->piece_on(toSquare) == Piece::NO_PIECE && rank_of(toSquare) == RANK_6
+             && (toSquare == Square(fromSquare + 7) || toSquare == Square (fromSquare + 9)))
     {
         //en passant by white
-        return Stockfish::make<Stockfish::MoveType::ENPASSANT> (fromSquare, toSquare);
+        return make<MoveType::ENPASSANT> (fromSquare, toSquare);
     }
-    else if (activeGame->getCurrentlyViewedPosition().piece_on (fromSquare) == Stockfish::Piece::B_PAWN && Stockfish::rank_of (fromSquare) == Stockfish::RANK_4
-        && activeGame->getCurrentlyViewedPosition().piece_on (toSquare) == Stockfish::Piece::NO_PIECE && Stockfish::rank_of (toSquare) == Stockfish::RANK_3
-        && (toSquare == Stockfish::Square (fromSquare - 7) || toSquare == Stockfish::Square (fromSquare - 9)))
+    else if (activeGame->piece_on (fromSquare) == Piece::B_PAWN && rank_of (fromSquare) == RANK_4
+        && activeGame->piece_on (toSquare) == Piece::NO_PIECE && rank_of (toSquare) == RANK_3
+        && (toSquare == Square (fromSquare - 7) || toSquare == Square (fromSquare - 9)))
     {
         //en passant by black
-        return Stockfish::make<Stockfish::MoveType::ENPASSANT> (fromSquare, toSquare);
+        return make<MoveType::ENPASSANT> (fromSquare, toSquare);
     }
-    else if ((activeGame->getCurrentlyViewedPosition().piece_on(fromSquare) == Stockfish::Piece::W_PAWN && Stockfish::rank_of (fromSquare) == Stockfish::RANK_7)
-         || (activeGame->getCurrentlyViewedPosition().piece_on (fromSquare) == Stockfish::Piece::B_PAWN && Stockfish::rank_of (fromSquare) == Stockfish::RANK_2))
+    else if ((activeGame->piece_on(fromSquare) == Piece::W_PAWN && rank_of (fromSquare) == RANK_7)
+         || (activeGame->piece_on (fromSquare) == Piece::B_PAWN && rank_of (fromSquare) == RANK_2))
     {
         //promotion by white or black.
         PopupMenu m;
-        if (activeGame->getCurrentlyViewedPosition ().side_to_move () == Stockfish::WHITE)
+        if (activeGame->side_to_move () == WHITE)
         {
-            m.addCustomItem (Stockfish::PieceType::QUEEN, new PiecesMenuComponent (wQueenImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::KNIGHT, new PiecesMenuComponent (wKnightImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::ROOK, new PiecesMenuComponent (wRookImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::BISHOP, new PiecesMenuComponent (wBishopImage, squareWidth));
+            m.addCustomItem (PieceType::QUEEN, new PiecesMenuComponent (wQueenImage, squareWidth));
+            m.addCustomItem (PieceType::KNIGHT, new PiecesMenuComponent (wKnightImage, squareWidth));
+            m.addCustomItem (PieceType::ROOK, new PiecesMenuComponent (wRookImage, squareWidth));
+            m.addCustomItem (PieceType::BISHOP, new PiecesMenuComponent (wBishopImage, squareWidth));
         }
         else
         {
-            m.addCustomItem (Stockfish::PieceType::BISHOP, new PiecesMenuComponent (bBishopImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::ROOK, new PiecesMenuComponent (bRookImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::KNIGHT, new PiecesMenuComponent (bKnightImage, squareWidth));
-            m.addCustomItem (Stockfish::PieceType::QUEEN, new PiecesMenuComponent (bQueenImage, squareWidth));
+            m.addCustomItem (PieceType::BISHOP, new PiecesMenuComponent (bBishopImage, squareWidth));
+            m.addCustomItem (PieceType::ROOK, new PiecesMenuComponent (bRookImage, squareWidth));
+            m.addCustomItem (PieceType::KNIGHT, new PiecesMenuComponent (bKnightImage, squareWidth));
+            m.addCustomItem (PieceType::QUEEN, new PiecesMenuComponent (bQueenImage, squareWidth));
         }
         int popupY = getScreenBounds ().getY ();
-        popupY += activeGame->getCurrentlyViewedPosition ().side_to_move () == Stockfish::WHITE ? 0 : 8 * squareWidth;
-        Stockfish::PieceType p = Stockfish::PieceType(m.showAt(juce::Rectangle<int>(getScreenBounds().getX() + squareWidth * (Stockfish::file_of (toSquare)),
+        popupY += activeGame->side_to_move() == WHITE ? 0 : 8 * squareWidth;
+        PieceType p = PieceType(m.showAt(juce::Rectangle<int>(getScreenBounds().getX() + squareWidth * (file_of (toSquare)),
                                                                                     popupY,
                                                                                     0,
                                                                                     0)));
-        return Stockfish::make<Stockfish::MoveType::PROMOTION> (fromSquare, toSquare, p);
+        return make<MoveType::PROMOTION> (fromSquare, toSquare, p);
     }
-    return Stockfish::make<Stockfish::MoveType::NORMAL> (fromSquare, toSquare);
+    return make<MoveType::NORMAL> (fromSquare, toSquare);
 
 }
 
@@ -189,11 +191,11 @@ void BoardComponent::mouseDown (const MouseEvent& event)
     {
         mouseIsDown = true;
         mouseXY.setXY (event.x, event.y);
-        if (sidePerspective == Stockfish::WHITE)
+        if (sidePerspective == WHITE)
             mouseDownRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
             mouseDownRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
-        pieceOnBoard[Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
+        pieceOnBoard[square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ())] = false;
     }
 }
 
@@ -202,12 +204,12 @@ void BoardComponent::mouseUp (const MouseEvent& event)
     if (event.mods == juce::ModifierKeys::leftButtonModifier)
     {
         mouseXY.setXY (event.x, event.y);
-        if (sidePerspective == Stockfish::WHITE)
+        if (sidePerspective == WHITE)
             mouseUpRankFile.setXY (7 - event.y / squareWidth, event.x / squareWidth);
         else
             mouseUpRankFile.setXY (event.y / squareWidth, event.x / squareWidth);
 
-        Stockfish::Move myMove = Stockfish::Move::MOVE_NONE;
+        Move myMove = Move::MOVE_NONE;
         if (mouseDownRankFile.getX () == mouseUpRankFile.getX () && mouseDownRankFile.getY () == mouseUpRankFile.getY () && selectedSquare.getX () == -1)
         {
             selectedSquare.setXY (mouseUpRankFile.getX (), mouseUpRankFile.getY ());
@@ -219,16 +221,16 @@ void BoardComponent::mouseUp (const MouseEvent& event)
                 selectedSquare.setXY (-1, -1);
             else
             {
-                myMove = createMove (Stockfish::square_of (selectedSquare.getX (), selectedSquare.getY ()),
-                                     Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
+                myMove = createMove (square_of (selectedSquare.getX (), selectedSquare.getY ()),
+                                     square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
                 sendMove (myMove);
             }
         }
         //drag
         else
         {
-            myMove = createMove (Stockfish::square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ()),
-                                 Stockfish::square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
+            myMove = createMove (square_of (mouseDownRankFile.getX (), mouseDownRankFile.getY ()),
+                                 square_of (mouseUpRankFile.getX (), mouseUpRankFile.getY ()));
             sendMove (myMove);
         }
 
@@ -329,44 +331,44 @@ void BoardComponent::renderOpenGL()
         //pieces
         bool pieceHovering = false;
         Image myHoveringImage;
-        for (Stockfish::Rank ranks = Stockfish::RANK_1; ranks <= Stockfish::RANK_8; ++ranks)
+        for (Rank ranks = RANK_1; ranks <= RANK_8; ++ranks)
         {
-            for (Stockfish::File files = Stockfish::FILE_A; files <= Stockfish::FILE_H; ++files)
+            for (Stockfish::File files = FILE_A; files <= FILE_H; ++files)
             {
-                if (activeGame->getCurrentlyViewedPosition().piece_on (Stockfish::square_of (ranks, files)) != Stockfish::Piece::NO_PIECE)
+                Piece piece = activeGame->piece_on (square_of (ranks, files));
+                if (piece != Piece::NO_PIECE)
                 {
-                    Stockfish::Piece piece = activeGame->getCurrentlyViewedPosition().piece_on (Stockfish::square_of (ranks, files));
                     Image myImage;
-                    if (piece == Stockfish::Piece::W_KING)
+                    if (piece == Piece::W_KING)
                         myImage = wKingImage;
-                    else if (piece == Stockfish::Piece::W_BISHOP)
+                    else if (piece == Piece::W_BISHOP)
                         myImage = wBishopImage;
-                    else if (piece == Stockfish::Piece::W_KNIGHT)
+                    else if (piece == Piece::W_KNIGHT)
                         myImage = wKnightImage;
-                    else if (piece == Stockfish::Piece::W_ROOK)
+                    else if (piece == Piece::W_ROOK)
                         myImage = wRookImage;
-                    else if (piece == Stockfish::Piece::W_QUEEN)
+                    else if (piece == Piece::W_QUEEN)
                         myImage = wQueenImage;
-                    else if (piece == Stockfish::Piece::W_PAWN)
+                    else if (piece == Piece::W_PAWN)
                         myImage = wPawnImage;
-                    else if (piece == Stockfish::Piece::B_KING)
+                    else if (piece == Piece::B_KING)
                         myImage = bKingImage;
-                    else if (piece == Stockfish::Piece::B_BISHOP)
+                    else if (piece == Piece::B_BISHOP)
                         myImage = bBishopImage;
-                    else if (piece == Stockfish::Piece::B_KNIGHT)
+                    else if (piece == Piece::B_KNIGHT)
                         myImage = bKnightImage;
-                    else if (piece == Stockfish::Piece::B_ROOK)
+                    else if (piece == Piece::B_ROOK)
                         myImage = bRookImage;
-                    else if (piece == Stockfish::Piece::B_QUEEN)
+                    else if (piece == Piece::B_QUEEN)
                         myImage = bQueenImage;
-                    else if (piece == Stockfish::Piece::B_PAWN)
+                    else if (piece == Piece::B_PAWN)
                         myImage = bPawnImage;
 
-                    if (pieceOnBoard[Stockfish::square_of (ranks, files)])
+                    if (pieceOnBoard[square_of (ranks, files)])
                     {
                         g.drawImage (myImage,
                             squareWidth * (files),
-                            sidePerspective == Stockfish::WHITE ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
+                            sidePerspective == WHITE ? squareWidth * 7 - squareWidth * (ranks) : squareWidth * (ranks),
                             squareWidth,
                             squareWidth,
                             0, 0, myImage.getWidth (), myImage.getHeight ());
@@ -387,7 +389,7 @@ void BoardComponent::renderOpenGL()
 
             g.drawRect (
                 squareWidth * (file),
-                sidePerspective == Stockfish::BLACK ? squareWidth * 7 - squareWidth * (rank) : squareWidth * (rank),
+                sidePerspective == BLACK ? squareWidth * 7 - squareWidth * (rank) : squareWidth * (rank),
                 squareWidth,
                 squareWidth,
                 4);
@@ -428,17 +430,18 @@ void BoardComponent::openGLContextClosing()
 {
 }
 
-void BoardComponent::sendMove (const Stockfish::Move move)
+void BoardComponent::sendMove (const Move move)
 {
-    if (activeGame->getCurrentlyViewedPosition().pseudo_legal (move) &&
-        activeGame->getCurrentlyViewedPosition().legal (move, activeGame->getCurrentlyViewedPosition().pinned_pieces (activeGame->getCurrentlyViewedPosition().side_to_move ())))
+    if (activeGame->is_legal(move))
     {
         lastMoveMessage.move = move;
-        lastMoveMessage.moveSAN = Stockfish::UCI::move_to_san (activeGame->getCurrentlyViewedPosition(), move);
-        lastMoveMessage.moveUCI = Stockfish::UCI::move (move, false);
+        lastMoveMessage.moveSAN = activeGame->getMoveSAN(move);
+        lastMoveMessage.moveUCI = activeGame->getMoveUCI(move);
 
         // we do this here for animation and speed's sake
         activeGame->doMainlineMove (move, lastMoveMessage.moveSAN);
+        activeGame->isStalement();
+        activeGame->isDraw();
 
         // tell the boardTabComponenet we have moved
         sendSynchronousChangeMessage (); // being synchronous allows for extra speed 

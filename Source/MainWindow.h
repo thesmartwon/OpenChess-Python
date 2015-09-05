@@ -33,8 +33,12 @@ public:
 
         newFile = 0x2000,
         openFile = 0x2001,
-        recentFiles = 0x2002,
-        saveFiles = 0x2003,
+        openFileFromPGN = 0x2002,
+        openFileFromFEN = 0x2003,
+        recentFiles = 0x2009,
+        saveFile = 0x2010,
+        saveFileAs = 0x2011,
+        saveFiles = 0x2012,
 
         useLookAndFeelV1 = 0x200b,
         useLookAndFeelV2 = 0x200c,

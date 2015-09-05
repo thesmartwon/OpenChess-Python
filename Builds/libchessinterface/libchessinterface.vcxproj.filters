@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\libchessinterface">
+      <UniqueIdentifier>{3564aa04-7785-4045-81ee-cbd6e8342bcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libchessinterface\execproc">
+      <UniqueIdentifier>{582c1caa-7645-49af-8dfc-a0a0054e3bb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libchessinterface\file">
+      <UniqueIdentifier>{a3b7e1ab-02f3-44e9-8d64-4f78a65c483c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libchessinterface\os">
+      <UniqueIdentifier>{91b4292b-c42b-4cfc-8dda-264ce71fc206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libchessinterface\threading">
+      <UniqueIdentifier>{080057db-1901-4535-8508-feec1f02ce21}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\chessengine.c">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\protocolexceptions.c">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\execproc\execproc.c">
+      <Filter>Source Files\libchessinterface\execproc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\file\file.c">
+      <Filter>Source Files\libchessinterface\file</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\threading\threading.c">
+      <Filter>Source Files\libchessinterface\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BoardPosition\libchessinterface\example.c">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\chessinterface.h">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\chessinterfaceengine.h">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\protocolexceptions.h">
+      <Filter>Source Files\libchessinterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\execproc\execproc.h">
+      <Filter>Source Files\libchessinterface\execproc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\file\file.h">
+      <Filter>Source Files\libchessinterface\file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\os\os.h">
+      <Filter>Source Files\libchessinterface\os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BoardPosition\libchessinterface\threading\threading.h">
+      <Filter>Source Files\libchessinterface\threading</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

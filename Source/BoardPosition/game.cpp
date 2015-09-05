@@ -1,162 +1,209 @@
 #include "stdafx.h" //if this doesnt compile, change it to #include "../stdafx/h". very annoying
 #include "game.h"
+#include "stockfish/uci.h"
 
-Game::Game ()
+
+static const juce::Identifier continuation("continuation");
+static const juce::Identifier variation("variation");
+static const juce::Identifier move("move");
+static const juce::Identifier comments("comments");
+static const juce::Identifier moveLabelText("moveLabelText");
+
+Game::Game() : 
+    rootNode("rootNode"),
+    viewedNode("viewedNode")
 {
-    rootPosition.set ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-	currentlyViewedPosition.set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
-    rootNode = currentlyViewedNode = nullptr;
+    rootPosition.set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
+    currentlyViewedPosition.set("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", false);
+
+    viewedNode = rootNode;
 }
 
-Game::Game (const juce::String startingFEN)
+Game::Game (const juce::String startingFEN) : 
+    rootNode("rootNode"),
+    viewedNode("viewedNode")
 {
     rootPosition.set (startingFEN.toStdString(), false);
 	currentlyViewedPosition.set(startingFEN.toStdString(), false);
 
-    rootNode = currentlyViewedNode = nullptr;
+    viewedNode = rootNode;
 }
 
-Stockfish::Position Game::getCurrentlyViewedPosition () const
+const Stockfish::Position& Game::getCurrentlyViewedPosition() const
 {
-	return currentlyViewedPosition;
+    return currentlyViewedPosition;
 }
 
-void Game::appendNode(MoveNode* referenceMove, MoveNode* toAppend, bool isVariation)
+juce::String Game::getMoveSAN(Stockfish::Move m)
 {
-    if (isVariation)
+    return juce::String(Stockfish::UCI::move_to_san(currentlyViewedPosition, m));
+}
+
+int Game::getPlyCount()
+{
+    return currentlyViewedPosition.game_ply();
+}
+
+int Game::repetitions()
+{
+    int count = 1;
+    // repetitions happen in pairs
+    if (currentlyViewedPosition.game_ply() > 4)
     {
-        jassert (referenceMove->variation != nullptr);
-        referenceMove->variation = toAppend;
+        juce::ValueTree tempTree = viewedNode;
+        juce::String m = tempTree.getProperty(move);
+        Stockfish::Move move2 = Stockfish::Move (m.getIntValue());
+        m = tempTree.getParent().getProperty(move);
+        Stockfish::Move move1 = Stockfish::Move (m.getIntValue());
+        tempTree = tempTree.getParent().getParent();
+
+        bool whichMove = false;
+        while (tempTree.getParent() != rootNode)
+        {
+            if (whichMove)
+            {
+                juce::String m = tempTree.getProperty(move);
+                if (Stockfish::Move(m.getIntValue()) != move2)
+                    break;
+            }
+            else
+            {
+                juce::String m = tempTree.getProperty(move);
+                if (Stockfish::Move(m.getIntValue()) != move1)
+                    break;
+                count++;
+            }
+                
+            tempTree = tempTree.getParent();
+            whichMove = !whichMove;
+        }
     }
-    else
-    {
-        jassert (referenceMove->continuation != nullptr);
-        referenceMove->continuation = toAppend;
-    }
-    currentlyViewedNode = referenceMove;
+    
+
+    return count;
 }
 
-void Game::appendNodeToMainline (MoveNode* toAppend, bool isVariation)
+bool Game::isDraw()
 {
-    if (rootNode == nullptr)
+    return currentlyViewedPosition.is_draw();
+}
+
+bool Game::isStalement()
+{
+    Stockfish::ExtMove moves[300] = { Stockfish::Move::MOVE_NONE };
+    Stockfish::generate<Stockfish::GenType::LEGAL>(currentlyViewedPosition, moves);
+    if (moves[0].move == Stockfish::Move::MOVE_NONE)
+        return true;
+    return false;
+}
+
+bool Game::is_legal(Stockfish::Move move) const
+{
+    if (currentlyViewedPosition.pseudo_legal (move) &&
+        currentlyViewedPosition.legal (move, currentlyViewedPosition.pinned_pieces (currentlyViewedPosition.side_to_move ())))
+        return true;
+    return false;
+}
+
+Stockfish::Piece Game::piece_on(Stockfish::Square square) const
+{
+    return currentlyViewedPosition.piece_on(square);
+}
+
+Stockfish::Color Game::side_to_move() const
+{
+    return currentlyViewedPosition.side_to_move();
+}
+
+juce::String Game::getMoveUCI(Stockfish::Move m)
+{
+    return juce::String(Stockfish::UCI::move(m, false));
+}
+
+void Game::appendNodeToMainline (juce::ValueTree toAppend, bool isVariation)
+{
+    if (!rootNode.isValid())
     {
-        rootNode = currentlyViewedNode = toAppend;
+        // can't have variation of first move...
+        rootNode.addChild (toAppend, -1, nullptr);
         return;
     }
-    MoveNode* curNode = rootNode;
-    while (curNode->continuation != nullptr)
-            curNode = curNode->continuation;
 
     if (isVariation)
     {
-        jassert (curNode->variation == nullptr);
-        curNode->variation = toAppend;
+        viewedNode.addChild (toAppend, -1, nullptr);
+        viewedNode = toAppend;
     }
     else
     {
-        jassert (curNode->continuation == nullptr);
-        curNode->continuation = toAppend;
+        viewedNode.addChild (toAppend, -1, nullptr);
+        viewedNode = toAppend;
     }
-    currentlyViewedNode = toAppend;
+
+    //DBG(rootNode.toXmlString());
 }
 
-bool Game::insertNodeBefore (MoveNode* referenceNode, MoveNode* toInsert)
+bool Game::insertNodeBefore (juce::ValueTree referenceNode, juce::ValueTree toInsert)
 {
-    InsertionResult result = {};
-    Stockfish::Position tmpPos = currentlyViewedPosition;
-    MoveNode* curNode = referenceNode;
-    // test if move can be inserted legally
-    tmpPos.do_move (toInsert->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-    // the move may make any number of variations invalid or it's continuation invalid
-    // test continuation validity
-    while (curNode->continuation != nullptr)
-    {
-        if (tmpPos.pseudo_legal (curNode->move) && tmpPos.legal (curNode->move, tmpPos.pinned_pieces (tmpPos.side_to_move())))
-        {
-            tmpPos.do_move (curNode->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
-            curNode = curNode->continuation;
-        }
-        else
-        {
-            result.continuationBrokenNode = curNode;
-            return false;
-        }
-    }
-    currentlyViewedNode = toInsert;
+    //InsertionResult result = {};
+    //Stockfish::Position tmpPos = currentlyViewedPosition;
+    //MoveNode* curNode = referenceNode;
+    //// test if move can be inserted legally
+    //tmpPos.do_move (toInsert->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
+    //// the move may make any number of variations invalid or it's continuation invalid
+    //// test continuation validity
+    //while (curNode->continuation != nullptr)
+    //{
+    //    if (tmpPos.pseudo_legal (curNode->move) && tmpPos.legal (curNode->move, tmpPos.pinned_pieces (tmpPos.side_to_move())))
+    //    {
+    //        tmpPos.do_move (curNode->move, *(Stockfish::StateInfo *)calloc (1, sizeof (Stockfish::StateInfo)));
+    //        curNode = curNode->continuation;
+    //    }
+    //    else
+    //    {
+    //        result.continuationBrokenNode = curNode;
+    //        return false;
+    //    }
+    //}
+    //currentlyViewedNode = toInsert;
     return true;
 }
 
-void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN, bool isRedo)
+void Game::doMainlineMove(Stockfish::Move m, juce::String moveSAN)
 {
     // create the new node to put in the binary tree
-	MoveNode* newNode = new MoveNode();
-	newNode->parent = currentlyViewedNode;
-	newNode->continuation = nullptr;
-	newNode->variation = nullptr;
-	newNode->move = m;
-	newNode->comments = String::empty;
+    juce::ValueTree newNode(continuation);
+    newNode.setProperty(comments, String::empty, nullptr);
+    newNode.setProperty(move, m, nullptr);
 	String labelText;
 	if (currentlyViewedPosition.game_ply() % 2 == 0)
 		labelText = std::to_string(currentlyViewedPosition.game_ply() - currentlyViewedPosition.game_ply() / 2 + 1) + ". " + moveSAN, NotificationType::dontSendNotification;
 	else
 		labelText = moveSAN + " ";
-	newNode->moveLabelText = labelText;
+    newNode.setProperty(moveLabelText, labelText, nullptr);
 
-    if (!isRedo)
-        redoStack.clear();
-	currentlyViewedPosition.do_move(newNode->move, *(Stockfish::StateInfo *)calloc(1, sizeof(Stockfish::StateInfo)));
+    Stockfish::StateInfo st = {0};
+    Stockfish::CheckInfo ci(currentlyViewedPosition);
+
+    stateInfos.add (new Stockfish::StateInfo());
+	currentlyViewedPosition.do_move(m, *(stateInfos.getLast()), ci, currentlyViewedPosition.gives_check(m, ci));
 	appendNodeToMainline(newNode);
 }
 
 void Game::undoMove()
 {
-    currentlyViewedPosition.undo_move (currentlyViewedNode->move);
-    redoStack.add (new MoveNode(currentlyViewedNode));
-    if (currentlyViewedNode != rootNode)
-    {
-        MoveNode* toDelete = currentlyViewedNode;
-        currentlyViewedNode = currentlyViewedNode->parent;
-        if (currentlyViewedNode->continuation == toDelete)
-        {
-            delete currentlyViewedNode->continuation;
-            currentlyViewedNode->continuation = nullptr;
-        }
-        else
-        {
-            delete currentlyViewedNode->variation;
-            currentlyViewedNode->variation = nullptr;
-        }
-    }
-    else
-    {
-        delete rootNode;
-        rootNode = nullptr;
-    }
 }
 
 void Game::redoMove()
 {
-	if (redoStack.size() > 0)
-	{
-        int index = String(redoStack.getLast ()->moveLabelText).indexOf (".");
-        if (index != -1)
-            doMainlineMove (redoStack.getLast ()->move, redoStack.getLast ()->moveLabelText.substring (index + 1), true);
-        else doMainlineMove (redoStack.getLast ()->move, redoStack.getLast ()->moveLabelText, true);
-		currentlyViewedNode = redoStack.remove(redoStack.size() - 1);
-	}
 }
 
-void Game::setCurrentlyViewedNode (MoveNode* nodeToView)
-{
-    currentlyViewedNode = nodeToView;
-}
-
-MoveNode * Game::getRootNode () const
+juce::ValueTree Game::getRootNode () const
 {
     return rootNode;
 }
 
-MoveNode* Game::getCurrentlyViewedNode () const
+juce::ValueTree Game::getCurrentlyViewedNode () const
 {
-    return currentlyViewedNode;
+    return viewedNode;
 }

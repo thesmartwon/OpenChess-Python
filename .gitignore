@@ -4,17 +4,15 @@
 *.o
 *.obj
 
-# Precompiled Headers
-*.gch
-*.pch
+# Pycache Files
+__pycacache__/
+
 
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
 
 # Compiled Static libraries
 *.lai
@@ -34,7 +32,5 @@ Release/
 back/
 backup/
 
-# Silly visual studio intellisense files
-*.sdf
-*.opensdf
-ipch/
+# Silly pycharm files
+.idea/

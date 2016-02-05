@@ -1,29 +1,14 @@
 from PyQt5.QtWidgets import QGraphicsScene, QTreeView
-from PyQt5.QtCore import QAbstractItemModel, QObject
 from widgets.square import SquareWidget, PieceItem
 import chess
 import userConfig
-import globals
 
-
-class OpenGame(QObject):
-    def __init__(self):
-        super().__init__()
-        self.game = chess.Board()
-        self.boardScene = BoardScene(self)
-        self.moveTree = OpenMoveTree()
-
-    def makeMove(self, move):
-        if move in self.game.legal_moves:
-            self.game.push(move)
-            globals.turn = self.game.turn
-            return True
-        return False
+# TODO: remove all .config['BOARD']['squareWidth'] so as to allow different widths
 
 
 class BoardScene(QGraphicsScene):
     """
-    Contains SquareItems and inherits chess logic from chess.Board.
+    Contains SquareItems. To do moves it requires that the parent have a self.game = chess.Board().
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -33,10 +18,11 @@ class BoardScene(QGraphicsScene):
             row = 8 - int(i / 8)
             col = i % 8
             p = self.parent().game.piece_at(i)
+
             newSquareItem = SquareWidget(i, bool(p))
             newSquareItem.setPos(self.squareWidth * col, self.squareWidth * row)
             newSquareItem.pieceReleased.connect(self.doMove)
-
+            newSquareItem.invalidDrop.connect(self.resetSquares)
 
             if p is not None:
                 newPieceItem = PieceItem(p, i)
@@ -80,12 +66,8 @@ class BoardScene(QGraphicsScene):
                     s.setState(SquareWidget.Normal)
         self.selectedSquare = -1
 
+    def resetSquares(self):
+        for s in self.squareWidgets:
+            s.setState(SquareWidget.Normal)
+            self.selectedSquare = -1
 
-class OpenMoveTree(QTreeView):
-    def __init__(self):
-        super().__init__()
-
-
-class MoveTreeModel(QAbstractItemModel):
-    def __init__(self):
-        super().__init__()

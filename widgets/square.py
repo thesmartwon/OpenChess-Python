@@ -6,7 +6,7 @@ import userConfig
 import constants
 import globals
 
-
+# TODO: remove all .config['BOARD']['squareWidth'] so as to allow different widths
 bConfig = userConfig.config['BOARD']
 
 
@@ -16,6 +16,7 @@ class SquareWidget(QGraphicsWidget):
     """
     Normal, Selected, LastMove, PossibleMove, PossibleMoveHover, MoveHover = range(6)
     pieceReleased = QtCore.pyqtSignal(int)
+    invalidDrop = QtCore.pyqtSignal()
 
     def __init__(self, square, occupied):
         super().__init__()
@@ -108,6 +109,8 @@ class SquareWidget(QGraphicsWidget):
         if self.isValidMove and event.mimeData().hasFormat('application/x-dnditemdata'):
             # print("hey", event.mimeData())
             self.pieceReleased.emit(self.square)
+        else:
+            self.invalidDrop.emit()
 
     def hoverEnterEvent(self, event):
         if self.isValidMove:

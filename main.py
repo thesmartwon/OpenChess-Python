@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 import userConfig
-from widgets.board import OpenGame
+from game import OpenGame
 
 
 class MainWindow(QMainWindow):
@@ -35,7 +35,10 @@ class MainWindow(QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAction)
 
-        righttop = QFrame(self)
+        righttop = self.game.moveTreeScene
+        print((self.width() - 902) / 2)
+        self.game.moveTreeScene.setColumnWidth(0, (self.width() - 902) / 2 - 9)
+        self.game.moveTreeScene.setColumnWidth(1, (self.width() - 902) / 2 - 9)
         rightbot = QFrame(self)
 
         splitter1 = QSplitter(Qt.Vertical)

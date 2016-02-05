@@ -34,3 +34,4 @@ backup/
 
 # Silly pycharm files
 .idea/
+.idea/workspace.xml

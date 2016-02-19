@@ -12,20 +12,15 @@ class OpenGame(QObject):
     def __init__(self):
         super().__init__()
         self.game = chess.Board()
-        self.game.push_san('e4')
         self.boardScene = BoardScene(self)
         self.moveTreeScene = MoveTreeScene()
         self.moveTreeModel = MoveTreeModel()
         self.moveItems = []
-        self.moveItems.append(QStandardItem())
-        self.moveItems[-1].setData(QVariant(self.game.move_stack[0]))
-        self.moveItems[-1].setText('e4')
-        self.moveTreeModel.setItem(0, 0, self.moveItems[-1])
         self.moveTreeModel.setHorizontalHeaderLabels(['White', 'Black'])
         self.moveTreeScene.setModel(self.moveTreeModel)
         globals.turn = self.game.turn
 
-    def makeMove(self, move):
+    def doMove(self, move):
         if move in self.game.legal_moves:
             self.moveItems.append(QStandardItem())
             self.moveItems[-1].setData(QVariant(move))

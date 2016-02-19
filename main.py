@@ -2,8 +2,7 @@ import sys
 from PyQt5.QtWidgets import (QMainWindow, QAction,
                              QApplication, QMessageBox,
                              QDesktopWidget, QFrame,
-                             QGraphicsView, QSplitter,
-                             QGraphicsScene)
+                             QGraphicsView, QSplitter)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
@@ -54,7 +53,7 @@ class MainWindow(QMainWindow):
 
         self.center()
         self.setWindowTitle('Open Chess')
-        # TODO: Add an icon
+        # TODO: Add an application icon
         # self.setWindowIcon(QIcon('web.png'))
         self.setCentralWidget(splitter2)
         self.show()

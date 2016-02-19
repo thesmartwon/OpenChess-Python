@@ -34,8 +34,9 @@ class BoardScene(QGraphicsScene):
 
     def pieceClickedEvent(self, square):
         # This is a two-click capture move.
-        if self.parent().game.piece_at(square).color != self.parent().game.turn and self.selectedSquare != -1:
-            self.pieceDroppedEvent(square)
+        if self.parent().game.piece_at(square).color != self.parent().game.turn:
+            if self.selectedSquare != -1:
+                self.pieceDroppedEvent(square)
             return
         lastSelection = self.selectedSquare
         self.selectedSquare = square
@@ -64,48 +65,50 @@ class BoardScene(QGraphicsScene):
         :return: None
         """
         m = chess.Move(self.selectedSquare, toSquare)
-        assert m in self.parent().game.generate_legal_moves()
+        self.parent().doMove(m)
+
+    def updatePositionAfterMove(self, move, en_passant_square):
+        """
+        Updates the board graphics one valid move forward. This is faster than calling refreshPosition.
+        :param move: the move that happened on the board
+        :return: void
+        """
+        if move.promotion is None:
+            newPieceItem = PieceItem(self.squareWidgets[move.from_square].pieceItem.piece, move.to_square)
+        else:
+            newPieceItem = PieceItem(chess.Piece(move.promotion, not self.parent().game.turn), move.to_square)
+        newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
+        newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
+        self.squareWidgets[move.from_square].removePiece()
+        self.squareWidgets[move.to_square].removePiece()
+        self.squareWidgets[move.to_square].addPiece(newPieceItem)
         # TODO: support king takes rook castling
         # I'm going to stay consistent with python.chess's implementation of castling.
         # Oddly enough, it 'e1g1' or 'e1c1'.
-        castling = 0
-        if self.parent().game.is_kingside_castling(m):
+        castling = -1
+        if self.parent().game.is_kingside_castling(move):
+            castling = 0
+        elif self.parent().game.is_queenside_castling(move):
             castling = 1
-        elif self.parent().game.is_queenside_castling(m):
-            castling = 2
 
-        if self.parent().doMove(m):
-            self.updatePositionAfterMove(toSquare, castling)
-
-    def updatePositionAfterMove(self, toSquare, castling):
-        """
-        Updates the board graphics one valid move forward. This is faster than calling refreshPosition.
-        :param toSquare: square move is to. fromSquare is already stored
-        :param castling: 0 for none, 1 for kingside, 2 for queenside
-        :return:
-        """
-        newPieceItem = PieceItem(self.squareWidgets[self.selectedSquare].pieceItem.piece, toSquare)
-        newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
-        newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-        self.squareWidgets[self.selectedSquare].removePiece()
-        self.squareWidgets[toSquare].removePiece()
-        self.squareWidgets[toSquare].addPiece(newPieceItem)
-        if castling == 2:
-            newPieceItem = PieceItem(self.squareWidgets[toSquare - 2].pieceItem.piece, toSquare + 1)
+        if castling == 1:
+            newPieceItem = PieceItem(self.squareWidgets[move.to_square - 2].pieceItem.piece, move.to_square + 1)
             newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-            self.squareWidgets[toSquare - 2].removePiece()
-            self.squareWidgets[toSquare + 1].addPiece(newPieceItem)
-        elif castling == 1:
-            newPieceItem = PieceItem(self.squareWidgets[toSquare + 1].pieceItem.piece, toSquare - 1)
+            self.squareWidgets[move.to_square - 2].removePiece()
+            self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
+        elif castling == 0:
+            newPieceItem = PieceItem(self.squareWidgets[move.to_square + 1].pieceItem.piece, move.to_square - 1)
             newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-            self.squareWidgets[toSquare + 1].removePiece()
-            self.squareWidgets[toSquare - 1].addPiece(newPieceItem)
+            self.squareWidgets[move.to_square + 1].removePiece()
+            self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
+        elif en_passant_square != -1:
+            self.squareWidgets[en_passant_square].removePiece()
 
         for s in self.squareWidgets:
             p = self.parent().game.piece_at(s.square)
-            if s.square == self.selectedSquare or s.square == toSquare:
+            if s.square == move.from_square or s.square == move.to_square:
                 s.clearEffectItems()
                 s.addEffectItem(SquareWidget.LastMove)
             elif self.parent().game.is_check() and p is not None and p.piece_type == chess.KING \

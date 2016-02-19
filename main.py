@@ -14,17 +14,25 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setGeometry(0, 30, 1200, 896 + 43)
         self.game = OpenGame()
         self.view = QGraphicsView(self.game.boardScene, self)
         if QGLFormat.hasOpenGL():
             self.view.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setGeometry(0, 0, 896, 896)
         self.initUI()
 
     def initUI(self):
+        widthDisparity = QApplication.desktop().screenGeometry().width() - 1200
+        heightDisparity = QApplication.desktop().screenGeometry().height() - 896 - 43
+        if widthDisparity < 0 and widthDisparity < heightDisparity:
+            self.setGeometry(0, 0, 1200 + widthDisparity, int(float(939)/1200*(1200 + widthDisparity)))
+        elif heightDisparity < 0 and heightDisparity < widthDisparity:
+            self.setGeometry(0, 0, int(float(1200)/939*(939 + heightDisparity)), 939 + heightDisparity)
+        else:
+            self.setGeometry(0, 0, 1200, 939)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setGeometry(0, 0, 896, 896)
+
         exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
         exitAction.setStatusTip('Exit application')
@@ -35,7 +43,6 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(exitAction)
 
         righttop = self.game.moveTreeScene
-        print((self.width() - 902) / 2)
         self.game.moveTreeScene.setColumnWidth(0, (self.width() - 902) / 2 - 9)
         self.game.moveTreeScene.setColumnWidth(1, (self.width() - 902) / 2 - 9)
         rightbot = QFrame(self)

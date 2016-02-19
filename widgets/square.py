@@ -24,7 +24,6 @@ class SquareWidget(QGraphicsWidget):
         super().__init__()
         self.square = square
         self.isValidMove = False
-        self.isSelected = False
         self.isOccupied = False
         self.isLight = bool(chess.BB_SQUARES[int(square)] & chess.BB_LIGHT_SQUARES)
         self.setGeometry(0, 0, int(bConfig['squareWidth']), int(bConfig['squareWidth']))
@@ -55,14 +54,17 @@ class SquareWidget(QGraphicsWidget):
         self.graphicEffectItems.clear()
 
     def removeEffectItem(self, type):
-        for i in range(len(self.graphicEffectItems)):
-            if self.graphicEffectItems[i].data(0) == type:
-                self.graphicEffectItems[i].setParentItem(None)
-                self.deleteScene.addItem(self.graphicEffectItems[i])
-                self.deleteScene.clear()
-                self.graphicEffectItems[i] = None
-                del self.graphicEffectItems[i]
-                i -= 1
+        try:
+            for g in self.graphicEffectItems:
+                assert(g is not None)
+                if g.data(0) == type:
+                    g.setParentItem(None)
+                    self.deleteScene.addItem(g)
+                    self.deleteScene.clear()
+                    self.graphicEffectItems.remove(g)
+                    return
+        except (RuntimeError):
+            raise
 
     def addEffectItem(self, type):
         if len(self.graphicEffectItems) > 0:
@@ -162,16 +164,14 @@ class SquareWidget(QGraphicsWidget):
             self.addEffectItem(SquareWidget.ValidMove)
 
     def dragEnterEvent(self, event):
-        if self.isValidMove and self.countItem(SquareWidget.InvalidMoveHover) == 0:
-            self.removeEffectItem(SquareWidget.ValidMove)
-            self.addEffectItem(SquareWidget.ValidMoveHover)
-        elif self.countItem(SquareWidget.InvalidMoveHover) == 0 and not self.isSelected:
+        if self.isValidMove and self.countItem(SquareWidget.ValidMove) == 0:
+            self.addEffectItem(SquareWidget.ValidMove)
+        elif self.countItem(SquareWidget.InvalidMoveHover) == 0:
             self.addEffectItem(SquareWidget.InvalidMoveHover)
 
     def dragLeaveEvent(self, event):
         if self.isValidMove:
-            self.removeEffectItem(SquareWidget.ValidMoveHover)
-            self.addEffectItem(SquareWidget.ValidMove)
+            self.removeEffectItem(SquareWidget.ValidMove)
         else:
             self.removeEffectItem(SquareWidget.InvalidMoveHover)
 

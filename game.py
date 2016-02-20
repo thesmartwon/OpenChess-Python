@@ -26,7 +26,7 @@ class OpenGame(QObject):
         :param move: just a to square and from square. OpenGame will handle special moves
         :return:
         """
-        if self.game.piece_at(move.from_square).piece_type == chess.PAWN and chess.rank_index(move.to_square) in [0,7]:
+        if self.game.piece_at(move.from_square).piece_type == chess.PAWN and chess.rank_index(move.to_square) in [0, 7]:
             move.promotion = chess.QUEEN
         if move in self.game.legal_moves:
             self.moveItems.append(QStandardItem())

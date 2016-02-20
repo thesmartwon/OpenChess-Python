@@ -5,7 +5,7 @@
 *.obj
 
 # Pycache Files
-__pycacache__/
+__pycache__/
 
 
 # Compiled Dynamic libraries

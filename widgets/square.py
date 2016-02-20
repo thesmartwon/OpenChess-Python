@@ -75,6 +75,7 @@ class SquareWidget(QGraphicsWidget):
             effectItem = QGraphicsRectItem()
             c = QColor(bConfig['selectedColor'])
             c.setAlphaF(float(bConfig['effectsAlpha']))
+
             effectItem.setBrush(QBrush(c))
             effectItem.setPen(QPen(Qt.NoPen))
             effectItem.setRect(0, 0, width, width)
@@ -144,6 +145,7 @@ class SquareWidget(QGraphicsWidget):
     def dropEvent(self, event):
         if self.isValidMove and event.mimeData().hasFormat('application/x-dnditemdata'):
             self.pieceReleased.emit(self.square)
+            event.accept()
         else:
             fix_check_after = False
             if self.countItem(SquareWidget.CheckSquare) != 0:
@@ -152,6 +154,7 @@ class SquareWidget(QGraphicsWidget):
             if fix_check_after:
                 self.addEffectItem(SquareWidget.CheckSquare)
             self.invalidDrop.emit()
+            event.ignore()
 
     def hoverEnterEvent(self, event):
         if self.isValidMove and self.countItem(SquareWidget.ValidMoveHover) == 0:
@@ -164,14 +167,14 @@ class SquareWidget(QGraphicsWidget):
             self.addEffectItem(SquareWidget.ValidMove)
 
     def dragEnterEvent(self, event):
-        if self.isValidMove and self.countItem(SquareWidget.ValidMove) == 0:
-            self.addEffectItem(SquareWidget.ValidMove)
+        if self.isValidMove and self.countItem(SquareWidget.ValidMoveHover) == 0:
+            self.addEffectItem(SquareWidget.ValidMoveHover)
         elif self.countItem(SquareWidget.InvalidMoveHover) == 0:
             self.addEffectItem(SquareWidget.InvalidMoveHover)
 
     def dragLeaveEvent(self, event):
         if self.isValidMove:
-            self.removeEffectItem(SquareWidget.ValidMove)
+            self.removeEffectItem(SquareWidget.ValidMoveHover)
         else:
             self.removeEffectItem(SquareWidget.InvalidMoveHover)
 
@@ -255,7 +258,6 @@ class PieceItem(QGraphicsSvgItem):
         self.curs = QPixmap("resources/cursor.png")
         self.curs2 = Qt.ArrowCursor
         self.curs3 = Qt.PointingHandCursor
-        self.lastButton = Qt.NoButton
         # self.setFlag(QGraphicsSvgItem.ItemIsMovable, True)
         self.setAcceptDrops(False)
         self.setAcceptHoverEvents(True)
@@ -266,12 +268,11 @@ class PieceItem(QGraphicsSvgItem):
         return '<PieceWidget %s>' % self.piece
 
     def mousePressEvent(self, event):
-        self.lastButton = event.button()
         if event.button() == Qt.LeftButton:
             self.pieceClicked.emit(self.square)
 
     def mouseMoveEvent(self, event):
-        if self.piece.color != globals.turn or self.lastButton != Qt.LeftButton:
+        if self.piece.color != globals.turn or not bool(event.buttons() & Qt.LeftButton):
             return
         drag = QDrag(self)
         width = int(self.boundingRect().width() * self.scale())
@@ -288,7 +289,7 @@ class PieceItem(QGraphicsSvgItem):
         drag.setHotSpot(QPoint(width / 2 - 16, width / 2 - 6))
         drag.setDragCursor(self.curs, Qt.MoveAction)
         drag.setMimeData(mime)
-        drag.exec_(Qt.MoveAction)
+        drag.exec(Qt.MoveAction)
         self.setOpacity(1)
 
     def hoverEnterEvent(self, event):

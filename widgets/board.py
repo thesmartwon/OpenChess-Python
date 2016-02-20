@@ -1,4 +1,6 @@
-from PyQt5.QtWidgets import QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsScene, QWidget
+from PyQt5.QtTest import QTest
+from PyQt5.Qt import Qt, QPoint, QCoreApplication, QMouseEvent, QEvent
 from widgets.square import SquareWidget, PieceItem
 import chess
 import userConfig
@@ -39,13 +41,9 @@ class BoardScene(QGraphicsScene):
                 self.pieceDroppedEvent(square)
             return
         lastSelection = self.selectedSquare
+        # Clicking on a new or old piece deselects the previous squares
+        self.deselectSquaresEvent()
         self.selectedSquare = square
-        # Clicking on an new or old piece deselects it, and adds effects.
-        for s in self.squareWidgets:
-            if s.isValidMove:
-                s.isValidMove = False
-                s.removeEffectItem(SquareWidget.ValidMove)
-        self.squareWidgets[lastSelection].removeEffectItem(SquareWidget.Selected)
         # Clicking on a new piece selects it.
         if lastSelection != square:
             self.squareWidgets[square].isSelected = True
@@ -85,19 +83,14 @@ class BoardScene(QGraphicsScene):
         # TODO: support king takes rook castling
         # I'm going to stay consistent with python.chess's implementation of castling.
         # Oddly enough, it 'e1g1' or 'e1c1'.
-        castling = -1
-        if self.parent().game.is_kingside_castling(move):
-            castling = 0
-        elif self.parent().game.is_queenside_castling(move):
-            castling = 1
 
-        if castling == 1:
+        if self.parent().game.is_queenside_castling(move):
             newPieceItem = PieceItem(self.squareWidgets[move.to_square - 2].pieceItem.piece, move.to_square + 1)
             newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
             self.squareWidgets[move.to_square - 2].removePiece()
             self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
-        elif castling == 0:
+        elif self.parent().game.is_kingside_castling(move):
             newPieceItem = PieceItem(self.squareWidgets[move.to_square + 1].pieceItem.piece, move.to_square - 1)
             newPieceItem.setScale(float(self.squareWidth) / newPieceItem.boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
@@ -145,3 +138,8 @@ class BoardScene(QGraphicsScene):
                         and p.color == self.parent().game.turn:
                     s.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
+
+    def dragLeaveEvent(self, QGraphicsSceneDragDropEvent):
+        eve = QMouseEvent(QEvent.MouseButtonRelease, QPoint(0, 0), Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+        QCoreApplication.sendEvent(self.views()[0], eve)
+        QCoreApplication.processEvents()

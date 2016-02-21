@@ -38,3 +38,4 @@ backup/
 
 # Sublime workspace file
 *.sublime-workspace
+*.sublime-project

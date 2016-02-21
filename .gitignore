@@ -35,3 +35,6 @@ backup/
 # Silly pycharm files
 .idea/
 .idea/workspace.xml
+
+# Sublime project file
+*.sublime-project

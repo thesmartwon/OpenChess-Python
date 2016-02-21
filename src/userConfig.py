@@ -1,10 +1,11 @@
 import configparser
+import constants
 
 
-# TODO: rip the cool ches icons from lichess <
+# TODO: rip the cool chess icons from lichess < 
 # TODO: generate default config if user doesn't have one
 config = configparser.ConfigParser()
-config.read('settings.ini')
+config.read(constants.CONFIG_PATH)
 
 
 def saveFile(filename):

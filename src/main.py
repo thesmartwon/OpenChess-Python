@@ -11,7 +11,6 @@ from game import OpenGame
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self):
         super().__init__()
         self.game = OpenGame()
@@ -21,17 +20,21 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        widthDisparity = QApplication.desktop().screenGeometry().width() - 1200
-        heightDisparity = QApplication.desktop().screenGeometry().height() - 896 - 43
+        screenGeo = QApplication.desktop().screenGeometry()
+        widthDisparity = screenGeo.width() - 1200
+        heightDisparity = screenGeo.height() - 939
         if widthDisparity < 0 and widthDisparity < heightDisparity:
-            self.setGeometry(0, 0, 1200 + widthDisparity, int(float(939)/1200*(1200 + widthDisparity)))
+            self.setGeometry(0, 0, 1200 + widthDisparity,
+                             int(float(939)/1200*(1200+widthDisparity)))
         elif heightDisparity < 0 and heightDisparity < widthDisparity:
-            self.setGeometry(0, 0, int(float(1200)/939*(939 + heightDisparity)), 939 + heightDisparity)
+            self.setGeometry(0, 0, int(float(1200)/939*(939+heightDisparity)),
+                             939 + heightDisparity)
         else:
             self.setGeometry(0, 0, 1200, 939)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setGeometry(0, 0, 896, 896)
+        self.game.boardScene.setSceneRect(0, 0, 896, 896)
 
         exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
@@ -68,8 +71,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         # TODO: Implement saving before close
         # reply = QMessageBox.question(self, 'Message',
-        #                              "Are you sure to quit?", QMessageBox.Yes |
-        #                              QMessageBox.No, QMessageBox.No)
+        #                              "Are you sure to quit?",
+        #                              QMessageBox.Yes | QMessageBox.No,
+        #                              QMessageBox.No)
         # if reply == QMessageBox.Yes:
         #     event.accept()
         # else:
@@ -82,6 +86,7 @@ class MainWindow(QMainWindow):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

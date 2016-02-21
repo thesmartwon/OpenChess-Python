@@ -145,38 +145,19 @@ class SquareWidget(QGraphicsWidget):
                 self.countItem(SquareWidget.ValidMoveHover) == 0):
             self.removeEffectItem(SquareWidget.ValidMove)
             self.addEffectItem(SquareWidget.ValidMoveHover)
+        elif event is None and self.countItem(SquareWidget.InvalidMoveHover) == 0:
+            self.addEffectItem(SquareWidget.InvalidMoveHover)
 
     def hoverLeaveEvent(self, event):
         if self.isValidMove:
             self.removeEffectItem(SquareWidget.ValidMoveHover)
             self.addEffectItem(SquareWidget.ValidMove)
+        elif event is None:
+            self.removeEffectItem(SquareWidget.InvalidMoveHover)
 
     def mousePressEvent(self, event):
         if self.isValidMove:
             self.pieceReleased.emit(self.square)
-
-    def dragEnterEvent(self, event):
-        if (self.isValidMove and
-                self.countItem(SquareWidget.ValidMoveHover) == 0):
-            self.addEffectItem(SquareWidget.ValidMoveHover)
-        elif self.countItem(SquareWidget.InvalidMoveHover) == 0:
-            self.addEffectItem(SquareWidget.InvalidMoveHover)
-
-    def dragLeaveEvent(self, event):
-        if self.isValidMove:
-            self.removeEffectItem(SquareWidget.ValidMoveHover)
-        else:
-            self.removeEffectItem(SquareWidget.InvalidMoveHover)
-
-    def mouseReleaseEvent(self, event):
-        if self.isValidMove:
-            self.pieceReleased.emit(self.square)
-        else:
-            fix_check_after = self.countItem(SquareWidget.CheckSquare) != 0
-            self.clearEffectItems()
-            if fix_check_after:
-                self.addEffectItem(SquareWidget.CheckSquare)
-            self.invalidDrop.emit()
 
 
 class TakePieceGraphicsItem(QGraphicsItem):
@@ -246,6 +227,7 @@ class DummySquareItem(QGraphicsRectItem):
 class PieceItem(QGraphicsSvgItem):
     pieceClicked = pyqtSignal(int)
     pieceDragStarting = pyqtSignal(int)
+    pieceDragHappening = pyqtSignal(QPointF)
     pieceDragStopping = pyqtSignal(int, QPointF)
 
     def __init__(self, piece):
@@ -279,23 +261,15 @@ class PieceItem(QGraphicsSvgItem):
             if not self.isStartingDrag:
                 self.isStartingDrag = True
                 self.pieceDragStarting.emit(self.square)
-
-    #     # drag = QDrag(self)
-    #     # width = int(self.boundingRect().width() * self.scale())
-    #
-    #     # itemData = QByteArray()
-    #     # mime = QMimeData()
-    #     # mime.setData('application/x-dnditemdata', itemData)
-    #     # self.setOpacity(0.5)
-    #     # drag.setPixmap(pieceImg)
-    #     # drag.setHotSpot(QPoint(width / 2 - 16, width / 2 - 6))
-    #     # drag.setDragCursor(self.customCursor, Qt.MoveAction)
+            else:
+                self.pieceDragHappening.emit(QPointF(event.scenePos()))
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             if self.isStartingDrag:
                 self.isStartingDrag = False
                 self.setPos(QPoint(0, 0))
+                self.setCursor(Qt.ArrowCursor)
                 self.pieceDragStopping.emit(self.square,
                                             QPointF(event.scenePos()))
 

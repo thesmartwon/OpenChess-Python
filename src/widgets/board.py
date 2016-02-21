@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor
-from PyQt5.QtCore import QPointF
-from widgets.square import SquareWidget, PieceItem, DummySquareItem
+from PyQt5.QtCore import QPointF, Qt
+from widgets.square import SquareWidget, PieceItem
 import chess
 import userConfig
 import constants
@@ -12,8 +12,10 @@ import constants
 
 class BoardScene(QGraphicsScene):
     """
-    Contains and manages SquareWidgets interacting with each other.
-    Sends moves up to the parent, which must have a self.game = chess.Board().
+    Contains and manages SquareWidgets interacting
+    with each other.
+    Sends moves up to the parent, which must have a
+    self.game = chess.Board().
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -24,7 +26,8 @@ class BoardScene(QGraphicsScene):
         self.pieceDraggingCursor = QCursor(curs, curs.width() / 2,
                                            curs.height() / 2)
         self.dragPieceBehind = None
-        self.dragPieceCursor = None
+        self.dragPieceAhead = None
+        self.lastMouseSquare = None
         # initialize squares and pieces
         for i in range(64):
             file = 7 - int(i / 8)
@@ -34,7 +37,7 @@ class BoardScene(QGraphicsScene):
                                            self.squareWidth)
             newSquareWidget.setPos(self.squareWidth * rank,
                                    self.squareWidth * file)
-            newSquareWidget.pieceReleased.connect(self.pieceDroppedEvent)
+            newSquareWidget.pieceReleased.connect(self.pieceDropped)
             newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
             if p is not None:
                 newPieceItem = PieceItem(p)
@@ -43,11 +46,34 @@ class BoardScene(QGraphicsScene):
                 newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
                 newPieceItem.pieceDragStarting.connect(
                     self.pieceDragStartingEvent)
+                newPieceItem.pieceDragHappening.connect(
+                    self.pieceDragHappeningEvent)
                 newPieceItem.pieceDragStopping.connect(
                     self.pieceDragStoppingEvent)
                 newSquareWidget.addPiece(newPieceItem)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
+
+    # Helper methods
+    def pieceDropped(self, fromSquare, toSquare):
+        """
+        Passes the move to the parent. Then updates the board graphics.
+        Does not validate move, although it should be valid.
+        :param fromSquare: Square move is from
+        :param toSquare: Square move is to
+        :return: None
+        """
+        m = chess.Move(fromSquare, toSquare)
+        self.parent().doMove(m)
+
+    def deselectSquaresEvent(self):
+        for s in self.squareWidgets:
+            if s.isValidMove:
+                s.isValidMove = False
+                s.removeEffectItem(SquareWidget.ValidMove)
+        self.squareWidgets[self.selectedSquare].removeEffectItem(
+            SquareWidget.Selected)
+        self.selectedSquare = -1
 
     def pieceClickedGraphicsEvent(self, lastSelection, square):
         # Clicking on a new piece selects it.
@@ -63,70 +89,6 @@ class BoardScene(QGraphicsScene):
                 self.squareWidgets[m.to_square].addEffectItem(
                     SquareWidget.ValidMove)
                 self.squareWidgets[m.to_square].isValidMove = True
-
-    def pieceClickedEvent(self, square):
-        # This is a two-click capture move.
-        if (self.parent().game.piece_at(square).color !=
-                self.parent().game.turn):
-            if self.selectedSquare != -1:
-                self.pieceDroppedEvent(square)
-            return
-        lastSelection = self.selectedSquare
-        # Clicking on a new or old piece deselects the previous squares
-        self.deselectSquaresEvent()
-        self.selectedSquare = square
-        self.pieceClickedGraphicsEvent(lastSelection, square)
-
-    def pieceDragStartingEvent(self, square):
-        self.dragPieceCursor = self.squareWidgets[square].pieceItem
-        self.squareWidgets[square].removePiece()
-        self.dragPieceCursor.setZValue(150)
-        pieceImg = QPixmap(self.squareWidth, self.squareWidth)
-        pieceImg.fill(QColor(0, 0, 0, 0))
-        painter = QPainter(pieceImg)
-        self.dragPieceCursor.renderer().render(painter)
-        painter.end()
-        self.dragPieceBehind = QGraphicsPixmapItem(pieceImg)
-        self.dragPieceBehind.setCursor(self.pieceDraggingCursor)
-        pos = self.squareWidgets[square].pos()
-        self.dragPieceBehind.setPos(pos)
-        self.dragPieceBehind.setOpacity(0.5)
-        self.addItem(self.dragPieceBehind)
-
-    def squareWidgetAt(self, pos):
-        file = 7 - int(pos.y() / self.squareWidth)
-        rank = int(pos.x() / self.squareWidth)
-        if file in range(7) and rank in range(7):
-            return self.squareWidgets[file * 8 + rank]
-        else:
-            return None
-
-    def pieceDragStoppingEvent(self, square, mousePos):
-        assert(self.dragPieceBehind is not None)
-        self.removeItem(self.dragPieceBehind)
-        self.dragPieceBehind = None
-        assert(self.dragPieceCursor is not None)
-        self.squareWidgets[square].addPiece(self.dragPieceCursor)
-        self.dragPieceCursor = None
-
-        toWidget = self.squareWidgetAt(mousePos)
-        if toWidget is not None and toWidget.isValidMove:
-            print("attempt", chess.Move(square, toWidget.square))
-            self.pieceDroppedEvent(square, toWidget.square)
-        else:
-            self.deselectSquaresEvent()
-            return
-
-    def pieceDroppedEvent(self, fromSquare, toSquare):
-        """
-        Passes the move to the parent. Then updates the board graphics.
-        :param fromSquare: Square move is from
-        :param toSquare: Square move is to
-        :return: None
-        """
-        m = chess.Move(fromSquare, toSquare)
-        self.parent().doMove(m)
-        self.pieceIsDragging = False
 
     def updatePositionAfterMove(self, move, isEnPassant):
         """
@@ -191,15 +153,6 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def deselectSquaresEvent(self):
-        for s in self.squareWidgets:
-            if s.isValidMove:
-                s.isValidMove = False
-                s.removeEffectItem(SquareWidget.ValidMove)
-        self.squareWidgets[self.selectedSquare].removeEffectItem(
-            SquareWidget.Selected)
-        self.selectedSquare = -1
-
     def refreshPosition(self):
         """
         Clears all pieces and creates new pieces according to
@@ -221,3 +174,66 @@ class BoardScene(QGraphicsScene):
                    and p.color == self.parent().game.turn:
                     s.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
+
+    def squareWidgetAt(self, pos):
+        file = 7 - int(pos.y() / self.squareWidth)
+        rank = int(pos.x() / self.squareWidth)
+        if file in range(7) and rank in range(7):
+            return self.squareWidgets[file * 8 + rank]
+        else:
+            return None
+
+    # Events
+    def pieceClickedEvent(self, square):
+        # This is a two-click capture move.
+        if (self.parent().game.piece_at(square).color !=
+                self.parent().game.turn):
+            if self.selectedSquare != -1:
+                self.pieceDropped(square)
+            return
+        lastSelection = self.selectedSquare
+        # Clicking on a new or old piece deselects the previous squares
+        self.deselectSquaresEvent()
+        self.selectedSquare = square
+        self.pieceClickedGraphicsEvent(lastSelection, square)
+
+    def pieceDragStartingEvent(self, square):
+        self.dragPieceAhead = self.squareWidgets[square].pieceItem
+        self.squareWidgets[square].removePiece()
+        self.dragPieceAhead.setZValue(150)
+        self.dragPieceAhead.setCursor(self.pieceDraggingCursor)
+        pieceImg = QPixmap(self.squareWidth, self.squareWidth)
+        pieceImg.fill(QColor(0, 0, 0, 0))
+        painter = QPainter(pieceImg)
+        self.dragPieceAhead.renderer().render(painter)
+        painter.end()
+        self.dragPieceBehind = QGraphicsPixmapItem(pieceImg)
+        pos = self.squareWidgets[square].pos()
+        self.dragPieceBehind.setPos(pos)
+        self.dragPieceBehind.setOpacity(0.5)
+        self.addItem(self.dragPieceBehind)
+
+    def pieceDragHappeningEvent(self, mousePos):
+        squareWidget = self.squareWidgetAt(mousePos)
+        if squareWidget is not None:
+            if self.lastMouseSquare != squareWidget:
+                squareWidget.hoverEnterEvent(None)
+                if self.lastMouseSquare is not None:
+                    self.lastMouseSquare.hoverLeaveEvent(None)
+                self.lastMouseSquare = squareWidget
+
+    def pieceDragStoppingEvent(self, square, mousePos):
+        assert(self.dragPieceBehind is not None)
+        self.removeItem(self.dragPieceBehind)
+        self.dragPieceBehind = None
+        assert(self.dragPieceAhead is not None)
+        self.squareWidgets[square].addPiece(self.dragPieceAhead)
+        self.dragPieceAhead = None
+
+        toWidget = self.squareWidgetAt(mousePos)
+        if toWidget is not None and toWidget.isValidMove:
+            print("attempt", chess.Move(square, toWidget.square))
+            self.pieceDropped(square, toWidget.square)
+        else:
+            self.deselectSquaresEvent()
+            return

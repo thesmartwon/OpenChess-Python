@@ -16,3 +16,4 @@ PIECE_TYPE_FILE_DICT = {'P': 'wp.svg', 'p': 'bp.svg',
 GAME_STATE = None
 PIECE_PADDING_RIGHT = 9
 PIECE_PADDING_BOT = 15
+HAS_FOCUS = True

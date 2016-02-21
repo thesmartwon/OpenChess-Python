@@ -36,5 +36,5 @@ backup/
 .idea/
 .idea/workspace.xml
 
-# Sublime project file
-*.sublime-project
+# Sublime workspace file
+*.sublime-workspace

@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import (QMainWindow, QAction,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
-import userConfig
 from game import OpenGame
+import userConfig
+import constants
 
 
 class MainWindow(QMainWindow):
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
         if QGLFormat.hasOpenGL():
             self.view.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
         self.initUI()
+        self.setFocusPolicy(Qt.StrongFocus)
 
     def initUI(self):
         screenGeo = QApplication.desktop().screenGeometry()
@@ -88,8 +90,18 @@ class MainWindow(QMainWindow):
         self.move(qr.topLeft())
 
 
-if __name__ == '__main__':
+def changedFocusSlot(old, now):
+    if now is None and old is not None:
+        constants.HAS_FOCUS = False
+    elif old is None and now is not None:
+        constants.HAS_FOCUS = True
+
+def main():
     app = QApplication(sys.argv)
+    app.focusChanged.connect(changedFocusSlot)
     win = MainWindow()
     win.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()

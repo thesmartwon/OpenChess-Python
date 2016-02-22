@@ -100,12 +100,10 @@ class MainWindow(QMainWindow):
                              self.height() - self.statusBar().height() -
                              self.menuBar().height())
         sceneWidth = int(limitDimension / 8) * 8
-        print("resize sceneWidth is", sceneWidth, "squares", sceneWidth / 8)
         trans = QTransform()
         trans.scale(sceneWidth / self.initialSceneWidth,
                     sceneWidth / self.initialSceneWidth)
         self.view.setTransform(trans)
-
 
     def closeEvent(self, event):
         # TODO: Implement saving before close

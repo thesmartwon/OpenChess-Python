@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor
+from PyQt5.QtCore import Qt
 from widgets.square import SquareWidget, PieceItem
 import chess
 import constants
@@ -235,12 +236,15 @@ class BoardScene(QGraphicsScene):
         self.dragPieceBehind = None
         assert(self.dragPieceAhead is not None)
         self.squareWidgets[square].addPiece(self.dragPieceAhead)
-        self.dragPieceAhead = None
 
         toWidget = self.squareWidgetAt(mousePos)
         if toWidget is not None and toWidget.isValidMove:
             print("attempt", chess.Move(square, toWidget.square))
+            self.dragPieceAhead.setCursor(Qt.ArrowCursor)
+            self.dragPieceAhead = None
             self.pieceDropped(square, toWidget.square)
         else:
+            self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
+            self.dragPieceAhead = None
             self.deselectSquaresEvent()
             return

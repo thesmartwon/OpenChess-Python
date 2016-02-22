@@ -143,13 +143,15 @@ class SquareWidget(QGraphicsWidget):
                 self.countItem(SquareWidget.ValidMoveHover) == 0):
             self.removeEffectItem(SquareWidget.ValidMove)
             self.addEffectItem(SquareWidget.ValidMoveHover)
-        elif event is None and self.countItem(SquareWidget.InvalidMoveHover) == 0:
+        elif (event is None and
+                self.countItem(SquareWidget.InvalidMoveHover) == 0):
             self.addEffectItem(SquareWidget.InvalidMoveHover)
 
     def hoverLeaveEvent(self, event):
         if self.isValidMove:
             self.removeEffectItem(SquareWidget.ValidMoveHover)
-            self.addEffectItem(SquareWidget.ValidMove)
+            if self.countItem(SquareWidget.ValidMove) == 0:
+                self.addEffectItem(SquareWidget.ValidMove)
         elif event is None:
             self.removeEffectItem(SquareWidget.InvalidMoveHover)
 
@@ -267,7 +269,6 @@ class PieceItem(QGraphicsSvgItem):
             if self.isStartingDrag:
                 self.isStartingDrag = False
                 self.setPos(QPoint(0, 0))
-                self.setCursor(Qt.ArrowCursor)
                 self.pieceDragStopping.emit(self.square,
                                             QPointF(event.scenePos()))
 

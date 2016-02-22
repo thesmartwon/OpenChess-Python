@@ -8,8 +8,6 @@ import chess
 import userConfig
 import constants
 
-# TODO: remove all .config['BOARD']['squareWidth'] so as to allow different
-# widths
 bConfig = userConfig.config['BOARD']
 
 

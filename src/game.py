@@ -1,4 +1,4 @@
-from widgets.movetree import MoveTreeScene, MoveTreeModel
+from widgets.movetree import MoveTreeView, MoveTreeModel
 from widgets.board import BoardScene
 from PyQt5.QtCore import QObject, QVariant
 from PyQt5.QtGui import QStandardItem
@@ -15,7 +15,7 @@ class OpenGame(QObject):
         super().__init__()
         self.game = chess.Board()
         self.boardScene = BoardScene(self)
-        self.moveTreeScene = MoveTreeScene()
+        self.moveTreeScene = MoveTreeView()
         self.moveTreeModel = MoveTreeModel()
         self.moveItems = []
         self.moveTreeModel.setHorizontalHeaderLabels(['White', 'Black'])

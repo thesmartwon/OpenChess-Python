@@ -1,9 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor
-from PyQt5.QtCore import QPointF, Qt
 from widgets.square import SquareWidget, PieceItem
 import chess
-import userConfig
 import constants
 # TODO: remove all .config['BOARD']['squareWidth'] so
 # as to allow different widths
@@ -20,7 +18,7 @@ class BoardScene(QGraphicsScene):
     def __init__(self, parent):
         super().__init__(parent)
         self.squareWidgets = []
-        self.squareWidth = int(userConfig.config['BOARD']['squareWidth'])
+        self.squareWidth = 0
         self.selectedSquare = -1
         curs = QPixmap(constants.RESOURCES_PATH + '\\cursor.png')
         self.pieceDraggingCursor = QCursor(curs, curs.width() / 2,
@@ -28,20 +26,29 @@ class BoardScene(QGraphicsScene):
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.lastMouseSquare = None
-        # initialize squares and pieces
+
+    def resizeEvent(self, event):
+        print('hallel')
+
+    def initSquares(self, squareWidth):
+        """
+        Initializes squares and pieces with dimensions
+        given by squareWidth.
+        """
+        self.squareWidth = squareWidth
         for i in range(64):
             file = 7 - int(i / 8)
             rank = i % 8
             p = self.parent().game.piece_at(i)
-            newSquareWidget = SquareWidget(i, self.squareWidth,
-                                           self.squareWidth)
-            newSquareWidget.setPos(self.squareWidth * rank,
-                                   self.squareWidth * file)
+            newSquareWidget = SquareWidget(i, squareWidth,
+                                           squareWidth)
+            newSquareWidget.setPos(squareWidth * rank,
+                                   squareWidth * file)
             newSquareWidget.pieceReleased.connect(self.pieceDropped)
             newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
             if p is not None:
                 newPieceItem = PieceItem(p)
-                newPieceItem.setScale(float(self.squareWidth) /
+                newPieceItem.setScale(float(squareWidth) /
                                       newPieceItem.boundingRect().width())
                 newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
                 newPieceItem.pieceDragStarting.connect(

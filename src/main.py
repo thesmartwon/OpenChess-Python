@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QMainWindow, QAction,
                              QDesktopWidget, QFrame,
                              QGraphicsView, QSplitter)
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QTransform
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from game import OpenGame
 import userConfig
@@ -18,57 +18,94 @@ class MainWindow(QMainWindow):
         self.view = QGraphicsView(self.game.boardScene, self)
         if QGLFormat.hasOpenGL():
             self.view.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
-        self.initUI()
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.vertSplitter = QSplitter(Qt.Vertical)
+        self.horiSplitter = QSplitter()
+        self.initialSceneWidth = 0
+        self.initStaticUI()
+        self.initDynamicUI()
 
-    def initUI(self):
-        screenGeo = QApplication.desktop().screenGeometry()
-        widthDisparity = screenGeo.width() - 1200
-        heightDisparity = screenGeo.height() - 939
+    def initGeometry(self, maxWidth, maxHeight):
+        idealWidth = constants.IDEAL_RESOLUTION['width']
+        idealHeight = constants.IDEAL_RESOLUTION['height']
+        widthDisparity = maxWidth - idealWidth
+        heightDisparity = maxHeight - idealHeight
         if widthDisparity < 0 and widthDisparity < heightDisparity:
-            self.setGeometry(0, 0, 1200 + widthDisparity,
-                             int(float(939)/1200*(1200+widthDisparity)))
+            width = idealWidth + widthDisparity
+            ratio = float(idealHeight) / idealWidth
+            height = int(ratio * (idealWidth + widthDisparity))
+            self.setGeometry(0, 0, width, height)
         elif heightDisparity < 0 and heightDisparity < widthDisparity:
-            self.setGeometry(0, 0, int(float(1200)/939*(939+heightDisparity)),
-                             939 + heightDisparity)
+            ratio = float(idealWidth) / idealHeight
+            width = int(ratio * (idealHeight + heightDisparity))
+            height = idealHeight + heightDisparity
+            self.setGeometry(0, 0, width, height)
         else:
-            self.setGeometry(0, 0, 1200, 939)
+            self.setGeometry(0, 0, idealWidth, idealHeight)
+        print("geometry is", self.geometry())
+        print("bars are", self.statusBar().height(), self.menuBar().height())
+
+    def initDynamicUI(self):
+        screenGeo = QApplication.desktop().screenGeometry()
+        self.initGeometry(screenGeo.width(), screenGeo.height())
+        print("best width", self.width(), "best height", self.height() -
+              self.statusBar().height() - self.menuBar().height())
+        limitDimension = min(self.width(), self.height() - self.statusBar().
+                             height() - self.menuBar().height())
+        sceneWidth = int(limitDimension / 8) * 8
+        print("sceneWidth is", sceneWidth, "squares", sceneWidth / 8)
+        self.initialSceneWidth = sceneWidth
+        self.game.boardScene.initSquares(sceneWidth / 8)
+        self.game.boardScene.setSceneRect(0, 0, sceneWidth, sceneWidth)
+        self.view.setGeometry(0, 0, sceneWidth, sceneWidth)
+        userConfig.config['BOARD']['squareWidth'] = str(int(sceneWidth / 8))
+        split = [sceneWidth + self.horiSplitter.handleWidth(),
+                 self.width() - sceneWidth - self.horiSplitter.handleWidth()]
+        print("split is", split)
+        self.horiSplitter.setSizes(split)
+        self.setCentralWidget(self.horiSplitter)
+        self.center()
+        self.show()
+
+    def initStaticUI(self):
+        rightTopWidget = self.game.moveTreeScene
+        rightBotWidget = QFrame(self)
+        self.vertSplitter.addWidget(rightTopWidget)
+        self.vertSplitter.addWidget(rightBotWidget)
+        self.horiSplitter.addWidget(self.view)
+        self.horiSplitter.addWidget(self.vertSplitter)
+        # self.horiSplitter.setHandleWidth(0)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setGeometry(0, 0, 896, 896)
-        self.game.boardScene.setSceneRect(0, 0, 896, 896)
 
         exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
-
         menubar = self.menuBar()
+        menubar.setMaximumHeight(20)
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAction)
-
-        righttop = self.game.moveTreeScene
-        self.game.moveTreeScene.setColumnWidth(0, (self.width() - 902) / 2 - 9)
-        self.game.moveTreeScene.setColumnWidth(1, (self.width() - 902) / 2 - 9)
-        rightbot = QFrame(self)
-
-        splitter1 = QSplitter(Qt.Vertical)
-        splitter1.addWidget(righttop)
-        splitter1.addWidget(rightbot)
-
-        splitter2 = QSplitter(Qt.Horizontal)
-        splitter2.addWidget(self.view)
-        splitter2.addWidget(splitter1)
-        splitter2.setSizes([902, self.width() - 902])
-
         self.statusBar().showMessage('Ready')
+        self.statusBar().setMaximumHeight(20)
 
+        self.setFocusPolicy(Qt.StrongFocus)
         self.center()
         self.setWindowTitle('Open Chess')
         # TODO: Add an application icon
         # self.setWindowIcon(QIcon('web.png'))
-        self.setCentralWidget(splitter2)
-        self.show()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        limitDimension = min(self.width() - self.horiSplitter.sizes()[1] - 2,
+                             self.height() - self.statusBar().height() -
+                             self.menuBar().height())
+        sceneWidth = int(limitDimension / 8) * 8
+        print("resize sceneWidth is", sceneWidth, "squares", sceneWidth / 8)
+        trans = QTransform()
+        trans.scale(sceneWidth / self.initialSceneWidth,
+                    sceneWidth / self.initialSceneWidth)
+        self.view.setTransform(trans)
+
 
     def closeEvent(self, event):
         # TODO: Implement saving before close
@@ -95,6 +132,7 @@ def changedFocusSlot(old, now):
         constants.HAS_FOCUS = False
     elif old is None and now is not None:
         constants.HAS_FOCUS = True
+
 
 def main():
     app = QApplication(sys.argv)

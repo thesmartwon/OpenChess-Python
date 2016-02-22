@@ -5,9 +5,13 @@ from PyQt5.QtWidgets import QTableView
 import chess
 
 
-class MoveTreeScene(QTableView):
+class MoveTreeView(QTableView):
     def __init__(self):
         super().__init__()
+
+    def resizeEvent(self, event):
+        self.setColumnWidth(0, self.width() / 2 - 9)
+        self.setColumnWidth(1, self.width() / 2 - 9)
 
 
 class MoveTreeModel(QStandardItemModel):

@@ -40,7 +40,13 @@ class OpenGame(QObject):
             self.moveTreeModel.setItem(int(len(self.game.move_stack) / 2),
                                        not self.game.turn, self.moveItems[-1])
             isEnPassant = self.game.is_en_passant(move)
+            castling = 0
+            if self.game.is_queenside_castling(move):
+                castling = 1
+            elif self.game.is_kingside_castling(move):
+                castling = 2
             self.game.push(move)
-            self.boardScene.updatePositionAfterMove(move, isEnPassant)
+            self.boardScene.updatePositionAfterMove(move, castling,
+                                                    isEnPassant)
             return True
         return False

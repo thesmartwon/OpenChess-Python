@@ -70,24 +70,14 @@ class SquareWidget(QGraphicsWidget):
             return
         effectItem = None
         squareBounds = self.boundingRect()
-        if itemType in [SquareWidget.Selected, SquareWidget.LastMove,
-                        SquareWidget.ValidMoveHover,
-                        SquareWidget.InvalidMoveHover]:
-            effectItem = QGraphicsRectItem()
-            c = QColor(bConfig['selectedColor'])
-            c.setAlphaF(float(bConfig['effectsAlpha']))
-            if itemType == SquareWidget.LastMove:
-                c = QColor(bConfig['lastMoveColor'])
-                c.setAlphaF(float(bConfig['effectsAlpha']))
-            elif itemType == SquareWidget.ValidMoveHover:
-                c = QColor(bConfig['hoverColor'])
-                c.setAlphaF(float(bConfig['effectsAlpha']))
-            elif itemType == SquareWidget.InvalidMoveHover:
-                c = QColor(bConfig['invalidHoverColor'])
-                c.setAlphaF(float(bConfig['weakEffectsAlpha']))
-            effectItem.setBrush(QBrush(c))
-            effectItem.setPen(QPen(Qt.NoPen))
-            effectItem.setRect(squareBounds)
+        if itemType == SquareWidget.Selected:
+            effectItem = SelectedGraphicsItem(squareBounds)
+        elif itemType == SquareWidget.LastMove:
+            effectItem = LastMoveGraphicsItem(squareBounds)
+        elif itemType == SquareWidget.ValidMoveHover:
+            effectItem = ValidMoveHoverGraphicsItem(squareBounds)
+        elif itemType == SquareWidget.InvalidMoveHover:
+            effectItem = InvalidMoveHoverGraphicsItem(squareBounds)
         elif itemType == SquareWidget.ValidMove:
             if self.isOccupied:
                 if self.isLight:
@@ -97,15 +87,7 @@ class SquareWidget(QGraphicsWidget):
                     brush = QBrush(QColor(bConfig['darkcolor']))
                     effectItem = TakePieceGraphicsItem(brush, squareBounds)
             else:
-                effectItem = QGraphicsEllipseItem()
-                c = QColor(bConfig['selectedColor'])
-                c.setAlphaF(float(bConfig['effectsAlpha']))
-                effectItem.setBrush(QBrush(c))
-                effectItem.setPen(QPen(Qt.NoPen))
-                width = squareBounds.width()
-                effectItem.setRect(width * .75 / 2, width * .75 / 2,
-                                   width * .25, width * .25)
-
+                effectItem = ValidMoveGraphicsItem(squareBounds)
         elif itemType == SquareWidget.CheckSquare:
             if self.isLight:
                 brush = QBrush(QColor(bConfig['lightcolor']))
@@ -158,6 +140,58 @@ class SquareWidget(QGraphicsWidget):
     def mousePressEvent(self, event):
         if self.isValidMove:
             self.pieceReleased.emit(self.square)
+
+
+class ValidMoveGraphicsItem(QGraphicsEllipseItem):
+    def __init__(self, squareBounds):
+        super().__init__()
+        c = QColor(bConfig['selectedColor'])
+        c.setAlphaF(float(bConfig['effectsAlpha']))
+        self.setBrush(QBrush(c))
+        self.setPen(QPen(Qt.NoPen))
+        width = squareBounds.width()
+        self.setRect(width * .75 / 2, width * .75 / 2,
+                     width * .25, width * .25)
+
+
+class InvalidMoveHoverGraphicsItem(QGraphicsRectItem):
+    def __init__(self, squareBounds):
+        super().__init__()
+        c = QColor(bConfig['invalidHoverColor'])
+        c.setAlphaF(float(bConfig['weakEffectsAlpha']))
+        self.setBrush(QBrush(c))
+        self.setPen(QPen(Qt.NoPen))
+        self.setRect(squareBounds)
+
+
+class ValidMoveHoverGraphicsItem(QGraphicsRectItem):
+    def __init__(self, squareBounds):
+        super().__init__()
+        c = QColor(bConfig['hoverColor'])
+        c.setAlphaF(float(bConfig['effectsAlpha']))
+        self.setBrush(QBrush(c))
+        self.setPen(QPen(Qt.NoPen))
+        self.setRect(squareBounds)
+
+
+class SelectedGraphicsItem(QGraphicsRectItem):
+    def __init__(self, squareBounds):
+        super().__init__()
+        c = QColor(bConfig['selectedColor'])
+        c.setAlphaF(float(bConfig['effectsAlpha']))
+        self.setBrush(QBrush(c))
+        self.setPen(QPen(Qt.NoPen))
+        self.setRect(squareBounds)
+
+
+class LastMoveGraphicsItem(QGraphicsRectItem):
+    def __init__(self, squareBounds):
+        super().__init__()
+        c = QColor(bConfig['lastMoveColor'])
+        c.setAlphaF(float(bConfig['effectsAlpha']))
+        self.setBrush(QBrush(c))
+        self.setPen(QPen(Qt.NoPen))
+        self.setRect(squareBounds)
 
 
 class TakePieceGraphicsItem(QGraphicsItem):

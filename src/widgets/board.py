@@ -28,9 +28,6 @@ class BoardScene(QGraphicsScene):
         self.dragPieceAhead = None
         self.lastMouseSquare = None
 
-    def resizeEvent(self, event):
-        print('hallel')
-
     def initSquares(self, squareWidth):
         """
         Initializes squares and pieces with dimensions
@@ -98,7 +95,7 @@ class BoardScene(QGraphicsScene):
                     SquareWidget.ValidMove)
                 self.squareWidgets[m.to_square].isValidMove = True
 
-    def updatePositionAfterMove(self, move, isEnPassant):
+    def updatePositionAfterMove(self, move, castling, isEnPassant):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
@@ -124,17 +121,17 @@ class BoardScene(QGraphicsScene):
         # implementation of castling.
         # Oddly enough, it 'e1g1' or 'e1c1'.
 
-        if self.parent().game.is_queenside_castling(move):
+        if castling == 1:
             newPieceItem = PieceItem(self.squareWidgets[move.to_square - 2].
-                                     pieceItem.piece, move.to_square + 1)
+                                     pieceItem.piece)
             newPieceItem.setScale(float(self.squareWidth) /
                                   newPieceItem.boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
             self.squareWidgets[move.to_square - 2].removePiece()
             self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
-        elif self.parent().game.is_kingside_castling(move):
+        elif castling == 2:
             newPieceItem = PieceItem(self.squareWidgets[move.to_square + 1].
-                                     pieceItem.piece, move.to_square - 1)
+                                     pieceItem.piece)
             newPieceItem.setScale(float(self.squareWidth) / newPieceItem.
                                   boundingRect().width())
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
@@ -186,7 +183,7 @@ class BoardScene(QGraphicsScene):
     def squareWidgetAt(self, pos):
         file = 7 - int(pos.y() / self.squareWidth)
         rank = int(pos.x() / self.squareWidth)
-        if file in range(7) and rank in range(7):
+        if file in range(8) and rank in range(8):
             return self.squareWidgets[file * 8 + rank]
         else:
             return None

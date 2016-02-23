@@ -1,7 +1,7 @@
-from widgets.movetree import MoveTreeView, MoveTreeModel
-from widgets.board import BoardScene
 from PyQt5.QtCore import QObject, QVariant
 from PyQt5.QtGui import QStandardItem
+from widgets.movetree import MoveTreeView, MoveTreeModel
+from widgets.board import BoardScene, BoardSceneView
 import chess
 import constants
 
@@ -11,15 +11,17 @@ class OpenGame(QObject):
     OpenGame houses all objects linked to the game state.
     It's self.game holds the game state.
     """
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
         self.game = chess.Board()
         self.boardScene = BoardScene(self)
+        self.boardSceneView = BoardSceneView(self.boardScene, parent)
         self.moveTreeScene = MoveTreeView()
         self.moveTreeModel = MoveTreeModel()
         self.moveItems = []
         self.moveTreeModel.setHorizontalHeaderLabels(['White', 'Black'])
         self.moveTreeScene.setModel(self.moveTreeModel)
+        self.setParent(parent)
         constants.GAME_STATE = self.game
 
     def doMove(self, move):

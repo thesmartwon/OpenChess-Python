@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QGraphicsView
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor
 from PyQt5.QtCore import Qt
+from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem
 import chess
 import constants
@@ -245,3 +246,14 @@ class BoardScene(QGraphicsScene):
             self.dragPieceAhead = None
             self.deselectSquaresEvent()
             return
+
+
+class BoardSceneView(QGraphicsView):
+    def __init__(self, scene, parent):
+        super().__init__()
+        self.setScene(scene)
+        self.setParent(parent)
+        if QGLFormat.hasOpenGL():
+            self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

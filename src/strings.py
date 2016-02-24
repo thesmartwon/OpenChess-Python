@@ -1,0 +1,2 @@
+COLOR_FIRST = 'White'
+COLOR_SECOND = 'Black'

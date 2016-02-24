@@ -4,8 +4,8 @@ import os
 CURRENT_WORKING_DIRECTORY = os.getcwd()
 ROOT_DIRECTORY = CURRENT_WORKING_DIRECTORY[:CURRENT_WORKING_DIRECTORY.
                                            index('OpenChess')+len('OpenChess')]
-CONFIG_PATH = ROOT_DIRECTORY + '\\settings.ini'
-RESOURCES_PATH = ROOT_DIRECTORY + '\\resources'
+CONFIG_PATH = ROOT_DIRECTORY + '/settings.ini'
+RESOURCES_PATH = ROOT_DIRECTORY + '/resources'
 # TODO: fix cburnett to be pure white
 PIECE_TYPE_FILE_DICT = {'P': 'wp.svg', 'p': 'bp.svg',
                         'R': 'wr.svg', 'r': 'br.svg',

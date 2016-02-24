@@ -5,8 +5,6 @@ from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem
 import chess
 import constants
-# TODO: remove all .config['BOARD']['squareWidth'] so
-# as to allow different widths
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
@@ -14,19 +12,20 @@ class BoardScene(QGraphicsScene):
     """
     Contains and manages SquareWidgets interacting
     with each other.
-    Sends moves up to the parent, which must have a
-    self.game = chess.Board().
+    Sends moves up to the gameCopy given, which must
+    be a chess.Board
     """
     def __init__(self, parent):
         super().__init__(parent)
+        self.game = constants.GAME_STATE
         self.squareWidgets = []
         self.squareWidth = 0
-        self.selectedSquare = -1
-        curs = QPixmap(constants.RESOURCES_PATH + '\\cursor.png')
+        curs = QPixmap(constants.RESOURCES_PATH + '/cursor.png')
         self.pieceDraggingCursor = QCursor(curs, curs.width() / 2,
                                            curs.height() / 2)
         self.dragPieceBehind = None
         self.dragPieceAhead = None
+        self.selectedSquare = -1
         self.lastMouseSquare = None
 
     def initSquares(self, squareWidth):
@@ -34,21 +33,23 @@ class BoardScene(QGraphicsScene):
         Initializes squares and pieces with dimensions
         given by squareWidth.
         """
+        print("did we makes it?")
         self.squareWidth = squareWidth
         for i in range(64):
             file = 7 - int(i / 8)
             rank = i % 8
-            p = self.parent().game.piece_at(i)
-            newSquareWidget = SquareWidget(i, squareWidth,
-                                           squareWidth)
+            p = self.game.piece_at(i)
+            newSquareWidget = SquareWidget(i, squareWidth)
             newSquareWidget.setPos(squareWidth * rank,
                                    squareWidth * file)
             newSquareWidget.pieceReleased.connect(self.pieceDropped)
             newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
             if p is not None:
                 newPieceItem = PieceItem(p)
-                newPieceItem.setScale(float(squareWidth) /
-                                      newPieceItem.boundingRect().width())
+                lesserDimension = min(squareWidth, squareWidth)
+                scale = float(lesserDimension) / \
+                    newPieceItem.boundingRect().width()
+                newPieceItem.setScale(scale)
                 newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
                 newPieceItem.pieceDragStarting.connect(
                     self.pieceDragStartingEvent)
@@ -90,7 +91,7 @@ class BoardScene(QGraphicsScene):
             self.selectedSquare = -1
             return
         # Add the valid move squares
-        for m in self.parent().game.legal_moves:
+        for m in self.game.legal_moves:
             if m.from_square == self.selectedSquare:
                 self.squareWidgets[m.to_square].addEffectItem(
                     SquareWidget.ValidMove)
@@ -109,7 +110,7 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets[move.from_square].removePiece()
         else:
             newPieceItem = PieceItem(chess.Piece(move.promotion,
-                                     not self.parent().game.turn))
+                                     not self.game.turn))
             newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
             newPieceItem.setScale(float(self.squareWidth) /
                                   newPieceItem.boundingRect().width())
@@ -140,19 +141,19 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
         elif isEnPassant:
             # remember we are updating after the move has occurred
-            if self.parent().game.turn == chess.BLACK:
+            if self.game.turn == chess.BLACK:
                 self.squareWidgets[move.to_square - 8].removePiece()
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
 
         for s in self.squareWidgets:
-            p = self.parent().game.piece_at(s.square)
+            p = self.game.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
                 s.clearEffectItems()
                 s.addEffectItem(SquareWidget.LastMove)
-            elif (self.parent().game.is_check() and p is not None and
+            elif (self.game.is_check() and p is not None and
                     p.piece_type == chess.KING and
-                    p.color == self.parent().game.turn):
+                    p.color == self.game.turn):
                 s.addEffectItem(SquareWidget.CheckSquare)
             else:
                 s.clearEffectItems()
@@ -162,22 +163,22 @@ class BoardScene(QGraphicsScene):
     def refreshPosition(self):
         """
         Clears all pieces and creates new pieces according to
-        self.parent().game.
+        self.game.
         Also clears the selected square and adds check effects if in check.
         :return: Void
         """
         for s in self.squareWidgets:
             s.removePiece()
-            p = self.parent().game.piece_at(s.square)
+            p = self.game.piece_at(s.square)
             if p is not None:
                 newPieceItem = PieceItem(p, s.square)
                 newPieceItem.setScale(float(self.squareWidth) /
                                       newPieceItem.boundingRect().width())
                 newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
                 s.addPiece(newPieceItem)
-                if self.parent().game.is_check() and p is not None \
+                if self.game.is_check() and p is not None \
                    and p.piece_type == chess.KING \
-                   and p.color == self.parent().game.turn:
+                   and p.color == self.game.turn:
                     s.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
 
@@ -192,8 +193,8 @@ class BoardScene(QGraphicsScene):
     # Events
     def pieceClickedEvent(self, square):
         # This is a two-click capture move.
-        if (self.parent().game.piece_at(square).color !=
-                self.parent().game.turn):
+        if (self.game.piece_at(square).color !=
+                self.game.turn):
             if self.selectedSquare != -1:
                 self.pieceDropped(square)
             return
@@ -249,8 +250,8 @@ class BoardScene(QGraphicsScene):
 
 
 class BoardSceneView(QGraphicsView):
-    def __init__(self, scene, parent):
-        super().__init__()
+    def __init__(self, parent, scene):
+        super().__init__(parent)
         self.setScene(scene)
         self.setParent(parent)
         if QGLFormat.hasOpenGL():

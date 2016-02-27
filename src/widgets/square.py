@@ -28,9 +28,9 @@ class SquareWidget(QGraphicsWidget):
         self.square = square
         self.isValidMove = False
         self.isOccupied = False
-        isLight = bool(chess.BB_SQUARES[int(square)] &
-                       chess.BB_LIGHT_SQUARES)
-        self.SquareWidget = DummySquareItem(isLight)
+        self.isLight = bool(chess.BB_SQUARES[int(square)] &
+                            chess.BB_LIGHT_SQUARES)
+        self.SquareWidget = DummySquareItem(self.isLight)
         self.SquareWidget.setRect(self.rect())
         self.SquareWidget.setZValue(0)
         self.SquareWidget.setParentItem(self)
@@ -161,13 +161,8 @@ class PieceItem(QGraphicsSvgItem):
         self.isStartingDrag = False
         self.setAcceptHoverEvents(True)
 
-    def __str__(self):
-        return '<PieceWidget %s>' % self.piece
-
     def mousePressEvent(self, event):
-        gameTurn = constants.GAME_STATE.turn
-        if (self.piece.color == gameTurn and
-                event.button() == Qt.LeftButton):
+        if (event.button() == Qt.LeftButton):
             self.pieceClicked.emit(self.square)
 
     def mouseMoveEvent(self, event):

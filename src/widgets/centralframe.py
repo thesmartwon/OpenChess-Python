@@ -1,66 +1,61 @@
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QTransform, QPalette
-from PyQt5.QtWidgets import QFrame, QSplitter
+from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QWidget,
+                             QApplication)
 from game import OpenGame
 from widgets.movetree import MoveTreeView, MoveTreeModel
 from widgets.board import BoardScene, BoardSceneView
 
 
-class MainFrame(QFrame):
+class CentralFrame(QFrame):
     """
     Takes up the center of the screen and
     communicates between all of the widgets there.
     """
-    def __init__(self, parent, geometry):
+    def __init__(self, parent):
         super().__init__(parent)
-        print("frame geometry is", geometry)
         self.openGame = OpenGame()
         self.boardScene = BoardScene(self)
         self.boardSceneView = BoardSceneView(self, self.boardScene)
         self.moveTreeModel = MoveTreeModel()
         self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
-        self.vertSplitter = QSplitter(Qt.Vertical, self)
-        self.horiSplitter = QSplitter(self)
 
-        self.setGeometry(geometry)
         self.initStaticUI()
         self.initDynamicUI()
-        self.horiSplitter.setGeometry(self.geometry())
-        self.horiSplitter.show()
         self.show()
 
     def initStaticUI(self):
+        """Creates layout without accounting for sizes"""
         pal = QPalette(self.palette())
         pal.setColor(QPalette.Background, Qt.green)
         self.setAutoFillBackground(True)
         self.setPalette(pal)
-        self.vertSplitter.addWidget(self.moveTreeView)
-        self.vertSplitter.addWidget(QFrame(self))
-        self.horiSplitter.setBaseSize(self.width(), self.height())
-        self.horiSplitter.addWidget(self.boardSceneView)
-        self.horiSplitter.addWidget(self.vertSplitter)
+        vertLayout = QVBoxLayout(self)
+        vertLayout.setSpacing(0)
+        vertLayout.addWidget(self.moveTreeView)
+        self.vertWidget = QWidget(self)
+        self.vertWidget.setLayout(vertLayout)
+        horiLayout = QHBoxLayout(self)
+        horiLayout.addWidget(self.boardSceneView)
+        horiLayout.addWidget(self.vertWidget)
+        self.setLayout(horiLayout)
 
     def initDynamicUI(self):
-        lesserDimension = min(self.width(), self.height())
+        """Creates parts of layout that account for sizes.
+        Notable is that the boardScene will be a multiple of 8."""
+        # TODO: make it so it will pick the largest screen geometry
+        screenGeo = QApplication.primaryScreen().availableGeometry()
+        lesserDimension = min(screenGeo.width(), screenGeo.height())
         sceneWidth = int(lesserDimension / 8) * 8
-        print("init", sceneWidth)
         self.initialSceneWidth = sceneWidth
         self.boardScene.initSquares(sceneWidth / 8)
         self.boardScene.setSceneRect(0, 0, sceneWidth, sceneWidth)
-        self.boardSceneView.setGeometry(0, 0, sceneWidth, sceneWidth)
-        self.moveTreeView.setGeometry(0, 0, self.width() - sceneWidth -
-                                      self.horiSplitter.handleWidth(),
-                                      self.height() - 50)
-        split = [sceneWidth + self.horiSplitter.handleWidth(),
-                 self.width() - sceneWidth - self.horiSplitter.handleWidth()]
-        self.horiSplitter.setSizes(split)
 
     def resizeEvent(self, event):
-        super().resizeEvent(event)
-        lesserDimension = min(self.width() - self.moveTreeView.width(),
-                              self.height())
-        sceneWidth = lesserDimension
-        print('sceneWidth is', sceneWidth)
+        print("w", self.width(), 'h', self.height())
+        sceneWidth = min(event.size().width(), event.size().height())
+        self.boardSceneView.setGeometry(0, 0, sceneWidth, sceneWidth)
+        # print('sceneWidth is', sceneWidth)
         trans = QTransform()
         trans.scale(sceneWidth / self.initialSceneWidth,
                     sceneWidth / self.initialSceneWidth)

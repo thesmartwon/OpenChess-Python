@@ -33,7 +33,6 @@ class BoardScene(QGraphicsScene):
         Initializes squares and pieces with dimensions
         given by squareWidth.
         """
-        print("did we makes it?")
         self.squareWidth = squareWidth
         for i in range(64):
             file = 7 - int(i / 8)
@@ -62,7 +61,7 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets.append(newSquareWidget)
 
     # Helper methods
-    def pieceDropped(self, fromSquare, toSquare):
+    def pieceDropped(self, toSquare, fromSquare=None):
         """
         Passes the move to the parent. Then updates the board graphics.
         Does not validate move, although it should be valid.
@@ -70,6 +69,8 @@ class BoardScene(QGraphicsScene):
         :param toSquare: Square move is to
         :return: None
         """
+        if fromSquare is None:
+            fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
         self.parent().doMove(m)
 
@@ -193,6 +194,7 @@ class BoardScene(QGraphicsScene):
     # Events
     def pieceClickedEvent(self, square):
         # This is a two-click capture move.
+        print('hi')
         if (self.game.piece_at(square).color !=
                 self.game.turn):
             if self.selectedSquare != -1:
@@ -241,7 +243,7 @@ class BoardScene(QGraphicsScene):
             print("attempt", chess.Move(square, toWidget.square))
             self.dragPieceAhead.setCursor(Qt.ArrowCursor)
             self.dragPieceAhead = None
-            self.pieceDropped(square, toWidget.square)
+            self.pieceDropped(toWidget.square, square )
         else:
             self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
             self.dragPieceAhead = None

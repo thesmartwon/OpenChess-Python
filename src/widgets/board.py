@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem, QGraphicsView
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
+                             QGraphicsView, QGraphicsItem)
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor, QTransform
+from PyQt5.QtCore import Qt, QRectF
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem
 import chess
@@ -27,6 +28,8 @@ class BoardScene(QGraphicsScene):
         self.dragPieceAhead = None
         self.selectedSquare = -1
         self.lastMouseSquare = None
+        # Basically just for arrows
+        self.effectItems = None
 
     def initSquares(self, squareWidth):
         """
@@ -34,6 +37,9 @@ class BoardScene(QGraphicsScene):
         given by squareWidth.
         """
         self.squareWidth = squareWidth
+        constants.PIECE_PADDING_RIGHT = constants.PIECE_PADDING_RIGHT * \
+            squareWidth
+        constants.PIECE_PADDING_BOT = constants.PIECE_PADDING_BOT * squareWidth
         for i in range(64):
             file = 7 - int(i / 8)
             rank = i % 8
@@ -161,6 +167,15 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
+    def squareWidgetAt(self, pos):
+        file = 7 - int(pos.y() / self.squareWidth)
+        rank = int(pos.x() / self.squareWidth)
+        if file in range(8) and rank in range(8):
+            return self.squareWidgets[file * 8 + rank]
+        else:
+            return None
+
+    # Called from elsewhere
     def refreshPosition(self):
         """
         Clears all pieces and creates new pieces according to
@@ -183,18 +198,14 @@ class BoardScene(QGraphicsScene):
                     s.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
 
-    def squareWidgetAt(self, pos):
-        file = 7 - int(pos.y() / self.squareWidth)
-        rank = int(pos.x() / self.squareWidth)
-        if file in range(8) and rank in range(8):
-            return self.squareWidgets[file * 8 + rank]
-        else:
-            return None
+    def addArrow(self, move):
+        arrow = ArrowGraphicsItem(move.from_square, move.to_square,
+                                  self.squareWidth)
+        self.addItem(arrow)
 
     # Events
     def pieceClickedEvent(self, square):
         # This is a two-click capture move.
-        print('hi')
         if (self.game.piece_at(square).color !=
                 self.game.turn):
             if self.selectedSquare != -1:
@@ -243,7 +254,7 @@ class BoardScene(QGraphicsScene):
             print("attempt", chess.Move(square, toWidget.square))
             self.dragPieceAhead.setCursor(Qt.ArrowCursor)
             self.dragPieceAhead = None
-            self.pieceDropped(toWidget.square, square )
+            self.pieceDropped(toWidget.square, square)
         else:
             self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
             self.dragPieceAhead = None
@@ -260,3 +271,45 @@ class BoardSceneView(QGraphicsView):
             self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.initialSceneWidth = 0
+
+    def resizeEvent(self, event):
+        sceneWidth = min(event.size().width(), event.size().height())
+        trans = QTransform()
+        trans.scale(sceneWidth / self.initialSceneWidth,
+                    sceneWidth / self.initialSceneWidth)
+        self.setTransform(trans)
+
+
+class ArrowGraphicsItem(QGraphicsItem):
+    def __init__(self, fromSquare, toSquare, squareWidth):
+        super().__init__(self)
+        fromFile = 7 - int(fromSquare / 8)
+        fromRank = fromSquare % 8
+        toFile = 7 - int(toSquare / 8)
+        toRank = toSquare % 8
+        minX = min(fromFile * squareWidth, toFile * squareWidth)
+        maxX = max(fromFile * squareWidth, toFile * squareWidth)
+        minY = min(fromRank * squareWidth, toRank * squareWidth)
+        maxY = max(fromRank * squareWidth, toRank * squareWidth)
+        self.fromX = 
+        self.rect = QRectF(minX, minY, maxX, maxY)
+
+    def boundingRect(self):
+        return self.rect
+
+    def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
+        QPainter.setClipRect(self.rect)
+
+        # center = QPointF(self.rect.width() / 2, self.rect.height() / 2)
+        # focalPoint = center
+        # grad = QRadialGradient(center, float(self.rect.width() * 0.58929),
+        #                        focalPoint)
+        # col = QColor(bConfig['checkColor'])
+        # grad.setColorAt(0, col)
+        # grad.setColorAt(1, self.brush.color())
+        # col = QColor(bConfig['checkColor'])
+        # col.setAlphaF(float(bConfig['effectsAlpha']))
+        # QPainter.setBrush(QBrush(col))
+        # QPainter.setPen(QPen(Qt.NoPen))
+        # QPainter.fillRect(self.rect,  grad)

@@ -38,7 +38,6 @@ class MainWindow(QFrame):
         self.titleBar.normalButton.clicked.connect(self.showNormal)
         self.titleBar.closeButton.clicked.connect(self.close)
 
-        self.setFocusPolicy(Qt.StrongFocus)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setWindowTitle('Open Chess')
         # TODO: Add an application icon
@@ -67,21 +66,21 @@ class MainWindow(QFrame):
 
     def initLayout(self):
         self.mainFrame = CentralFrame(self)
+        sizeGrip = QSizeGrip(self)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        sizeGrip = QSizeGrip(self)
         layout.addWidget(self.titleBar, 0)
-        layout.addWidget(self.mainFrame, 9)
+        layout.addWidget(self.mainFrame, 1)
         layout.addWidget(sizeGrip, 0, Qt.AlignBottom | Qt.AlignRight)
         self.setLayout(layout)
-        # self.setCentralWidget(layoutWidget)
 
     def toggleMaximizeMinimize(self):
-        if self.windowState() & Qt.WindowNoState:
+        if self.windowState() == Qt.WindowNoState or \
+                self.windowState() == Qt.WindowActive:
             self.showMaximized()
-        elif self.windowState() & Qt.WindowMaximized:
-            self.showMinimized()
+        elif self.windowState() == Qt.WindowMaximized:
+            self.showNormal()
 
     def showMaximized(self):
         self.lastGeo = self.geometry()
@@ -99,19 +98,6 @@ class MainWindow(QFrame):
             newEvent = QResizeEvent(size, size)
             self.resizeEvent(newEvent)
 
-    def mousePressEvent(self, event):
-        self.oldMousePos = event.globalPos()
-        self.oldMouseLocalPos = event.pos()
-
-    def mouseMoveEvent(self, event):
-        if self.windowState() & Qt.WindowMaximized:
-            self.showNormal()
-            self.move(event.globalPos().x(), event.globalPos().y())
-            return
-        delta = event.globalPos() - self.oldMousePos
-        self.move(self.x() + delta.x(), self.y() + delta.y())
-        self.oldMousePos = event.globalPos()
-
     def closeEvent(self, event):
         print('closing')
         # TODO: Implement saving before close
@@ -123,6 +109,7 @@ class MainWindow(QFrame):
         #     event.accept()
         # else:
         #     event.ignore()
+        self.mainFrame.engineWidget.destroyEvent()
         userConfig.saveFile('settings.ini')
         event.accept()
 
@@ -143,7 +130,7 @@ class TitleBar(QWidget):
         self.maxIcon = style.standardIcon(QStyle.SP_TitleBarMaxButton)
         self.normalIcon = style.standardIcon(QStyle.SP_TitleBarNormalButton)
 
-        topRightButtonWidth = 42
+        topRightButtonWidth = 46
         self.minButton = QPushButton(self)
         self.minButton.setIcon(self.minIcon)
         self.minButton.setMinimumWidth(topRightButtonWidth)
@@ -159,8 +146,7 @@ class TitleBar(QWidget):
         layout = QHBoxLayout(self)
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Expanding,
-                                         QSizePolicy.Minimum))
+        layout.addStretch(0)
         layout.addWidget(self.minButton)
         layout.addWidget(self.maxButton)
         layout.addWidget(self.normalButton)
@@ -178,6 +164,42 @@ class TitleBar(QWidget):
         else:
             self.maxButton.show()
             self.normalButton.hide()
+
+    def mouseDoubleClickEvent(self, event):
+        if event.button() != Qt.LeftButton:
+            return
+        self.parent().toggleMaximizeMinimize()
+        self.ignoreMove = True
+
+    def mousePressEvent(self, event):
+        if event.button() != Qt.LeftButton:
+            self.ignoreMove = True
+            return
+        self.oldMousePos = event.globalPos()
+        self.adjustXPercent = float(event.pos().x() / self.parent().width())
+        self.adjustY = event.pos().y()
+        self.adjustExtra = False
+        self.ignoreMove = False
+
+    def mouseMoveEvent(self, event):
+        if not event.buttons() & Qt.LeftButton or self.ignoreMove:
+            return
+        if self.parent().windowState() == Qt.WindowMaximized:
+            self.parent().showNormal()
+            self.adjustExtra = True
+            return
+        if self.adjustExtra:
+            point = event.globalPos()
+            point.setX(point.x() - int(self.adjustXPercent *
+                                       self.parent().width()))
+            point.setY(point.y() - self.adjustY)
+            self.parent().move(point)
+            return
+
+        delta = event.globalPos() - self.oldMousePos
+        self.parent().move(self.parent().x() + delta.x(),
+                           self.parent().y() + delta.y())
+        self.oldMousePos = event.globalPos()
 
 
 def changedFocusSlot(old, now):

@@ -169,10 +169,11 @@ class PieceItem(QGraphicsSvgItem):
         gameTurn = constants.GAME_STATE.turn
         if (self.piece.color == gameTurn and
                 bool(event.buttons() & Qt.LeftButton)):
-            newPos = event.scenePos() - QPointF(self.boundingRect().width() +
-                                                constants.PIECE_PADDING_RIGHT,
-                                                self.boundingRect().height() +
-                                                constants.PIECE_PADDING_BOT)
+            hotSpot = QPointF(self.boundingRect().width() +
+                              constants.PIECE_PADDING_RIGHT,
+                              self.boundingRect().height() +
+                              constants.PIECE_PADDING_BOT)
+            newPos = event.scenePos() - hotSpot
             self.setPos(newPos)
             if not self.isStartingDrag:
                 self.isStartingDrag = True

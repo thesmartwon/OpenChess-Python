@@ -17,6 +17,7 @@ class EngineWidget(QWidget):
         self.board = None
         self.command = None
         self.longestPv = None
+        self.lastLongestPv = None
         self.initLayout()
 
         self.startTimer(250)
@@ -75,11 +76,13 @@ class EngineWidget(QWidget):
                 tmpBoard.push(m)
                 moveCount += 1
         else:
+            self.longestPv = None
             moveString = 'not thinking'
         self.engineLabel.setText(moveString)
-        if self.longestPv is not None:
-            firstMove = 
-            self.parent().boardScene.addArrow()
+        if self.longestPv != self.lastLongestPv and self.longestPv is not None:
+            firstMove = self.longestPv[0]
+            self.parent().parent().boardScene.addArrow(firstMove)
+        self.lastLongestPv = self.longestPv
 
     def timerEvent(self, event):
         self.updateText()

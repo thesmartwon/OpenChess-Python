@@ -1,9 +1,11 @@
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QGraphicsItem)
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QCursor, QTransform
-from PyQt5.QtCore import Qt, QRectF
+                             QGraphicsView, QGraphicsItem, QGraphicsLineItem)
+from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
+                         QBrush, QPen)
+from PyQt5.QtCore import Qt, QRectF, QPoint, QLine, QPointF
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem
+import userConfig
 import chess
 import constants
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
@@ -29,7 +31,7 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
         self.lastMouseSquare = None
         # Basically just for arrows
-        self.effectItems = None
+        self.effectItems = []
 
     def initSquares(self, squareWidth):
         """
@@ -199,8 +201,13 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def addArrow(self, move):
+        for i in self.effectItems:
+            self.removeItem(i)
+            self.effectItems.remove(i)
         arrow = ArrowGraphicsItem(move.from_square, move.to_square,
                                   self.squareWidth)
+        arrow.setZValue(149)
+        self.effectItems.append(arrow)
         self.addItem(arrow)
 
     # Events
@@ -283,33 +290,46 @@ class BoardSceneView(QGraphicsView):
 
 class ArrowGraphicsItem(QGraphicsItem):
     def __init__(self, fromSquare, toSquare, squareWidth):
-        super().__init__(self)
-        fromFile = 7 - int(fromSquare / 8)
-        fromRank = fromSquare % 8
-        toFile = 7 - int(toSquare / 8)
-        toRank = toSquare % 8
-        minX = min(fromFile * squareWidth, toFile * squareWidth)
-        maxX = max(fromFile * squareWidth, toFile * squareWidth)
-        minY = min(fromRank * squareWidth, toRank * squareWidth)
-        maxY = max(fromRank * squareWidth, toRank * squareWidth)
-        self.fromX = 
-        self.rect = QRectF(minX, minY, maxX, maxY)
+        super().__init__()
+        fromRank = 7 - int(fromSquare / 8)
+        fromFile = fromSquare % 8
+        toRank = 7 - int(toSquare / 8)
+        toFile = toSquare % 8
+        print('from', fromFile, fromRank, 'to', toFile, toRank)
+        minX = min(fromFile * squareWidth, toFile * squareWidth) - 1
+        maxX = max((fromFile + 1) * squareWidth, (toFile + 1) * squareWidth)
+        minY = min(fromRank * squareWidth, toRank * squareWidth) - 1
+        maxY = max((fromRank + 1) * squareWidth, (toRank + 1) * squareWidth)
+        self.rect = QRectF(QPoint(minX, minY), QPoint(maxX, maxY)).normalized()
+        self.squareWidth = squareWidth
+        frmPt = QPointF(fromFile * squareWidth,
+                        fromRank * squareWidth) - self.rect.topLeft()
+        toPt = QPointF(toFile * squareWidth,
+                       toRank * squareWidth) - self.rect.topLeft()
+        self.fromPoint = QPoint(int(frmPt.x()), int(frmPt.y()))
+        self.toPoint = QPoint(int(toPt.x()), int(toPt.y()))
+        print('rect', self.rect, 'w is', self.rect.width(), 'height is', self.rect.height(), 'fromPoint is', self.fromPoint,
+              'toPoint is', self.toPoint)
 
     def boundingRect(self):
         return self.rect
 
     def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
         QPainter.setClipRect(self.rect)
-
-        # center = QPointF(self.rect.width() / 2, self.rect.height() / 2)
-        # focalPoint = center
-        # grad = QRadialGradient(center, float(self.rect.width() * 0.58929),
-        #                        focalPoint)
-        # col = QColor(bConfig['checkColor'])
+        line = QLine(self.fromPoint, self.toPoint)
+        col = QColor(userConfig.config['BOARD']['arrowColor'])
+        QPainter.setBrush(QBrush(col))
+        QPainter.setPen(QPen(Qt.NoPen))
+        QPainter.drawLine(line)
+        # QPainter.drawPolygon(QPointF(self.fromPoint),
+        #                      QPointF(self.fromPoint +
+        #                              QPoint(self.squareWidth * 0.2,
+        #                                     self.squareWidth * 0.2)),
+        #                      QPointF(self.fromPoint -
+        #                              QPoint(self.squareWidth * 0.2,
+        #                                     self.squareWidth * 0.2)))
+        # QPainter.drawRect(0, 0, self.rect.width(), self.rect.height())
         # grad.setColorAt(0, col)
         # grad.setColorAt(1, self.brush.color())
         # col = QColor(bConfig['checkColor'])
         # col.setAlphaF(float(bConfig['effectsAlpha']))
-        # QPainter.setBrush(QBrush(col))
-        # QPainter.setPen(QPen(Qt.NoPen))
-        # QPainter.fillRect(self.rect,  grad)

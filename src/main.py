@@ -110,7 +110,7 @@ class MainWindow(QFrame):
         # else:
         #     event.ignore()
         self.mainFrame.engineWidget.destroyEvent()
-        userConfig.saveFile('settings.ini')
+        userConfig.saveFile(constants.CONFIG_PATH)
         event.accept()
 
     def center(self):

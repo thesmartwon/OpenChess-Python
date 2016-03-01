@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QGraphicsItem, QGraphicsLineItem)
+                             QGraphicsView, QGraphicsItem,
+                             QGraphicsRectItem)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
-                         QBrush, QPen)
-from PyQt5.QtCore import Qt, QRectF, QPoint, QLine, QPointF
+                         QBrush, QPen, QRadialGradient, QPolygonF)
+from PyQt5.QtCore import Qt, QRectF, QEvent, QObject, QLineF, QPointF, QSizeF
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem
+import math
 import userConfig
 import chess
 import constants
@@ -32,6 +34,8 @@ class BoardScene(QGraphicsScene):
         self.lastMouseSquare = None
         # Basically just for arrows
         self.effectItems = []
+        # For right clicking
+        self.installEventFilter(RightClickFilter(self))
 
     def initSquares(self, squareWidth):
         """
@@ -170,10 +174,10 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def squareWidgetAt(self, pos):
-        file = 7 - int(pos.y() / self.squareWidth)
-        rank = int(pos.x() / self.squareWidth)
+        rank = 7 - int(pos.y() / self.squareWidth)
+        file = int(pos.x() / self.squareWidth)
         if file in range(8) and rank in range(8):
-            return self.squareWidgets[file * 8 + rank]
+            return self.squareWidgets[rank * 8 + file]
         else:
             return None
 
@@ -204,7 +208,8 @@ class BoardScene(QGraphicsScene):
         for i in self.effectItems:
             self.removeItem(i)
             self.effectItems.remove(i)
-        arrow = ArrowGraphicsItem(move.from_square, move.to_square,
+        arrow = ArrowGraphicsItem(move.from_square,
+                                  move.to_square,
                                   self.squareWidth)
         arrow.setZValue(149)
         self.effectItems.append(arrow)
@@ -268,6 +273,18 @@ class BoardScene(QGraphicsScene):
             self.deselectSquaresEvent()
             return
 
+    def showContextMenu(self):
+        pass
+
+
+class RightClickFilter(QObject):
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.GraphicsSceneMousePress:
+            if event.button() == Qt.RightButton:
+                print('right clicked', obj)
+                return True
+        return False
+
 
 class BoardSceneView(QGraphicsView):
     def __init__(self, parent, scene):
@@ -290,46 +307,68 @@ class BoardSceneView(QGraphicsView):
 
 class ArrowGraphicsItem(QGraphicsItem):
     def __init__(self, fromSquare, toSquare, squareWidth):
-        super().__init__()
+        super(ArrowGraphicsItem, self).__init__()
         fromRank = 7 - int(fromSquare / 8)
         fromFile = fromSquare % 8
         toRank = 7 - int(toSquare / 8)
         toFile = toSquare % 8
-        print('from', fromFile, fromRank, 'to', toFile, toRank)
-        minX = min(fromFile * squareWidth, toFile * squareWidth) - 1
-        maxX = max((fromFile + 1) * squareWidth, (toFile + 1) * squareWidth)
-        minY = min(fromRank * squareWidth, toRank * squareWidth) - 1
-        maxY = max((fromRank + 1) * squareWidth, (toRank + 1) * squareWidth)
-        self.rect = QRectF(QPoint(minX, minY), QPoint(maxX, maxY)).normalized()
         self.squareWidth = squareWidth
-        frmPt = QPointF(fromFile * squareWidth,
-                        fromRank * squareWidth) - self.rect.topLeft()
-        toPt = QPointF(toFile * squareWidth,
-                       toRank * squareWidth) - self.rect.topLeft()
-        self.fromPoint = QPoint(int(frmPt.x()), int(frmPt.y()))
-        self.toPoint = QPoint(int(toPt.x()), int(toPt.y()))
-        print('rect', self.rect, 'w is', self.rect.width(), 'height is', self.rect.height(), 'fromPoint is', self.fromPoint,
-              'toPoint is', self.toPoint)
+        self.sourcePoint = QPointF(fromFile * squareWidth,
+                                   fromRank * squareWidth) + \
+            QPointF(squareWidth / 2, squareWidth / 2)
+        self.destPoint = QPointF(toFile * squareWidth,
+                                 toRank * squareWidth) + \
+            QPointF(squareWidth / 2, squareWidth / 2)
+        self.squareWidth = squareWidth
+        self.arrowSize = float(userConfig.config['BOARD']['arrowSize'])
+        col = QColor(userConfig.config['BOARD']['arrowColor'])
+        self.brush = QBrush(col)
+        self.pen = QPen(self.brush,
+                        float(userConfig.config['BOARD']['arrowWidth']),
+                        Qt.SolidLine, Qt.RoundCap, Qt.BevelJoin)
 
     def boundingRect(self):
-        return self.rect
+        extra = (self.pen.width() + self.arrowSize) / 2.0
 
-    def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
-        QPainter.setClipRect(self.rect)
-        line = QLine(self.fromPoint, self.toPoint)
-        col = QColor(userConfig.config['BOARD']['arrowColor'])
-        QPainter.setBrush(QBrush(col))
-        QPainter.setPen(QPen(Qt.NoPen))
-        QPainter.drawLine(line)
-        # QPainter.drawPolygon(QPointF(self.fromPoint),
-        #                      QPointF(self.fromPoint +
-        #                              QPoint(self.squareWidth * 0.2,
-        #                                     self.squareWidth * 0.2)),
-        #                      QPointF(self.fromPoint -
-        #                              QPoint(self.squareWidth * 0.2,
-        #                                     self.squareWidth * 0.2)))
-        # QPainter.drawRect(0, 0, self.rect.width(), self.rect.height())
-        # grad.setColorAt(0, col)
-        # grad.setColorAt(1, self.brush.color())
-        # col = QColor(bConfig['checkColor'])
-        # col.setAlphaF(float(bConfig['effectsAlpha']))
+        return QRectF(self.sourcePoint,
+                      QSizeF(self.destPoint.x() - self.sourcePoint.x(),
+                             self.destPoint.y() - self.sourcePoint.y())) \
+            .normalized().adjusted(-extra, -extra, extra, extra)
+
+    def paint(self, painter, option, widget):
+
+        line = QLineF(self.sourcePoint, self.destPoint)
+
+        assert(line.length() != 0.0)
+
+        # Draw the arrows if there's enough room.
+        angle = math.acos(line.dx() / line.length())
+        if line.dy() >= 0:
+            angle = (math.pi*2.0) - angle
+
+        # sourceArrowP1 = self.sourcePoint + QPointF(
+        #         math.sin(angle + math.pi / 3) * self.arrowSize,
+        #         math.cos(angle + math.pi / 3) * self.arrowSize
+        # )
+        # sourceArrowP2 = self.sourcePoint + QPointF(
+        #         math.sin(angle + math.pi - math.pi / 3) * self.arrowSize,
+        #         math.cos(angle + math.pi - math.pi / 3) * self.arrowSize
+        # )
+
+        destArrowP1 = self.destPoint + QPointF(
+                math.sin(angle - math.pi / 3) * self.arrowSize,
+                math.cos(angle - math.pi / 3) * self.arrowSize
+        )
+        destArrowP2 = self.destPoint + QPointF(
+                math.sin(angle - math.pi + math.pi / 3) * self.arrowSize,
+                math.cos(angle - math.pi + math.pi / 3) * self.arrowSize
+        )
+
+        painter.setPen(self.pen)
+        painter.setBrush(self.brush)
+        # arrowhead1 = QPolygonF([line.p1(), sourceArrowP1, sourceArrowP2])
+        arrowhead2 = QPolygonF([line.p2(), destArrowP1, destArrowP2])
+        painter.drawPolygon(arrowhead2)
+
+        painter.setPen(self.pen)
+        painter.drawLine(line)

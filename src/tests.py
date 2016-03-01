@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
         self.view = QGraphicsView(self.scene, self)
         self.setGeometry(100, 100, 600, 600)
         self.view.setGeometry(0, 0, 500, 500)
+        self.setWindowFlags(Qt.CustomizeWindowHint)
         self.show()
 
 
@@ -47,7 +48,7 @@ class CustomDragWidget(QGraphicsWidget):
         mime.setData('application/x-dnditemdata', itemData)
         drag = QDrag(self)
         drag.setMimeData(mime)
-        drag.exec(Qt.MoveAction)
+        drag.exec_(Qt.MoveAction)
 
     def dropEvent(self, event):
         event.accept()

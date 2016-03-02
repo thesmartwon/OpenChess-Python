@@ -1,11 +1,12 @@
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QGraphicsItem,
-                             QGraphicsRectItem)
+                             QGraphicsView, QMenu,
+                             QGraphicsItem)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
-                         QBrush, QPen, QRadialGradient, QPolygonF)
-from PyQt5.QtCore import Qt, QRectF, QEvent, QObject, QLineF, QPointF, QSizeF
+                         QBrush, QPen, QPolygonF)
+from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
+                          QPropertyAnimation, QByteArray, QParallelAnimationGroup)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
-from widgets.square import SquareWidget, PieceItem
+from widgets.square import SquareWidget, PieceItem, DummySquareItem
 import math
 import userConfig
 import chess
@@ -34,8 +35,6 @@ class BoardScene(QGraphicsScene):
         self.lastMouseSquare = None
         # Basically just for arrows
         self.effectItems = []
-        # For right clicking
-        self.installEventFilter(RightClickFilter(self))
 
     def initSquares(self, squareWidth):
         """
@@ -47,28 +46,23 @@ class BoardScene(QGraphicsScene):
             squareWidth
         constants.PIECE_PADDING_BOT = constants.PIECE_PADDING_BOT * squareWidth
         for i in range(64):
-            file = 7 - int(i / 8)
-            rank = i % 8
-            p = self.game.piece_at(i)
             newSquareWidget = SquareWidget(i, squareWidth)
-            newSquareWidget.setPos(squareWidth * rank,
-                                   squareWidth * file)
+            # TODO: figure out why this rect is always at 0,0 and fix in
+            # self.squareWidgetAt
+            print(newSquareWidget.rect())
+            p = self.game.piece_at(i)
             newSquareWidget.pieceReleased.connect(self.pieceDropped)
             newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
             if p is not None:
-                newPieceItem = PieceItem(p)
+                piece = PieceItem(p)
                 lesserDimension = min(squareWidth, squareWidth)
-                scale = float(lesserDimension) / \
-                    newPieceItem.boundingRect().width()
-                newPieceItem.setScale(scale)
-                newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-                newPieceItem.pieceDragStarting.connect(
-                    self.pieceDragStartingEvent)
-                newPieceItem.pieceDragHappening.connect(
-                    self.pieceDragHappeningEvent)
-                newPieceItem.pieceDragStopping.connect(
-                    self.pieceDragStoppingEvent)
-                newSquareWidget.addPiece(newPieceItem)
+                scale = float(lesserDimension) / piece.boundingRect().width()
+                piece.setScale(scale)
+                piece.pieceClicked.connect(self.pieceClickedEvent)
+                piece.pieceDragStarting.connect(self.pieceDragStartingEvent)
+                piece.pieceDragHappening.connect(self.pieceDragHappeningEvent)
+                piece.pieceDragStopping.connect(self.pieceDragStoppingEvent)
+                newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
 
@@ -174,12 +168,10 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def squareWidgetAt(self, pos):
-        rank = 7 - int(pos.y() / self.squareWidth)
-        file = int(pos.x() / self.squareWidth)
-        if file in range(8) and rank in range(8):
-            return self.squareWidgets[rank * 8 + file]
-        else:
-            return None
+        for i in self.items(pos):
+            if type(i) == DummySquareItem:
+                return i.parentItem()
+        return None
 
     # Called from elsewhere
     def refreshPosition(self):
@@ -214,6 +206,28 @@ class BoardScene(QGraphicsScene):
         arrow.setZValue(149)
         self.effectItems.append(arrow)
         self.addItem(arrow)
+
+    def flipBoard(self):
+        aniGroup = QParallelAnimationGroup(self)
+        for sq in self.squareWidgets:
+            prop = QByteArray(b'pos')
+            ani = QPropertyAnimation(sq, prop, self)
+            ani.setDuration(1000)
+            ani.setStartValue(sq.pos())
+            width = self.squareWidth * 7
+            ani.setEndValue(QPointF(width - sq.x(),
+                                    width - sq.y()))
+            ani.start()
+            aniGroup.addAnimation(ani)
+        for i in self.effectItems:
+            print(i.boundingRect(), i.pos())
+            width = self.squareWidth * 7
+            i.setPos(QPointF(width - i.x(),
+                             width - i.y()))
+        aniGroup.start()
+
+    def toggleCoordinates(self):
+        pass
 
     # Events
     def pieceClickedEvent(self, square):
@@ -273,18 +287,6 @@ class BoardScene(QGraphicsScene):
             self.deselectSquaresEvent()
             return
 
-    def showContextMenu(self):
-        pass
-
-
-class RightClickFilter(QObject):
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.GraphicsSceneMousePress:
-            if event.button() == Qt.RightButton:
-                print('right clicked', obj)
-                return True
-        return False
-
 
 class BoardSceneView(QGraphicsView):
     def __init__(self, parent, scene):
@@ -296,6 +298,12 @@ class BoardSceneView(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.initialSceneWidth = 0
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        quitAction = menu.addAction("Flip board")
+        quitAction.triggered.connect(self.scene().flipBoard)
+        action = menu.popup(self.mapToGlobal(event.pos()))
 
     def resizeEvent(self, event):
         sceneWidth = min(event.size().width(), event.size().height())

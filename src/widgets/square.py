@@ -24,19 +24,18 @@ class SquareWidget(QGraphicsWidget):
 
     def __init__(self, square, squareWidth):
         super().__init__()
-        self.setGeometry(0, 0, squareWidth, squareWidth)
         self.square = square
+        file = 7 - int(square / 8)
+        rank = square % 8
+        self.setGeometry(squareWidth * rank, squareWidth * file,
+                         squareWidth, squareWidth)
         self.isValidMove = False
         self.isOccupied = False
         self.isLight = bool(chess.BB_SQUARES[int(square)] &
                             chess.BB_LIGHT_SQUARES)
-        self.SquareWidget = DummySquareItem(self.isLight)
-        self.SquareWidget.setRect(self.rect())
-        self.SquareWidget.setZValue(0)
-        self.SquareWidget.setParentItem(self)
+        self.dummyBack = DummySquareItem(self, self.rect(), self.isLight)
         self.graphicEffectItems = []
         self.pieceItem = None
-        self.deleteScene = QGraphicsScene()
         self.setAcceptHoverEvents(True)
 
     def countItem(self, itemType):
@@ -49,9 +48,8 @@ class SquareWidget(QGraphicsWidget):
     def clearEffectItems(self):
         for i in range(len(self.graphicEffectItems)):
             self.graphicEffectItems[i].setParentItem(None)
-            self.deleteScene.addItem(self.graphicEffectItems[i])
+            self.scene().removeItem(self.graphicEffectItems[i])
             self.graphicEffectItems[i] = None
-        self.deleteScene.clear()
         self.graphicEffectItems.clear()
 
     def removeEffectItem(self, itemType):
@@ -59,14 +57,18 @@ class SquareWidget(QGraphicsWidget):
             assert(g is not None)
             if g.data(0) == itemType:
                 g.setParentItem(None)
-                self.deleteScene.addItem(g)
-                self.deleteScene.clear()
+                self.scene().removeItem(g)
                 self.graphicEffectItems.remove(g)
                 return
 
+    def boundingRect(self):
+        return QRectF(self.pos().x(), self.pos().y(),
+                      self.geometry().width(), self.geometry().width())
+
     # Helper method to addEffectItem
     def createEffectItem(self, itemType):
-        squareBounds = self.boundingRect()
+        squareBounds = QRectF(0, 0, self.geometry().width(),
+                              self.geometry().width())
         if itemType == SquareWidget.Selected:
             return SelectedGraphicsItem(squareBounds)
         elif itemType == SquareWidget.LastMove:
@@ -201,8 +203,9 @@ class DummySquareItem(QGraphicsRectItem):
     """
     Just a visual dummy rectangle that is dark or light.
     """
-    def __init__(self, isLight):
-        super().__init__()
+    def __init__(self, parent, rect, isLight):
+        super().__init__(parent)
+        self.setRect(rect)
         if isLight:
             self.setBrush(QBrush(QColor(bConfig['lightcolor'])))
         else:
@@ -212,6 +215,7 @@ class DummySquareItem(QGraphicsRectItem):
         else:
             self.setPen(QPen(QColor(bConfig['outlineColor']),
                         int(bConfig['squareOutlineWidth'])))
+        self.setZValue(0)
 
 
 class ValidMoveGraphicsItem(QGraphicsEllipseItem):

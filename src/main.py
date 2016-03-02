@@ -216,5 +216,6 @@ def main():
     win.show()
     sys.exit(app.exec_())
 
+# TODO: fix leaks and put main below
 if __name__ == '__main__':
     main()

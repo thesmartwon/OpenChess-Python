@@ -4,7 +4,8 @@ from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
                          QBrush, QPen, QPolygonF)
 from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
-                          QPropertyAnimation, QByteArray, QParallelAnimationGroup)
+                          QPropertyAnimation, QByteArray, QTimer,
+                          QParallelAnimationGroup)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
 import math
@@ -49,7 +50,6 @@ class BoardScene(QGraphicsScene):
             newSquareWidget = SquareWidget(i, squareWidth)
             # TODO: figure out why this rect is always at 0,0 and fix in
             # self.squareWidgetAt
-            print(newSquareWidget.rect())
             p = self.game.piece_at(i)
             newSquareWidget.pieceReleased.connect(self.pieceDropped)
             newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
@@ -200,8 +200,10 @@ class BoardScene(QGraphicsScene):
         for i in self.effectItems:
             self.removeItem(i)
             self.effectItems.remove(i)
-        arrow = ArrowGraphicsItem(move.from_square,
-                                  move.to_square,
+        fromWidg = self.squareWidgets[move.from_square]
+        toWidg = self.squareWidgets[move.to_square]
+        arrow = ArrowGraphicsItem(fromWidg,
+                                  toWidg,
                                   self.squareWidth)
         arrow.setZValue(149)
         self.effectItems.append(arrow)
@@ -209,22 +211,25 @@ class BoardScene(QGraphicsScene):
 
     def flipBoard(self):
         aniGroup = QParallelAnimationGroup(self)
+        aniDuration = 1000
         for sq in self.squareWidgets:
             prop = QByteArray(b'pos')
             ani = QPropertyAnimation(sq, prop, self)
-            ani.setDuration(1000)
+            ani.setDuration(aniDuration)
             ani.setStartValue(sq.pos())
             width = self.squareWidth * 7
             ani.setEndValue(QPointF(width - sq.x(),
                                     width - sq.y()))
-            ani.start()
             aniGroup.addAnimation(ani)
-        for i in self.effectItems:
-            print(i.boundingRect(), i.pos())
-            width = self.squareWidth * 7
-            i.setPos(QPointF(width - i.x(),
-                             width - i.y()))
         aniGroup.start()
+        timer = QTimer()
+        timer.timeout.connect(self.flipEffectItems)
+        timer.setSingleShot(True)
+        timer.start(aniDuration + 500)
+
+    def flipEffectItems(self):
+        for i in self.effectItems:
+            i.adjust()
 
     def toggleCoordinates(self):
         pass
@@ -316,18 +321,9 @@ class BoardSceneView(QGraphicsView):
 class ArrowGraphicsItem(QGraphicsItem):
     def __init__(self, fromSquare, toSquare, squareWidth):
         super(ArrowGraphicsItem, self).__init__()
-        fromRank = 7 - int(fromSquare / 8)
-        fromFile = fromSquare % 8
-        toRank = 7 - int(toSquare / 8)
-        toFile = toSquare % 8
         self.squareWidth = squareWidth
-        self.sourcePoint = QPointF(fromFile * squareWidth,
-                                   fromRank * squareWidth) + \
-            QPointF(squareWidth / 2, squareWidth / 2)
-        self.destPoint = QPointF(toFile * squareWidth,
-                                 toRank * squareWidth) + \
-            QPointF(squareWidth / 2, squareWidth / 2)
-        self.squareWidth = squareWidth
+        self.fromSquare = fromSquare
+        self.toSquare = toSquare
         self.arrowSize = float(userConfig.config['BOARD']['arrowSize'])
         col = QColor(userConfig.config['BOARD']['arrowColor'])
         self.brush = QBrush(col)
@@ -337,15 +333,24 @@ class ArrowGraphicsItem(QGraphicsItem):
 
     def boundingRect(self):
         extra = (self.pen.width() + self.arrowSize) / 2.0
-
-        return QRectF(self.sourcePoint,
-                      QSizeF(self.destPoint.x() - self.sourcePoint.x(),
-                             self.destPoint.y() - self.sourcePoint.y())) \
+        sourcePoint = self.fromSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        destPoint = self.toSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        return QRectF(sourcePoint,
+                      QSizeF(destPoint.x() - sourcePoint.x(),
+                             destPoint.y() - sourcePoint.y())) \
             .normalized().adjusted(-extra, -extra, extra, extra)
 
-    def paint(self, painter, option, widget):
+    def adjust(self):
+        self.prepareGeometryChange()
 
-        line = QLineF(self.sourcePoint, self.destPoint)
+    def paint(self, painter, option, widget):
+        sourcePoint = self.fromSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        destPoint = self.toSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        line = QLineF(sourcePoint, destPoint)
 
         assert(line.length() != 0.0)
 
@@ -354,20 +359,11 @@ class ArrowGraphicsItem(QGraphicsItem):
         if line.dy() >= 0:
             angle = (math.pi*2.0) - angle
 
-        # sourceArrowP1 = self.sourcePoint + QPointF(
-        #         math.sin(angle + math.pi / 3) * self.arrowSize,
-        #         math.cos(angle + math.pi / 3) * self.arrowSize
-        # )
-        # sourceArrowP2 = self.sourcePoint + QPointF(
-        #         math.sin(angle + math.pi - math.pi / 3) * self.arrowSize,
-        #         math.cos(angle + math.pi - math.pi / 3) * self.arrowSize
-        # )
-
-        destArrowP1 = self.destPoint + QPointF(
+        destArrowP1 = destPoint + QPointF(
                 math.sin(angle - math.pi / 3) * self.arrowSize,
                 math.cos(angle - math.pi / 3) * self.arrowSize
         )
-        destArrowP2 = self.destPoint + QPointF(
+        destArrowP2 = destPoint + QPointF(
                 math.sin(angle - math.pi + math.pi / 3) * self.arrowSize,
                 math.cos(angle - math.pi + math.pi / 3) * self.arrowSize
         )

@@ -1,5 +1,6 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
+                             QHBoxLayout)
 from PyQt5.QtGui import QFontMetrics
 import copy
 import chess.uci
@@ -11,8 +12,6 @@ import platform
 class EngineWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        self.scoreLabel = QLabel(self)
-        self.pvLabel = QLabel(self)
         self.analyzeButton = QPushButton(self)
         self.analyzeButton.clicked.connect(self.toggleAnalyze)
         self.board = None
@@ -26,15 +25,22 @@ class EngineWidget(QWidget):
     def initLayout(self):
         self.pvLabel = PVLabel(self)
         self.scoreLabel = ScoreLabel(self)
+        self.depthLabel = DepthLabel(self)
 
         self.analyzeButton.setText('Anaylze')
         self.analyzeButton.setCheckable(True)
+        # verticalLayoutWidget = QWidget(self)
+        # verticalLayoutWidget.setGeometry()
 
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.scoreLabel, 0, Qt.AlignTop)
-        layout.addWidget(self.pvLabel)
-        layout.addWidget(self.analyzeButton, 0, Qt.AlignBottom)
-        self.setLayout(layout)
+        horiLayout = QHBoxLayout()
+        horiLayout.addWidget(self.scoreLabel)
+        horiLayout.addWidget(self.depthLabel)
+
+        vertiLayout = QVBoxLayout(self)
+        vertiLayout.addLayout(horiLayout)
+        vertiLayout.addWidget(self.pvLabel)
+        vertiLayout.addWidget(self.analyzeButton)
+        # self.setLayout(vertiLayout)
 
     def initEngine(self, board):
         eng = userConfig.config['ENGINES']['mainEngine']
@@ -67,6 +73,7 @@ class EngineWidget(QWidget):
         moveCount = 0
         pvString = 'not thinking'
         scoreString = '0'
+        depthString = '0'
         if self.command is not None:
             info = self.infoHandler.info
             if 1 in info['score']:
@@ -78,6 +85,11 @@ class EngineWidget(QWidget):
                         scoreString = '+.' + scoreString
                     else:
                         scoreString = '-.' + scoreString[1:]
+                    if not self.board.turn:
+                        if scoreString[0] == '-':
+                            scoreString = '+' + scoreString[1:]
+                        else:
+                            scoreString = '-' + scoreString[1:]
 
             if 1 in info['pv']:
                 pvString = ''
@@ -90,14 +102,16 @@ class EngineWidget(QWidget):
                     pvString += tmpBoard.san(m) + ' '
                     tmpBoard.push(m)
                     moveCount += 1
+                depthString = str(info['depth'])
         else:
             self.longestPv = None
 
         self.scoreLabel.setText(scoreString)
         self.pvLabel.setText(pvString)
+        self.depthLabel.setText(depthString)
         if self.longestPv != self.lastLongestPv and self.longestPv is not None:
-            firstMove = self.longestPv[0]
-            self.parent().parent().boardScene.addArrow(firstMove)
+            boardScene = self.parent().parent().boardScene
+            boardScene.updateEngineItems(self.longestPv)
         self.lastLongestPv = self.longestPv
 
     def timerEvent(self, event):
@@ -129,3 +143,14 @@ class PVLabel(QLabel):
         pvLineHeight = pvMet.height()
         self.setMinimumHeight(pvLineHeight * 8)
         self.setWordWrap(True)
+
+
+class DepthLabel(QLabel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        font = self.font()
+        font.setPointSize(16)
+        scoreMet = QFontMetrics(font)
+        scoreLineHeight = scoreMet.height()
+        self.setFont(font)
+        self.setMinimumHeight(scoreLineHeight)

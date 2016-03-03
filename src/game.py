@@ -13,6 +13,7 @@ class OpenGame():
     def __init__(self):
         self.board = chess.Board()
         constants.GAME_STATE = self.board
+        constants.HERO = chess.WHITE
         self.moveItems = []
 
     def doMove(self, move, moveTreeModel, boardScene, engine):

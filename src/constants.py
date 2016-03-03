@@ -16,6 +16,8 @@ PIECE_TYPE_FILE_DICT = {'P': 'wp.svg', 'p': 'bp.svg',
                         'Q': 'wq.svg', 'q': 'bq.svg',
                         'K': 'wk.svg', 'k': 'bk.svg'}
 GAME_STATE = None
+# True is white. False is black.
+HERO = True
 PIECE_PADDING_RIGHT = .162
 PIECE_PADDING_BOT = .3
 HAS_FOCUS = True

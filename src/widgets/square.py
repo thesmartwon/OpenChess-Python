@@ -18,7 +18,8 @@ class SquareWidget(QGraphicsWidget):
     effect items.
     """
     Selected, LastMove, ValidMove, ValidMoveHover, \
-        InvalidMoveHover, CheckSquare = range(6)
+        InvalidMoveHover, CheckSquare = range(QGraphicsItem.UserType + 20,
+                                              QGraphicsItem.UserType + 26)
     pieceReleased = pyqtSignal(int)
     invalidDrop = pyqtSignal()
 
@@ -37,6 +38,10 @@ class SquareWidget(QGraphicsWidget):
         self.graphicEffectItems = []
         self.pieceItem = None
         self.setAcceptHoverEvents(True)
+
+    def boundingRect(self):
+        return QRectF(self.pos().x(), self.pos().y(),
+                      self.geometry().width(), self.geometry().width())
 
     def countItem(self, itemType):
         count = 0
@@ -60,10 +65,6 @@ class SquareWidget(QGraphicsWidget):
                 self.scene().removeItem(g)
                 self.graphicEffectItems.remove(g)
                 return
-
-    def boundingRect(self):
-        return QRectF(self.pos().x(), self.pos().y(),
-                      self.geometry().width(), self.geometry().width())
 
     # Helper method to addEffectItem
     def createEffectItem(self, itemType):

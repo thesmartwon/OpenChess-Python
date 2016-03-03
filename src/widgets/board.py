@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QMenu,
+                             QGraphicsView, QMenu, QGraphicsWidget,
                              QGraphicsItem)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
                          QBrush, QPen, QPolygonF)
@@ -228,12 +228,9 @@ class BoardScene(QGraphicsScene):
         for i in self.items():
             if (itemType is not None and i.data(0) is not None and
                     i.data(0) == itemType):
-                i.setParentItem(None)
-                self.removeItem(i)
-                self.graphicEffectItems.remove(i)
+                self.removeEffectItem(i)
             elif itemType is None:
-                self.removeItem(i)
-                self.graphicEffectItems.remove(i)
+                self.removeEffectItem(i)
 
     def effectItems(self, itemType):
         for i in self.items():
@@ -243,9 +240,11 @@ class BoardScene(QGraphicsScene):
     def removeEffectItem(self, effectItem):
         assert effectItem is not None
         effectItem.setParentItem(None)
-        print('removing', effectItem)
+        print('removing1', effectItem)
         self.graphicEffectItems.remove(effectItem)
+        print('removing2')
         self.removeItem(effectItem)
+        print('removing3')
 
     # Called from elsewhere
     def refreshPosition(self):
@@ -297,7 +296,7 @@ class BoardScene(QGraphicsScene):
                                    hero, opacity)
 
     def flipBoard(self):
-        aniGroup = QParallelAnimationGroup(self)
+        aniGroup = BoardAnimationGroup(self, self.graphicEffectItems)
         aniDuration = 250
         for sq in self.squareWidgets:
             prop = QByteArray(b'pos')
@@ -404,6 +403,10 @@ class ArrowGraphicsItem(QGraphicsItem):
         self.move = move
         self.fromSquare = fromSquare
         self.toSquare = toSquare
+        self.sourcePoint = self.fromSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        self.destPoint = self.toSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
         self.arrowSize = float(userConfig.config['BOARD']['arrowSize'])
         if hero:
             col = QColor(userConfig.config['BOARD']['heroArrowColor'])
@@ -414,25 +417,24 @@ class ArrowGraphicsItem(QGraphicsItem):
                         float(userConfig.config['BOARD']['arrowWidth']),
                         Qt.SolidLine, Qt.RoundCap, Qt.BevelJoin)
 
+    def adjust(self):
+        self.prepareGeometryChange()
+        self.sourcePoint = self.fromSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+        self.destPoint = self.toSquare.pos() + \
+            QPointF(self.squareWidth / 2, self.squareWidth / 2)
+
     def boundingRect(self):
         extra = (self.pen.width() + self.arrowSize) / 2.0
-        sourcePoint = self.fromSquare.pos() + \
-            QPointF(self.squareWidth / 2, self.squareWidth / 2)
-        destPoint = self.toSquare.pos() + \
-            QPointF(self.squareWidth / 2, self.squareWidth / 2)
-        return QRectF(sourcePoint,
-                      QSizeF(destPoint.x() - sourcePoint.x(),
-                             destPoint.y() - sourcePoint.y())) \
+        return QRectF(self.sourcePoint,
+                      QSizeF(self.destPoint.x() - self.sourcePoint.x(),
+                             self.destPoint.y() - self.sourcePoint.y())) \
             .normalized().adjusted(-extra, -extra, extra, extra)
 
     def paint(self, painter, option, widget):
         assert self.fromSquare is not None
         assert self.toSquare is not None
-        sourcePoint = self.fromSquare.pos() + \
-            QPointF(self.squareWidth / 2, self.squareWidth / 2)
-        destPoint = self.toSquare.pos() + \
-            QPointF(self.squareWidth / 2, self.squareWidth / 2)
-        line = QLineF(sourcePoint, destPoint)
+        line = QLineF(self.sourcePoint, self.destPoint)
 
         assert(line.length() != 0.0)
 
@@ -441,11 +443,11 @@ class ArrowGraphicsItem(QGraphicsItem):
         if line.dy() >= 0:
             angle = (math.pi*2.0) - angle
 
-        destArrowP1 = destPoint + QPointF(
+        destArrowP1 = self.destPoint + QPointF(
                 math.sin(angle - math.pi / 3) * self.arrowSize,
                 math.cos(angle - math.pi / 3) * self.arrowSize
         )
-        destArrowP2 = destPoint + QPointF(
+        destArrowP2 = self.destPoint + QPointF(
                 math.sin(angle - math.pi + math.pi / 3) * self.arrowSize,
                 math.cos(angle - math.pi + math.pi / 3) * self.arrowSize
         )
@@ -458,3 +460,21 @@ class ArrowGraphicsItem(QGraphicsItem):
 
         painter.setPen(self.pen)
         painter.drawLine(line)
+
+
+class BoardAnimationGroup(QParallelAnimationGroup):
+    def __init__(self, parent, adjustItems):
+        super().__init__(parent)
+        self.adjustItems = adjustItems
+
+    def updateCurrentTime(self, time):
+        super().updateCurrentTime(time)
+        for i in self.adjustItems:
+            i.adjust()
+
+
+# class EffectsWidget(QGraphicsWidget):
+#     def __init__(self, squareWidth):
+#         super().__init__()
+#         self.squareWidth = squareWidth
+#         self.setGeometry(0, 0, squareWidth * 8, squareWidth * 8)

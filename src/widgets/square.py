@@ -121,8 +121,8 @@ class SquareWidget(QGraphicsWidget):
         if self.pieceItem is not None:
             self.pieceItem.setParentItem(None)
             if delete:
-                self.deleteScene.addItem(self.pieceItem)
-                self.deleteScene.clear()
+                self.pieceItem.setParentItem(None)
+                self.scene().removeItem(self.pieceItem)
             self.pieceItem = None
             self.isOccupied = False
 

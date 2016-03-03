@@ -19,16 +19,16 @@ class MoveTreeView(QTableView):
         maxPiece = max([met.width(c) for c in strings.PIECE_SYMBOLS])
         maxEnd = max([met.width(c) for c in ['+', '#']])
         maxTake = met.width('x')
-        maxWidth = maxPiece + maxRank * 2 + maxFile * 2 + maxTake + maxEnd
-        self.setMinimumWidth(maxWidth * 2 + 18 +
-                             self.verticalScrollBar().width())
+        maxColWidth = maxPiece + maxRank * 2 + maxFile * 2 + maxTake + maxEnd
+        self.vScrollBarWidth = 17
+        self.setMinimumWidth(maxColWidth * 2 + 17)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def resizeEvent(self, event):
-        self.setColumnWidth(0, self.width() / 2 - 9 -
-                            self.verticalScrollBar().width() / 2)
-        self.setColumnWidth(1, self.width() / 2 - 9 -
-                            self.verticalScrollBar().width() / 2)
+        self.setColumnWidth(0, int(self.width() / 2 - 9 -
+                            self.vScrollBarWidth / 2))
+        self.setColumnWidth(1, int(self.width() / 2 - 9 -
+                            self.vScrollBarWidth / 2))
 
 
 class MoveTreeModel(QStandardItemModel):

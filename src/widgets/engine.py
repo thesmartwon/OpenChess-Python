@@ -54,11 +54,18 @@ class EngineWidget(QWidget):
         self.board = board
         self.engine.position(board)
         self.engine.uci()
+        self.engine.isready()
 
     def toggleAnalyze(self):
-        self.engine.stop()
         if self.analyzeButton.isChecked():
-            self.command = self.engine.go(infinite=True, async_callback=True)
+            self.engine.isready(self.turnAnalyzeOn)
+        else:
+            print('engine stop')
+            self.engine.stop()
+
+    def turnAnalyzeOn(self, stuff):
+        print('engine infinite thinking')
+        self.command = self.engine.go(infinite=True, async_callback=True)
 
     def updateAfterMove(self, board):
         self.board = board
@@ -68,50 +75,52 @@ class EngineWidget(QWidget):
         self.toggleAnalyze()
         self.updateText()
 
+    def updateBoard(self):
+        if self.longestPv != self.lastLongestPv:
+            boardScene = self.parent().parent().boardScene
+            boardScene.updateEngineItems(self.longestPv)
+
     def updateText(self):
+        if self.command is None:
+            return
         tmpBoard = copy.deepcopy(self.board)
         moveCount = 0
         pvString = 'not thinking'
         scoreString = '0'
         depthString = '0'
-        if self.command is not None:
-            info = self.infoHandler.info
-            if 1 in info['score']:
-                if info['score'][1].mate is not None:
-                    scoreString = 'M' + str(info['score'][1].mate)
-                else:
-                    scoreString = str(info['score'][1].cp)
-                    if scoreString[0] != '-':
-                        scoreString = '+.' + scoreString
-                    else:
-                        scoreString = '-.' + scoreString[1:]
-                    if not self.board.turn:
-                        if scoreString[0] == '-':
-                            scoreString = '+' + scoreString[1:]
-                        else:
-                            scoreString = '-' + scoreString[1:]
 
-            if 1 in info['pv']:
-                pvString = ''
-                if (self.longestPv is None or
-                        info['pv'][1][0] != self.longestPv[0]):
-                    self.longestPv = info['pv'][1]
-                elif len(info['pv'][1]) > len(self.longestPv):
-                    self.longestPv = info['pv'][1]
-                for m in self.longestPv:
-                    pvString += tmpBoard.san(m) + ' '
-                    tmpBoard.push(m)
-                    moveCount += 1
-                depthString = str(info['depth'])
-        else:
-            self.longestPv = None
+        info = self.infoHandler.info
+        if 1 in info['score']:
+            if info['score'][1].mate is not None:
+                scoreString = 'M' + str(info['score'][1].mate)
+            else:
+                scoreString = '{:+4.2f}'.format(info['score'][1].cp / 100.0)
+
+                conf = userConfig.config['ENGINES']['showwhitecentipawns']
+                if (not self.board.turn and
+                        bool(conf)):
+                    if scoreString[0] == '-':
+                        scoreString = '+' + scoreString[1:]
+                    else:
+                        scoreString = '-' + scoreString[1:]
+
+        if 1 in info['pv']:
+            pvString = ''
+            if (self.longestPv is None or
+                    info['pv'][1][0] != self.longestPv[0]):
+                self.longestPv = info['pv'][1]
+            elif len(info['pv'][1]) > len(self.longestPv):
+                self.longestPv = info['pv'][1]
+            for m in self.longestPv:
+                pvString += tmpBoard.san(m) + ' '
+                tmpBoard.push(m)
+                moveCount += 1
+            depthString = str(info['depth'])
 
         self.scoreLabel.setText(scoreString)
         self.pvLabel.setText(pvString)
         self.depthLabel.setText(depthString)
-        if self.longestPv != self.lastLongestPv and self.longestPv is not None:
-            boardScene = self.parent().parent().boardScene
-            boardScene.updateEngineItems(self.longestPv)
+        self.updateBoard()
         self.lastLongestPv = self.longestPv
 
     def timerEvent(self, event):

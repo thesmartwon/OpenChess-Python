@@ -36,7 +36,7 @@ class OpenGame():
             elif self.board.is_kingside_castling(move):
                 castling = 2
             moveTreeModel.updateAfterMove(move,
-                                          len(self.board.move_stack),
+                                          self.board.fullmove_number,
                                           not self.board.turn,
                                           self.board.san(move))
             self.board.push(move)

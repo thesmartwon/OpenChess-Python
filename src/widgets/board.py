@@ -103,7 +103,7 @@ class BoardScene(QGraphicsScene):
         newPieceItem.setScale(scale)
         return newPieceItem
 
-    def updateGraphicsAfterMove(self, move):
+    def updateEffectsAfterMove(self, move):
         for s in self.squareWidgets:
             p = self.game.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
@@ -124,8 +124,9 @@ class BoardScene(QGraphicsScene):
                 self.removeEffectItem(item)
                 self.longestPV = self.longestPV[1:]
         else:
-            # Otherwise remove them all, and throw away the current variation
+            # Otherwise throw away the current variation
             self.longestPV = []
+            self.clearEffectItems(ArrowGraphicsItem)
         self.updateEngineItems(self.longestPV)
 
     def updatePositionAfterMove(self, move, castling, isEnPassant):
@@ -168,7 +169,7 @@ class BoardScene(QGraphicsScene):
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
 
-        self.updateGraphicsAfterMove(move)
+        self.updateEffectsAfterMove(move)
 
     def findEffectItem(self, itemClass, move=None):
         assert hasattr(itemClass, 'Type')
@@ -201,11 +202,11 @@ class BoardScene(QGraphicsScene):
         else:
             print('tried to add an invalid effect item', itemClass)
 
-    def clearEffectItems(self, itemClass=None):
+    def clearEffectItems(self, item=None):
         for i in self.items():
-            if itemClass is not None and i.type() == itemClass.Type:
+            if item is not None and i.type() == item.Type:
                 self.removeEffectItem(i)
-            elif itemClass is None:
+            elif item is None:
                 self.removeEffectItem(i)
 
     def effectItems(self, itemClass):

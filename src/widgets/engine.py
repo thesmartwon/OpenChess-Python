@@ -14,8 +14,8 @@ class EngineWidget(QWidget):
         super().__init__(parent)
         self.board = None
         self.command = None
-        self.longestPv = None
-        self.lastLongestPv = None
+        self.longestPV = None
+        self.lastlongestPV = None
         self.initLayout()
 
         self.startTimer(250)
@@ -74,15 +74,13 @@ class EngineWidget(QWidget):
         self.updateBoard()
 
     def updateBoard(self):
-        if self.longestPv != self.lastLongestPv:
+        if self.longestPV != self.lastlongestPV:
             boardScene = self.parent().parent().boardScene
-            boardScene.updateEngineItems(self.longestPv)
+            boardScene.updateEngineItems(self.longestPV)
 
     def updateText(self):
         if self.command is None:
             return
-        tmpBoard = copy.deepcopy(self.board)
-        moveCount = 0
         pvString = 'not thinking'
         scoreString = '0'
         depthString = '0'
@@ -104,15 +102,12 @@ class EngineWidget(QWidget):
 
         if 1 in info['pv']:
             pvString = ''
-            if (self.longestPv is None or
-                    info['pv'][1][0] != self.longestPv[0]):
-                self.longestPv = info['pv'][1]
-            elif len(info['pv'][1]) > len(self.longestPv):
-                self.longestPv = info['pv'][1]
-            for m in self.longestPv:
-                pvString += tmpBoard.san(m) + ' '
-                tmpBoard.push(m)
-                moveCount += 1
+            if (self.longestPV is None or
+                    info['pv'][1][0] != self.longestPV[0]):
+                self.longestPV = info['pv'][1]
+            elif len(info['pv'][1]) > len(self.longestPV):
+                self.longestPV = info['pv'][1]
+            pvString += self.board.variation_san(self.longestPV)
             depthString = str(info['depth'])
 
         self.scoreLabel.setText(scoreString)
@@ -122,7 +117,7 @@ class EngineWidget(QWidget):
     def timerEvent(self, event):
         self.updateText()
         self.updateBoard()
-        self.lastLongestPv = self.longestPv
+        self.lastlongestPV = self.longestPV
 
     def resizeEvent(self, event):
         self.setMaximumWidth(event.size().width())

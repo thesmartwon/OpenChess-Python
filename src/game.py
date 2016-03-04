@@ -14,7 +14,6 @@ class OpenGame():
         self.board = chess.Board()
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
-        self.moveItems = []
 
     def doMove(self, move, moveTreeModel, boardScene, engine):
         """
@@ -36,11 +35,10 @@ class OpenGame():
                 castling = 1
             elif self.board.is_kingside_castling(move):
                 castling = 2
-            self.moveItems.append(QStandardItem())
-            self.moveItems[-1].setData(QVariant(move))
-            self.moveItems[-1].setText(self.board.san(move))
-            moveTreeModel.setItem(int(len(self.board.move_stack) / 2),
-                                  not self.board.turn, self.moveItems[-1])
+            moveTreeModel.updateAfterMove(move,
+                                          len(self.board.move_stack),
+                                          not self.board.turn,
+                                          self.board.san(move))
             self.board.push(move)
             boardScene.updatePositionAfterMove(move, castling,
                                                isEnPassant)

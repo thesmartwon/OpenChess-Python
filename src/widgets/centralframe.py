@@ -20,6 +20,7 @@ class CentralFrame(QFrame):
         self.boardSceneView = BoardSceneView(self, self.boardScene)
         self.moveTreeModel = MoveTreeModel()
         self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
+        self.moveTreeView.clicked.connect(self.moveTreeModel.gotoMove)
         self.engineWidget = EngineWidget(self)
         self.engineWidget.initEngine(self.openGame.board)
 

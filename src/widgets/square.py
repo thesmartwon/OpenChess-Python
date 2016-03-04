@@ -40,8 +40,7 @@ class SquareWidget(QGraphicsWidget):
         self.setAcceptHoverEvents(True)
 
     def boundingRect(self):
-        return QRectF(self.pos().x(), self.pos().y(),
-                      self.geometry().width(), self.geometry().width())
+        return QRectF(0, 0, self.geometry().width(), self.geometry().width())
 
     def countItem(self, itemType):
         count = 0

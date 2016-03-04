@@ -37,7 +37,7 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
         self.lastMouseSquare = None
         # For arrows
-        self.longestPV = None
+        self.longestPV = []
 
     def initSquares(self, squareWidth):
         """
@@ -50,53 +50,32 @@ class BoardScene(QGraphicsScene):
         constants.PIECE_PADDING_BOT = constants.PIECE_PADDING_BOT * squareWidth
         for i in range(64):
             newSquareWidget = SquareWidget(i, squareWidth)
-            # TODO: figure out why this rect is always at 0,0 and fix in
-            # self.squareWidgetAt
-            p = self.game.piece_at(i)
-            newSquareWidget.pieceReleased.connect(self.pieceDropped)
-            newSquareWidget.invalidDrop.connect(self.deselectSquaresEvent)
-            if p is not None:
-                piece = PieceItem(p)
-                lesserDimension = min(squareWidth, squareWidth)
-                scale = float(lesserDimension) / piece.boundingRect().width()
-                piece.setScale(scale)
-                piece.pieceClicked.connect(self.pieceClickedEvent)
-                piece.pieceDragStarting.connect(self.pieceDragStartingEvent)
-                piece.pieceDragHappening.connect(self.pieceDragHappeningEvent)
-                piece.pieceDragStopping.connect(self.pieceDragStoppingEvent)
+            newSquareWidget.pieceReleased.connect(self.makeMoveTo)
+            newSquareWidget.invalidDrop.connect(self.deselectSquares)
+            if self.game.piece_at(i) is not None:
+                piece = self.createPiece(self.game.piece_at(i))
                 newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
 
     # Helper methods
-    def pieceDropped(self, toSquare, fromSquare=None):
+    def makeMoveTo(self, toSquare, fromSquare=None):
         """
         Passes the move to the parent. Then updates the board graphics.
         Does not validate move, although it should be valid.
-        :param fromSquare: Square move is from
-        :param toSquare: Square move is to
-        :return: None
         """
         if fromSquare is None:
             fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
         self.parent().doMove(m)
 
-    def deselectSquaresEvent(self):
-        for s in self.squareWidgets:
-            if s.isValidMove:
-                s.isValidMove = False
-                s.removeEffectItem(SquareWidget.ValidMove)
-        self.squareWidgets[self.selectedSquare].removeEffectItem(
-            SquareWidget.Selected)
-        self.selectedSquare = -1
-
-    def pieceClickedGraphicsEvent(self, lastSelection, square):
+    def updateSelectionGraphics(self, lastSelection, square):
         # Clicking on a new piece selects it.
         if lastSelection != square:
             self.squareWidgets[square].isSelected = True
             self.squareWidgets[square].addEffectItem(SquareWidget.Selected)
         else:
+            # Same piece deselects
             self.selectedSquare = -1
             return
         # Add the valid move squares
@@ -112,64 +91,19 @@ class BoardScene(QGraphicsScene):
                 return i.parentItem()
         return None
 
-    def updatePositionAfterMove(self, move, castling, isEnPassant):
-        """
-        Updates the board graphics one valid move forward.
-        This is faster than calling refreshPosition.
-        :param move: the move that happened on the board
-        :param isEnPassant: whether the move that just occured was an ep
-        :return: void
-        """
-        if move.promotion is None:
-            newPieceItem = self.squareWidgets[move.from_square].pieceItem
-            self.squareWidgets[move.from_square].removePiece()
-        else:
-            newPieceItem = PieceItem(chess.Piece(move.promotion,
-                                     not self.game.turn))
-            newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-            newPieceItem.pieceDragStarting.connect(self.pieceDragStartingEvent)
-            newPieceItem.pieceDragHappening.connect(self.pieceDragHappeningEvent)
-            newPieceItem.pieceDragStopping.connect(self.pieceDragStoppingEvent)
-            newPieceItem.setScale(float(self.squareWidth) /
-                                  newPieceItem.boundingRect().width())
-            self.squareWidgets[move.from_square].removePiece(True)
+    def createPiece(self, piece, scale=None):
+        newPieceItem = PieceItem(piece)
+        newPieceItem.pieceClicked.connect(self.pieceClicked)
+        newPieceItem.pieceDragStarting.connect(self.pieceDragStarting)
+        newPieceItem.pieceDragHappening.connect(self.pieceDragHappening)
+        newPieceItem.pieceDragStopping.connect(self.pieceDragStopping)
+        if scale is None:
+            scale = (float(self.squareWidth) /
+                     newPieceItem.boundingRect().width())
+        newPieceItem.setScale(scale)
+        return newPieceItem
 
-        self.squareWidgets[move.to_square].removePiece()
-        self.squareWidgets[move.to_square].addPiece(newPieceItem)
-        # TODO: support king takes rook castling
-        # I'm going to stay consistent with python.chess's
-        # implementation of castling.
-        # Oddly enough, it 'e1g1' or 'e1c1'.
-
-        if castling == 1:
-            newPieceItem = PieceItem(self.squareWidgets[move.to_square - 2].
-                                     pieceItem.piece)
-            newPieceItem.setScale(float(self.squareWidth) /
-                                  newPieceItem.boundingRect().width())
-            newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-            newPieceItem.pieceDragStarting.connect(self.pieceDragStartingEvent)
-            newPieceItem.pieceDragHappening.connect(self.pieceDragHappeningEvent)
-            newPieceItem.pieceDragStopping.connect(self.pieceDragStoppingEvent)
-            self.squareWidgets[move.to_square - 2].removePiece()
-            self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
-        elif castling == 2:
-            newPieceItem = PieceItem(self.squareWidgets[move.to_square + 1].
-                                     pieceItem.piece)
-            newPieceItem.setScale(float(self.squareWidth) / newPieceItem.
-                                  boundingRect().width())
-            newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
-            newPieceItem.pieceDragStarting.connect(self.pieceDragStartingEvent)
-            newPieceItem.pieceDragHappening.connect(self.pieceDragHappeningEvent)
-            newPieceItem.pieceDragStopping.connect(self.pieceDragStoppingEvent)
-            self.squareWidgets[move.to_square + 1].removePiece()
-            self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
-        elif isEnPassant:
-            # remember we are updating after the move has occurred
-            if self.game.turn == chess.BLACK:
-                self.squareWidgets[move.to_square - 8].removePiece()
-            else:
-                self.squareWidgets[move.to_square + 8].removePiece()
-
+    def updateGraphicsAfterMove(self, move):
         for s in self.squareWidgets:
             p = self.game.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
@@ -183,30 +117,69 @@ class BoardScene(QGraphicsScene):
                 s.clearEffectItems()
             s.isValidMove = False
         self.selectedSquare = -1
-        # remove the first move and its arrow if it follows the engine line
-        if (self.longestPV is not None and self.longestPV[0] == move and
-                self.existsItem(ArrowGraphicsItem, move)):
-            maxZ = max(i.zValue() for i in self.effectItems(ArrowGraphicsItem))
-            for a in self.effectItems(ArrowGraphicsItem):
-                if a.zValue() == maxZ:
-                    print('followed line', self.longestPV[0], 'removing', a)
-                    self.removeEffectItem(a)
-                    print(self.longestPV[1:])
-                    self.updateEngineItems(self.longestPV[1:])
+        # Remove the first move and its arrow if it follows the engine line
+        if len(self.longestPV) > 0 and self.longestPV[0] == move:
+            item = self.findEffectItem(ArrowGraphicsItem, move)
+            if item is not None:
+                self.removeEffectItem(item)
+                self.longestPV = self.longestPV[1:]
         else:
-            self.longestPV = None
-            self.clearEffectItems(ArrowGraphicsItem)
+            # Otherwise remove them all, and throw away the current variation
+            self.longestPV = []
+        self.updateEngineItems(self.longestPV)
 
-    def existsItem(self, itemClass, move=None):
+    def updatePositionAfterMove(self, move, castling, isEnPassant):
+        """
+        Updates the board graphics one valid move forward.
+        This is faster than calling refreshPosition.
+        :param move: the move that happened on the board
+        :param isEnPassant: whether the move that just occured was an ep
+        :return: void
+        """
+        if move.promotion is None:
+            newPieceItem = self.squareWidgets[move.from_square].pieceItem
+            self.squareWidgets[move.from_square].removePiece()
+        else:
+            newPieceItem = self.createPiece(chess.Piece(move.promotion,
+                                            not self.game.turn))
+            self.squareWidgets[move.from_square].removePiece(True)
+
+        self.squareWidgets[move.to_square].removePiece()
+        self.squareWidgets[move.to_square].addPiece(newPieceItem)
+        # TODO: support king takes rook castling
+        # I'm going to stay consistent with python.chess's
+        # implementation of castling.
+        # Oddly enough, it 'e1g1' or 'e1c1'.
+
+        if castling == 1:
+            fromWid = self.squareWidgets[move.to_square - 2]
+            newPieceItem = fromWid.pieceItem
+            fromWid.removePiece()
+            self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
+        elif castling == 2:
+            fromWidg = self.squareWidgets[move.to_square + 1]
+            newPieceItem = fromWidg.pieceItem
+            fromWidg.removePiece()
+            self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
+        elif isEnPassant:
+            # remember we are updating after the move has occurred
+            if self.game.turn == chess.BLACK:
+                self.squareWidgets[move.to_square - 8].removePiece()
+            else:
+                self.squareWidgets[move.to_square + 8].removePiece()
+
+        self.updateGraphicsAfterMove(move)
+
+    def findEffectItem(self, itemClass, move=None):
         assert hasattr(itemClass, 'Type')
         for i in self.effectItems(itemClass):
             if i.type() == itemClass.Type:
                 if move is not None:
                     if i.move == move:
-                        return True
+                        return i
                 else:
-                    return True
-        return False
+                    return i
+        return None
 
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
         if itemClass == ArrowGraphicsItem.Type:
@@ -224,7 +197,6 @@ class BoardScene(QGraphicsScene):
         effectItem = self.createEffectItem(itemClass.Type, move, hero, opacity)
         if effectItem is not None:
             effectItem.setZValue(149 + zValue)
-            print('adding', effectItem)
             self.addItem(effectItem)
         else:
             print('tried to add an invalid effect item', itemClass)
@@ -244,7 +216,6 @@ class BoardScene(QGraphicsScene):
     def removeEffectItem(self, effectItem):
         assert effectItem is not None
         effectItem.setParentItem(None)
-        print('removing', effectItem)
         self.removeItem(effectItem)
 
     # Called from elsewhere
@@ -262,7 +233,7 @@ class BoardScene(QGraphicsScene):
                 newPieceItem = PieceItem(p, s.square)
                 newPieceItem.setScale(float(self.squareWidth) /
                                       newPieceItem.boundingRect().width())
-                newPieceItem.pieceClicked.connect(self.pieceClickedEvent)
+                newPieceItem.pieceClicked.connect(self.pieceClicked)
                 s.addPiece(newPieceItem)
                 if self.game.is_check() and p is not None \
                    and p.piece_type == chess.KING \
@@ -271,7 +242,7 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def updateEngineItems(self, longestPV):
-        if longestPV is None:
+        if len(longestPV) < 1:
             self.clearEffectItems(ArrowGraphicsItem)
             return
         self.longestPV = longestPV
@@ -280,23 +251,19 @@ class BoardScene(QGraphicsScene):
 
         # Arrows
         moveList = longestPV[:length]
-        print('list', moveList)
+        # Remove all non-repeated arrow
         for i in self.effectItems(ArrowGraphicsItem):
-            if i.move in moveList:
-                opacity = 1.0 - moveList.index(i.move) / length
-                if opacity == 0:
-                    opacity = 0.1
-                i.setOpacity(opacity)
-            else:
+            if i.move not in moveList:
                 self.removeEffectItem(i)
-
+        # Add new arrows, or modify existing ones
         for i in range(len(moveList)):
-            if not self.existsItem(ArrowGraphicsItem,
-                                   move=moveList[i]):
+            arrow = self.findEffectItem(ArrowGraphicsItem, move=moveList[i])
+            if arrow is not None:
+                opacity = 1.0 - i / length
+                arrow.setOpacity(opacity)
+            else:
                 hero = not bool(i % 2 + self.game.turn - 1)
                 opacity = 1.0 * float(i) / length
-                if opacity < 0:
-                    opacity = 0.1
                 self.addEffectItem(ArrowGraphicsItem, moveList[i],
                                    hero, length - i, opacity)
 
@@ -319,20 +286,19 @@ class BoardScene(QGraphicsScene):
         pass
 
     # Events
-    def pieceClickedEvent(self, square):
+    def pieceClicked(self, square):
         # This is a two-click capture move.
-        if (self.game.piece_at(square).color !=
-                self.game.turn):
+        if (self.game.piece_at(square).color != self.game.turn):
             if self.selectedSquare != -1:
-                self.pieceDropped(square)
+                self.makeMoveTo(square)
             return
         lastSelection = self.selectedSquare
         # Clicking on a new or old piece deselects the previous squares
-        self.deselectSquaresEvent()
+        self.deselectSquares()
         self.selectedSquare = square
-        self.pieceClickedGraphicsEvent(lastSelection, square)
+        self.updateSelectionGraphics(lastSelection, square)
 
-    def pieceDragStartingEvent(self, square):
+    def pieceDragStarting(self, square):
         self.dragPieceAhead = self.squareWidgets[square].pieceItem
         self.squareWidgets[square].removePiece()
         self.dragPieceAhead.setZValue(150)
@@ -348,7 +314,7 @@ class BoardScene(QGraphicsScene):
         self.dragPieceBehind.setOpacity(0.5)
         self.addItem(self.dragPieceBehind)
 
-    def pieceDragHappeningEvent(self, mousePos):
+    def pieceDragHappening(self, mousePos):
         squareWidget = self.squareWidgetAt(mousePos)
         if squareWidget is not None:
             if self.lastMouseSquare != squareWidget:
@@ -357,24 +323,34 @@ class BoardScene(QGraphicsScene):
                     self.lastMouseSquare.hoverLeaveEvent(None)
                 self.lastMouseSquare = squareWidget
 
-    def pieceDragStoppingEvent(self, square, mousePos):
+    def pieceDragStopping(self, square, mousePos):
         assert(self.dragPieceBehind is not None)
         self.removeItem(self.dragPieceBehind)
         self.dragPieceBehind = None
         assert(self.dragPieceAhead is not None)
         self.squareWidgets[square].addPiece(self.dragPieceAhead)
 
+        # This is a drag and drop move
         toWidget = self.squareWidgetAt(mousePos)
         if toWidget is not None and toWidget.isValidMove:
             print("attempt", chess.Move(square, toWidget.square))
             self.dragPieceAhead.setCursor(Qt.ArrowCursor)
             self.dragPieceAhead = None
-            self.pieceDropped(toWidget.square, square)
+            self.makeMoveTo(toWidget.square, square)
         else:
             self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
             self.dragPieceAhead = None
-            self.deselectSquaresEvent()
+            self.deselectSquares()
             return
+
+    def deselectSquares(self):
+        for s in self.squareWidgets:
+            if s.isValidMove:
+                s.isValidMove = False
+                s.removeEffectItem(SquareWidget.ValidMove)
+        self.squareWidgets[self.selectedSquare].removeEffectItem(
+            SquareWidget.Selected)
+        self.selectedSquare = -1
 
 
 class BoardSceneView(QGraphicsView):
@@ -478,7 +454,10 @@ class BoardAnimationGroup(QParallelAnimationGroup):
         super().__init__(parent)
         self.adjustItems = adjustItems
 
-    def updateCurrentTime(self, time):
-        super().updateCurrentTime(time)
-        for i in self.adjustItems:
-            i.adjust()
+    def updateCurrentTime(self, currentTime):
+        super().updateCurrentTime(currentTime)
+
+    def updateState(self, newState, oldState):
+        if (newState == QParallelAnimationGroup.Stopped):
+            for i in self.adjustItems:
+                i.adjust()

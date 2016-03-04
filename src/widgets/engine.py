@@ -12,8 +12,6 @@ import platform
 class EngineWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
-        self.analyzeButton = QPushButton(self)
-        self.analyzeButton.clicked.connect(self.toggleAnalyze)
         self.board = None
         self.command = None
         self.longestPv = None
@@ -26,21 +24,19 @@ class EngineWidget(QWidget):
         self.pvLabel = PVLabel(self)
         self.scoreLabel = ScoreLabel(self)
         self.depthLabel = DepthLabel(self)
-
+        self.analyzeButton = QPushButton(self)
+        self.analyzeButton.clicked.connect(self.toggleAnalyze)
         self.analyzeButton.setText('Anaylze')
         self.analyzeButton.setCheckable(True)
-        # verticalLayoutWidget = QWidget(self)
-        # verticalLayoutWidget.setGeometry()
 
         horiLayout = QHBoxLayout()
         horiLayout.addWidget(self.scoreLabel)
-        horiLayout.addWidget(self.depthLabel)
+        horiLayout.addWidget(self.depthLabel, 0, Qt.AlignRight)
 
         vertiLayout = QVBoxLayout(self)
         vertiLayout.addLayout(horiLayout)
         vertiLayout.addWidget(self.pvLabel)
         vertiLayout.addWidget(self.analyzeButton)
-        # self.setLayout(vertiLayout)
 
     def initEngine(self, board):
         eng = userConfig.config['ENGINES']['mainEngine']
@@ -56,24 +52,26 @@ class EngineWidget(QWidget):
         self.engine.uci()
         self.engine.isready()
 
+    def goInfinite(self, stuff):
+        print('engine infinite thinking')
+        self.command = self.engine.go(infinite=True, async_callback=True)
+
     def toggleAnalyze(self):
         if self.analyzeButton.isChecked():
-            self.engine.isready(self.turnAnalyzeOn)
+            self.engine.isready(self.goInfinite)
         else:
             print('engine stop')
             self.engine.stop()
-
-    def turnAnalyzeOn(self, stuff):
-        print('engine infinite thinking')
-        self.command = self.engine.go(infinite=True, async_callback=True)
 
     def updateAfterMove(self, board):
         self.board = board
         self.engine.stop()
         self.command = None
         self.engine.position(board)
-        self.toggleAnalyze()
+        if self.analyzeButton.isChecked():
+            self.engine.isready(self.goInfinite)
         self.updateText()
+        self.updateBoard()
 
     def updateBoard(self):
         if self.longestPv != self.lastLongestPv:
@@ -96,9 +94,9 @@ class EngineWidget(QWidget):
             else:
                 scoreString = '{:+4.2f}'.format(info['score'][1].cp / 100.0)
 
-                conf = userConfig.config['ENGINES']['showwhitecentipawns']
+                conf = userConfig.config['ENGINES']
                 if (not self.board.turn and
-                        bool(conf)):
+                        conf.getboolean('showWhiteCentipawns')):
                     if scoreString[0] == '-':
                         scoreString = '+' + scoreString[1:]
                     else:
@@ -120,11 +118,11 @@ class EngineWidget(QWidget):
         self.scoreLabel.setText(scoreString)
         self.pvLabel.setText(pvString)
         self.depthLabel.setText(depthString)
-        self.updateBoard()
-        self.lastLongestPv = self.longestPv
 
     def timerEvent(self, event):
         self.updateText()
+        self.updateBoard()
+        self.lastLongestPv = self.longestPv
 
     def resizeEvent(self, event):
         self.setMaximumWidth(event.size().width())

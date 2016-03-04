@@ -9,6 +9,9 @@ class MoveTreeView(QTableView):
     def __init__(self, parent, model):
         super().__init__(parent)
         self.setModel(model)
+        self.initUI()
+
+    def initUI(self):
         pal = QPalette(self.palette())
         pal.setColor(QPalette.Background, Qt.red)
         self.setAutoFillBackground(True)
@@ -25,10 +28,12 @@ class MoveTreeView(QTableView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def resizeEvent(self, event):
-        self.setColumnWidth(0, int(self.width() / 2 - 9 -
-                            self.vScrollBarWidth / 2))
-        self.setColumnWidth(1, int(self.width() / 2 - 9 -
-                            self.vScrollBarWidth / 2))
+        if self.verticalScrollBar().isVisible():
+            extra = self.vScrollBarWidth / 2 + 1 + 9
+        else:
+            extra = 8
+        self.setColumnWidth(0, int(self.width() / 2 - extra))
+        self.setColumnWidth(1, int(self.width() / 2 - extra))
 
 
 class MoveTreeModel(QStandardItemModel):
@@ -36,3 +41,24 @@ class MoveTreeModel(QStandardItemModel):
         super().__init__()
         self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
                                         strings.COLOR_SECOND])
+
+    def updateAfterMove(self, move, moveNum, turn, moveSan):
+        newItem = MoveTreeItem(move)
+        newItem.setText(moveSan)
+        self.setItem(int(moveNum / 2), turn, newItem)
+
+    def gotoMove(self, current):
+        if current.isValid():
+            moveItem = self.itemFromIndex(current)
+            print(moveItem, current.model().itemFromIndex(current))
+            if type(moveItem) == MoveTreeItem:
+                print('going to', moveItem.plyNumber)
+
+
+class MoveTreeItem(QStandardItem):
+    def __init__(self, plyNumber):
+        super().__init__()
+        self.plyNumber = plyNumber
+
+    def clicked(self, event):
+        print('yea')

@@ -47,6 +47,11 @@ class MoveTreeModel(QStandardItemModel):
         newItem.setText(moveSan)
         self.setItem(int(moveNum / 2), turn, newItem)
 
+    def reset(self):
+        self.clear()
+        self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
+                                        strings.COLOR_SECOND])
+
     def gotoMove(self, current):
         if current.isValid():
             moveItem = self.itemFromIndex(current)

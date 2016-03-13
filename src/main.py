@@ -22,7 +22,7 @@ class MainWindow(QFrame):
         super().__init__()
         self.initMenus()
         self.initGeometry()
-        self.initLayout()
+        self.initUI()
 
         self.center()
         self.show()
@@ -64,7 +64,7 @@ class MainWindow(QFrame):
             self.setGeometry(0, 0, idealWidth, idealHeight)
         print("window geometry is", self.geometry())
 
-    def initLayout(self):
+    def initUI(self):
         self.mainFrame = CentralFrame(self)
         sizeGrip = QSizeGrip(self)
         layout = QVBoxLayout(self)

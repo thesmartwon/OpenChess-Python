@@ -21,4 +21,4 @@ HERO = True
 PIECE_PADDING_RIGHT = .162
 PIECE_PADDING_BOT = .3
 HAS_FOCUS = True
-IDEAL_RESOLUTION = {'width': 1200, 'height': 928}
+IDEAL_RESOLUTION = {'width': 1049, 'height': 928}

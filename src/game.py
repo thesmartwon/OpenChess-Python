@@ -1,5 +1,3 @@
-from PyQt5.QtCore import QVariant
-from PyQt5.QtGui import QStandardItem
 import chess
 import constants
 
@@ -15,7 +13,12 @@ class OpenGame():
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
 
-    def doMove(self, move, moveTreeModel, boardScene, engine):
+    def setWeakRefs(self, boardScene, moveTreeModel, engine):
+        self.moveTreeModel = moveTreeModel
+        self.boardScene = boardScene
+        self.engine = engine
+
+    def doMove(self, move):
         """
         Updates the board state and notifies appropriate objects.
         If the move is a promotion, this widget will ask for it.
@@ -35,13 +38,20 @@ class OpenGame():
                 castling = 1
             elif self.board.is_kingside_castling(move):
                 castling = 2
-            moveTreeModel.updateAfterMove(move,
-                                          self.board.fullmove_number,
-                                          not self.board.turn,
-                                          self.board.san(move))
+            print('moveInfo', self.board.fullmove_number)
+            self.moveTreeModel.updateAfterMove(move,
+                                               self.board.fullmove_number,
+                                               not self.board.turn,
+                                               self.board.san(move))
             self.board.push(move)
-            boardScene.updatePositionAfterMove(move, castling,
-                                               isEnPassant)
-            engine.updateAfterMove(self.board)
+            self.engine.updateAfterMove(move)
+            self.boardScene.updatePositionAfterMove(move, castling,
+                                                    isEnPassant)
             return True
         return False
+
+    def newGame(self):
+        self.board.reset()
+        self.engine.reset()
+        self.moveTreeModel.reset()
+        self.boardScene.reset()

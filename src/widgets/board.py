@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QMenu, QGraphicsWidget,
-                             QGraphicsItem)
+                             QGraphicsView, QMenu, QGraphicsItem,
+                             QSizePolicy)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
                          QBrush, QPen, QPolygonF)
 from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
-                          QPropertyAnimation, QByteArray, QVariant,
+                          QPropertyAnimation, QByteArray, QSize,
                           QParallelAnimationGroup)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
@@ -12,6 +12,7 @@ import math
 import userConfig
 import chess
 import constants
+import copy
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
@@ -38,6 +39,7 @@ class BoardScene(QGraphicsScene):
         self.lastMouseSquare = None
         # For arrows
         self.longestPV = []
+        self.effectItems = []
 
     def initSquares(self, squareWidth):
         """
@@ -48,12 +50,12 @@ class BoardScene(QGraphicsScene):
         constants.PIECE_PADDING_RIGHT = constants.PIECE_PADDING_RIGHT * \
             squareWidth
         constants.PIECE_PADDING_BOT = constants.PIECE_PADDING_BOT * squareWidth
-        for i in range(64):
-            newSquareWidget = SquareWidget(i, squareWidth)
+        for s in chess.SQUARES:
+            newSquareWidget = SquareWidget(s, squareWidth)
             newSquareWidget.pieceReleased.connect(self.makeMoveTo)
             newSquareWidget.invalidDrop.connect(self.deselectSquares)
-            if self.game.piece_at(i) is not None:
-                piece = self.createPiece(self.game.piece_at(i))
+            if self.game.piece_at(s) is not None:
+                piece = self.createPiece(self.game.piece_at(s))
                 newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
@@ -67,7 +69,7 @@ class BoardScene(QGraphicsScene):
         if fromSquare is None:
             fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
-        self.parent().doMove(m)
+        self.parent().openGame.doMove(m)
 
     def updateSelectionGraphics(self, lastSelection, square):
         # Clicking on a new piece selects it.
@@ -104,6 +106,8 @@ class BoardScene(QGraphicsScene):
         return newPieceItem
 
     def updateEffectsAfterMove(self, move):
+        # Note that updating engine items is called
+        # automatically by the engine widget, not here.
         for s in self.squareWidgets:
             p = self.game.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
@@ -117,17 +121,6 @@ class BoardScene(QGraphicsScene):
                 s.clearEffectItems()
             s.isValidMove = False
         self.selectedSquare = -1
-        # Remove the first move and its arrow if it follows the engine line
-        if len(self.longestPV) > 0 and self.longestPV[0] == move:
-            item = self.findEffectItem(ArrowGraphicsItem, move)
-            if item is not None:
-                self.removeEffectItem(item)
-                self.longestPV = self.longestPV[1:]
-        else:
-            # Otherwise throw away the current variation
-            self.longestPV = []
-            self.clearEffectItems(ArrowGraphicsItem)
-        self.updateEngineItems(self.longestPV)
 
     def updatePositionAfterMove(self, move, castling, isEnPassant):
         """
@@ -171,17 +164,6 @@ class BoardScene(QGraphicsScene):
 
         self.updateEffectsAfterMove(move)
 
-    def findEffectItem(self, itemClass, move=None):
-        assert hasattr(itemClass, 'Type')
-        for i in self.effectItems(itemClass):
-            if i.type() == itemClass.Type:
-                if move is not None:
-                    if i.move == move:
-                        return i
-                else:
-                    return i
-        return None
-
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
         if itemClass == ArrowGraphicsItem.Type:
             assert move is not None
@@ -197,27 +179,29 @@ class BoardScene(QGraphicsScene):
                       opacity=1.0):
         effectItem = self.createEffectItem(itemClass.Type, move, hero, opacity)
         if effectItem is not None:
-            effectItem.setZValue(149 + zValue)
+            effectItem.setZValue(151 + zValue)
             self.addItem(effectItem)
+            self.effectItems.append(effectItem)
+            print('adding', effectItem.move, self.effectItems)
         else:
             print('tried to add an invalid effect item', itemClass)
 
+    def removeEffectItem(self, effectItem):
+        assert effectItem in self.effectItems
+        self.effectItems.remove(effectItem)
+        effectItem.setParentItem(None)
+        self.removeItem(effectItem)
+        print('removing', effectItem.move, self.effectItems)
+
     def clearEffectItems(self, item=None):
-        for i in self.items():
+        # TODO: fix this ugly. for some reason i cant remove elements
+        # while iterating.
+        itemsCopy = self.effectItems.copy()
+        for i in itemsCopy:
             if item is not None and i.type() == item.Type:
                 self.removeEffectItem(i)
             elif item is None:
                 self.removeEffectItem(i)
-
-    def effectItems(self, itemClass):
-        for i in self.items():
-            if i.type() == itemClass.Type:
-                yield i
-
-    def removeEffectItem(self, effectItem):
-        assert effectItem is not None
-        effectItem.setParentItem(None)
-        self.removeItem(effectItem)
 
     # Called from elsewhere
     def refreshPosition(self):
@@ -228,22 +212,22 @@ class BoardScene(QGraphicsScene):
         :return: Void
         """
         for s in self.squareWidgets:
+            s.clearEffectItems()
             s.removePiece()
             p = self.game.piece_at(s.square)
             if p is not None:
-                newPieceItem = PieceItem(p, s.square)
-                newPieceItem.setScale(float(self.squareWidth) /
-                                      newPieceItem.boundingRect().width())
-                newPieceItem.pieceClicked.connect(self.pieceClicked)
+                newPieceItem = self.createPiece(p)
                 s.addPiece(newPieceItem)
-                if self.game.is_check() and p is not None \
-                   and p.piece_type == chess.KING \
-                   and p.color == self.game.turn:
-                    s.addEffectItem(SquareWidget.CheckSquare)
+        
+        if self.game.is_check():
+            kingSet = self.game.pieces(chess.KING, self.game.turn)
+            assert len(kingSet) == 1
+            kingSquare = self.squareWidgets[list(kingSet)[0]]
+            kingSquare.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
 
     def updateEngineItems(self, longestPV):
-        if len(longestPV) < 1:
+        if not longestPV:
             self.clearEffectItems(ArrowGraphicsItem)
             return
         self.longestPV = longestPV
@@ -252,25 +236,31 @@ class BoardScene(QGraphicsScene):
 
         # Arrows
         moveList = longestPV[:length]
-        # Remove all non-repeated arrow
-        for i in self.effectItems(ArrowGraphicsItem):
-            if i.move not in moveList:
-                self.removeEffectItem(i)
+        # Remove all non-repeated arrows
+        curArrows = [a for a in self.effectItems if a.type() ==
+                     ArrowGraphicsItem.Type]
+        for a in curArrows:
+            if a.move not in moveList:
+                self.removeEffectItem(a)
+                curArrows.remove(a)
         # Add new arrows, or modify existing ones
-        for i in range(len(moveList)):
-            arrow = self.findEffectItem(ArrowGraphicsItem, move=moveList[i])
-            if arrow is not None:
+        for i, m in enumerate(moveList):
+            arrow = [a for a in curArrows if a.move == m]
+            if len(arrow) > 0:
                 opacity = 1.0 - i / length
-                arrow.setOpacity(opacity)
+                arrow[0].setOpacity(opacity)
             else:
                 hero = not bool(i % 2 + self.game.turn - 1)
-                opacity = 1.0 * float(i) / length
-                self.addEffectItem(ArrowGraphicsItem, moveList[i],
+                opacity = 1.0 - i / length
+                self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)
 
     def flipBoard(self):
+        constants.HERO = not constants.HERO
+        curArrows = [a for a in self.effectItems if a.type() ==
+                     ArrowGraphicsItem.Type]
         aniGroup = BoardAnimationGroup(self,
-                                       self.effectItems(ArrowGraphicsItem))
+                                       curArrows)
         aniDuration = 250
         for sq in self.squareWidgets:
             prop = QByteArray(b'pos')
@@ -353,22 +343,37 @@ class BoardScene(QGraphicsScene):
             SquareWidget.Selected)
         self.selectedSquare = -1
 
+    def reset(self):
+        self.dragPieceBehind = None
+        self.dragPieceAhead = None
+        self.selectedSquare = -1
+        self.lastMouseSquare = None
+        # For arrows
+        self.longestPV = []
+        self.clearEffectItems()
+        print('uh', len(self.effectItems))
+        self.refreshPosition()
+
 
 class BoardSceneView(QGraphicsView):
     def __init__(self, parent, scene):
         super().__init__(parent)
         self.setScene(scene)
-        self.setParent(parent)
         if QGLFormat.hasOpenGL():
             self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
+
+    def initUI(self, initialSceneWidth):
+        self.initialSceneWidth = initialSceneWidth
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.initialSceneWidth = 0
+        self.setBackgroundBrush(QBrush(Qt.red))
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        quitAction = menu.addAction("Flip board")
-        quitAction.triggered.connect(self.scene().flipBoard)
+        flipAction = menu.addAction("Flip board")
+        flipAction.triggered.connect(self.scene().flipBoard)
+        newGameAction = menu.addAction("New game")
+        newGameAction.triggered.connect(self.parent().openGame.newGame)
         action = menu.popup(self.mapToGlobal(event.pos()))
 
     def resizeEvent(self, event):

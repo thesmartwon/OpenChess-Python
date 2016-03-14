@@ -1,15 +1,17 @@
 import chess
+from chess import pgn
 import constants
 
 
 class OpenGame():
     """
-    OpenGame is a helper class (mostly to mainframe) that
-    houses info related to the game state and recieves messages
-    whenever it is updated.
+    OpenGame is a helper class that houses the game state and
+    recieves/sends messages whenever it is updated.
+    Must call setWeakRefs before doMove.
     """
     def __init__(self):
-        self.board = chess.Board()
+        self.game = pgn.Game()
+        self.board = self.game.board()
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
 
@@ -38,10 +40,9 @@ class OpenGame():
                 castling = 1
             elif self.board.is_kingside_castling(move):
                 castling = 2
-            print('moveInfo', self.board.fullmove_number)
             self.moveTreeModel.updateAfterMove(move,
                                                self.board.fullmove_number,
-                                               not self.board.turn,
+                                               self.board.turn,
                                                self.board.san(move))
             self.board.push(move)
             self.engine.updateAfterMove(move)
@@ -52,6 +53,19 @@ class OpenGame():
 
     def newGame(self):
         self.board.reset()
-        self.engine.reset()
+        self.game.setup(self.board)
+        self.engine.reset(True)
         self.moveTreeModel.reset()
+        self.boardScene.reset()
+
+    def scrollToPly(self, plyNumber):
+        curPly = self.board.fullmove_number * 2 + int(not self.board.turn) - 2
+        assert curPly >= plyNumber
+        if curPly == plyNumber:
+            return
+        print('scrolling to', plyNumber)
+        for i in range(curPly - plyNumber - 1):
+            self.board.pop()
+        self.engine.reset()
+        self.moveTreeModel.eraseAfterPly(plyNumber)
         self.boardScene.reset()

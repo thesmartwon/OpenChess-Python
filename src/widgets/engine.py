@@ -6,6 +6,8 @@ import chess.uci
 import constants
 import userConfig
 import platform
+# TODO: isready everything. need a new board for the board state
+# also, subclassing infohandler is much better than timer loop.
 
 
 class EngineWidget(QWidget):
@@ -55,7 +57,6 @@ class EngineWidget(QWidget):
 
     def syncEngine(self):
         self.engine.stop()
-        print('engine stop')
         self.engine.position(self.board)
         self.command = None
 
@@ -63,7 +64,6 @@ class EngineWidget(QWidget):
         if self.analyzeButton.isChecked():
             self.engine.isready(self.goInfinite)
         else:
-            print('engine stop')
             self.engine.stop()
 
     def updateAfterMove(self, move):
@@ -142,11 +142,15 @@ class EngineWidget(QWidget):
         print('closing engine')
         self.engine.quit()
 
-    def reset(self):
-        self.analyzeButton.setChecked(False)
-        self.syncEngine()
+    def reset(self, turnOffEngine=False):
+        self.engine.ucinewgame()
+        if turnOffEngine:
+            self.analyzeButton.setChecked(False)
+        else:
+            self.updateAnalyze()
         self.longestPV = []
         self.lastlongestPV = []
+        self.syncEngine()
         self.updateText()
 
 
@@ -167,7 +171,7 @@ class PVLabel(QLabel):
         super().__init__(parent)
         pvMet = QFontMetrics(self.font())
         pvLineHeight = pvMet.height()
-        self.setMinimumHeight(pvLineHeight * 8)
+        self.setMinimumHeight(pvLineHeight * 12)
         self.setWordWrap(True)
 
 

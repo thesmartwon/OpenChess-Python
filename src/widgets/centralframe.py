@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QWidget,
-                             QApplication, QSizePolicy)
+                             QDesktopWidget)
 from game import OpenGame
 from widgets.movetree import MoveTreeView, MoveTreeModel
 from widgets.board import BoardScene, BoardSceneView
@@ -19,8 +19,9 @@ class CentralFrame(QFrame):
         self.boardScene = BoardScene(self)
         self.boardSceneView = BoardSceneView(self, self.boardScene)
         self.moveTreeModel = MoveTreeModel()
+        self.moveTreeModel.moveItemClicked.connect(self.openGame.scrollToPly)
         self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
-        self.moveTreeView.clicked.connect(self.moveTreeModel.gotoMove)
+        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
         self.engineWidget = EngineWidget(self)
         self.openGame.setWeakRefs(self.boardScene, self.moveTreeModel,
                                   self.engineWidget)
@@ -32,10 +33,11 @@ class CentralFrame(QFrame):
     def initUI(self):
         """Creates parts of layout that account for sizes.
         Notable is that the boardScene squares will be a multiple of 8."""
-        # TODO: make it so it will pick the largest screen geometry
-        screenGeo = QApplication.primaryScreen().availableGeometry()
-        lesserDimension = min(screenGeo.width(), screenGeo.height())
-        sceneWidth = int(lesserDimension / 8) * 8
+        screens = [QDesktopWidget().availableGeometry(i) for i in
+                   range(QDesktopWidget().screenCount())]
+        assert screens
+        maxWidth = max(min(s.width(), s.height()) for s in screens)
+        sceneWidth = int(maxWidth / 8) * 8
         self.boardScene.initSquares(sceneWidth / 8)
         self.boardScene.setSceneRect(0, 0, sceneWidth, sceneWidth)
         self.boardSceneView.initUI(sceneWidth)

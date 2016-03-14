@@ -50,10 +50,9 @@ class SquareWidget(QGraphicsWidget):
         return count
 
     def clearEffectItems(self):
-        for i in range(len(self.graphicEffectItems)):
-            self.graphicEffectItems[i].setParentItem(None)
-            self.scene().removeItem(self.graphicEffectItems[i])
-            self.graphicEffectItems[i] = None
+        for e in self.graphicEffectItems:
+            e.setParentItem(None)
+            self.scene().removeItem(e)
         self.graphicEffectItems.clear()
 
     def removeEffectItem(self, itemType):

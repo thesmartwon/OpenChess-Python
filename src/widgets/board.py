@@ -12,7 +12,6 @@ import math
 import userConfig
 import chess
 import constants
-import copy
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
@@ -35,8 +34,8 @@ class BoardScene(QGraphicsScene):
                                            curs.height() / 2)
         self.dragPieceBehind = None
         self.dragPieceAhead = None
-        self.selectedSquare = -1
         self.lastMouseSquare = None
+        self.selectedSquare = -1
         # For arrows
         self.longestPV = []
         self.effectItems = []
@@ -105,7 +104,7 @@ class BoardScene(QGraphicsScene):
         newPieceItem.setScale(scale)
         return newPieceItem
 
-    def updateEffectsAfterMove(self, move):
+    def updateSquareEffectsAfterMove(self, move):
         # Note that updating engine items is called
         # automatically by the engine widget, not here.
         for s in self.squareWidgets:
@@ -162,7 +161,7 @@ class BoardScene(QGraphicsScene):
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
 
-        self.updateEffectsAfterMove(move)
+        self.updateSquareEffectsAfterMove(move)
 
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
         if itemClass == ArrowGraphicsItem.Type:
@@ -180,9 +179,9 @@ class BoardScene(QGraphicsScene):
         effectItem = self.createEffectItem(itemClass.Type, move, hero, opacity)
         if effectItem is not None:
             effectItem.setZValue(151 + zValue)
-            self.addItem(effectItem)
             self.effectItems.append(effectItem)
-            print('adding', effectItem.move, self.effectItems)
+            self.addItem(effectItem)
+            # print('adding', effectItem.move, self.effectItems)
         else:
             print('tried to add an invalid effect item', itemClass)
 
@@ -191,10 +190,10 @@ class BoardScene(QGraphicsScene):
         self.effectItems.remove(effectItem)
         effectItem.setParentItem(None)
         self.removeItem(effectItem)
-        print('removing', effectItem.move, self.effectItems)
+        # print('removing', effectItem.move, self.effectItems)
 
     def clearEffectItems(self, item=None):
-        # TODO: fix this ugly. for some reason i cant remove elements
+        # TODO: fix this ugly. for some reason I cant remove elements
         # while iterating.
         itemsCopy = self.effectItems.copy()
         for i in itemsCopy:
@@ -202,8 +201,9 @@ class BoardScene(QGraphicsScene):
                 self.removeEffectItem(i)
             elif item is None:
                 self.removeEffectItem(i)
+        assert not self.effectItems
 
-    # Called from elsewhere
+    # Events + called from elsewhere
     def refreshPosition(self):
         """
         Clears all pieces and creates new pieces according to
@@ -218,7 +218,6 @@ class BoardScene(QGraphicsScene):
             if p is not None:
                 newPieceItem = self.createPiece(p)
                 s.addPiece(newPieceItem)
-        
         if self.game.is_check():
             kingSet = self.game.pieces(chess.KING, self.game.turn)
             assert len(kingSet) == 1
@@ -239,7 +238,7 @@ class BoardScene(QGraphicsScene):
         # Remove all non-repeated arrows
         curArrows = [a for a in self.effectItems if a.type() ==
                      ArrowGraphicsItem.Type]
-        for a in curArrows:
+        for a in curArrows.copy():
             if a.move not in moveList:
                 self.removeEffectItem(a)
                 curArrows.remove(a)
@@ -254,6 +253,7 @@ class BoardScene(QGraphicsScene):
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)
+        assert len(self.effectItems) <= length
 
     def flipBoard(self):
         constants.HERO = not constants.HERO
@@ -276,7 +276,6 @@ class BoardScene(QGraphicsScene):
     def toggleCoordinates(self):
         pass
 
-    # Events
     def pieceClicked(self, square):
         # This is a two-click capture move.
         if (self.game.piece_at(square).color != self.game.turn):
@@ -351,7 +350,6 @@ class BoardScene(QGraphicsScene):
         # For arrows
         self.longestPV = []
         self.clearEffectItems()
-        print('uh', len(self.effectItems))
         self.refreshPosition()
 
 

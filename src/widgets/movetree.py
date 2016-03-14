@@ -1,7 +1,7 @@
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPalette,
-                         QFontMetrics, QFont)
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableView
+                         QFontMetrics)
+from PyQt5.QtWidgets import QTableView, QMenu
 import strings
 
 
@@ -26,6 +26,8 @@ class MoveTreeView(QTableView):
         self.vScrollBarWidth = 17
         self.setMinimumWidth(maxColWidth * 2 + 17)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.displayContextMenu)
 
     def resizeEvent(self, event):
         if self.verticalScrollBar().isVisible():
@@ -35,29 +37,48 @@ class MoveTreeView(QTableView):
         self.setColumnWidth(0, int(self.width() / 2 - extra))
         self.setColumnWidth(1, int(self.width() / 2 - extra))
 
+    def displayContextMenu(self, point):
+        index = self.indexAt(point)
+        if index.isValid():
+            # self.model().itemFromIndex(index)
+            menu = QMenu(self)
+            flipAction = menu.addAction("Flip board")
+            newGameAction = menu.addAction("New game")
+            action = menu.popup(self.mapToGlobal(point))
+
 
 class MoveTreeModel(QStandardItemModel):
+    moveItemClicked = pyqtSignal(int)
+
     def __init__(self):
         super().__init__()
         self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
                                         strings.COLOR_SECOND])
 
-    def updateAfterMove(self, move, moveNum, turn, moveSan):
-        newItem = MoveTreeItem(move)
+    def updateAfterMove(self, move, fullMoveNum, turn, moveSan):
+        newItem = MoveTreeItem(fullMoveNum * 2 + int(not turn) - 2)
         newItem.setText(moveSan)
-        self.setItem(int(moveNum / 2), turn, newItem)
+        print('setting', fullMoveNum - 1, ',', int(not turn))
+        self.setItem(fullMoveNum - 1, int(not turn), newItem)
 
     def reset(self):
         self.clear()
         self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
                                         strings.COLOR_SECOND])
 
-    def gotoMove(self, current):
+    def eraseAfterPly(self, plyNumber):
+        rowNumber = int(plyNumber / 2) + 1
+        numToErase = self.rowCount() - int(plyNumber / 2) - 1
+        self.removeRows(rowNumber, numToErase)
+        if plyNumber % 2 == 0:
+            self.setItem(int(plyNumber) / 2, 1, QStandardItem())
+
+    def itemClicked(self, current):
         if current.isValid():
             moveItem = self.itemFromIndex(current)
-            print(moveItem, current.model().itemFromIndex(current))
+            # current.model().itemFromIndex(current)
             if type(moveItem) == MoveTreeItem:
-                print('going to', moveItem.plyNumber)
+                self.moveItemClicked.emit(moveItem.plyNumber)
 
 
 class MoveTreeItem(QStandardItem):

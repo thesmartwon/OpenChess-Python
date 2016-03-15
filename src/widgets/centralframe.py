@@ -6,12 +6,14 @@ from game import OpenGame
 from widgets.movetree import MoveTreeView, MoveTreeModel
 from widgets.board import BoardScene, BoardSceneView
 from widgets.engine import EngineWidget
+from widgets.pieceselector import PieceSelectorScene, PieceSelectorView
+import chess
 
 
 class CentralFrame(QFrame):
     """
-    Takes up the center of the screen and
-    communicates between all of the widgets there.
+    Takes up the center of the screen and initializes
+    communications between all of the widgets there.
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -47,16 +49,26 @@ class CentralFrame(QFrame):
         pal.setColor(QPalette.Background, Qt.green)
         self.setAutoFillBackground(True)
         self.setPalette(pal)
-        vertLayout = QVBoxLayout(self)
-        vertLayout.setSpacing(0)
-        vertLayout.setContentsMargins(0, 0, 0, 0)
-        vertLayout.addWidget(self.moveTreeView)
-        vertLayout.addWidget(self.engineWidget)
+        self.vertLayout = QVBoxLayout(self)
+        self.vertLayout.setSpacing(0)
+        self.vertLayout.setContentsMargins(0, 0, 0, 0)
+        self.vertLayout.addWidget(self.moveTreeView)
+        self.vertLayout.addWidget(self.engineWidget)
         self.vertWidget = QWidget(self)
-        self.vertWidget.setLayout(vertLayout)
+        self.vertWidget.setLayout(self.vertLayout)
         horiLayout = QHBoxLayout(self)
         horiLayout.setSpacing(0)
         horiLayout.setContentsMargins(0, 0, 0, 0)
         horiLayout.addWidget(self.boardSceneView)
         horiLayout.addWidget(self.vertWidget)
         self.setLayout(horiLayout)
+
+    def editBoard(self):
+        pieces = []
+        for t in chess.PIECE_TYPES:
+            for c in chess.COLORS:
+                pieces.append(chess.Piece(t, c))
+        # TODO: implement
+        dimen = self.moveTreeView.geometry()
+        pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
+        self.moveTreeView.setVisible(False)

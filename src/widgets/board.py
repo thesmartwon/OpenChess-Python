@@ -1,11 +1,10 @@
-from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
-                             QGraphicsView, QMenu, QGraphicsItem,
-                             QSizePolicy)
+from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
+                          QPropertyAnimation, QByteArray,
+                          QParallelAnimationGroup)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
                          QBrush, QPen, QPolygonF)
-from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
-                          QPropertyAnimation, QByteArray, QSize,
-                          QParallelAnimationGroup)
+from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
+                             QGraphicsView, QMenu, QGraphicsItem)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
 import math
@@ -249,18 +248,20 @@ class BoardScene(QGraphicsScene):
                 opacity = 1.0 - i / length
                 arrow[0].setOpacity(opacity)
             else:
-                hero = not bool(i % 2 + self.game.turn - 1)
+                hero = constants.HERO == (not i % 2 + self.game.turn - 1)
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)
         assert len(self.effectItems) <= length
 
     def flipBoard(self):
+        # TODO: fix twitching on hover after flipping
         constants.HERO = not constants.HERO
         curArrows = [a for a in self.effectItems if a.type() ==
                      ArrowGraphicsItem.Type]
-        aniGroup = BoardAnimationGroup(self,
-                                       curArrows)
+        for a in curArrows:
+            a.changeHero()
+        aniGroup = BoardAnimationGroup(self, curArrows + self.squareWidgets)
         aniDuration = 250
         for sq in self.squareWidgets:
             prop = QByteArray(b'pos')
@@ -274,6 +275,7 @@ class BoardScene(QGraphicsScene):
         aniGroup.start()
 
     def toggleCoordinates(self):
+        # TODO: implement
         pass
 
     def pieceClicked(self, square):
@@ -368,11 +370,11 @@ class BoardSceneView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        flipAction = menu.addAction("Flip board")
-        flipAction.triggered.connect(self.scene().flipBoard)
         newGameAction = menu.addAction("New game")
         newGameAction.triggered.connect(self.parent().openGame.newGame)
-        action = menu.popup(self.mapToGlobal(event.pos()))
+        flipAction = menu.addAction("Flip board")
+        flipAction.triggered.connect(self.scene().flipBoard)
+        menu.popup(self.mapToGlobal(event.pos()))
 
     def resizeEvent(self, event):
         sceneWidth = min(event.size().width(), event.size().height())
@@ -396,17 +398,29 @@ class ArrowGraphicsItem(QGraphicsItem):
         self.destPoint = self.toSquare.pos() + \
             QPointF(self.squareWidth / 2, self.squareWidth / 2)
         self.arrowSize = float(userConfig.config['BOARD']['arrowSize'])
-        if hero:
+        self.hero = hero
+        if self.hero:
             col = QColor(userConfig.config['BOARD']['heroArrowColor'])
         else:
             col = QColor(userConfig.config['BOARD']['enemyArrowColor'])
+        self.createPallette(col)
+
+    def type(self):
+        return self.Type
+
+    def createPallette(self, col):
         self.brush = QBrush(col)
         self.pen = QPen(self.brush,
                         float(userConfig.config['BOARD']['arrowWidth']),
                         Qt.SolidLine, Qt.RoundCap, Qt.BevelJoin)
 
-    def type(self):
-        return self.Type
+    def changeHero(self):
+        if self.hero:
+            col = QColor(userConfig.config['BOARD']['enemyArrowColor'])
+        else:
+            col = QColor(userConfig.config['BOARD']['heroArrowColor'])
+        self.createPallette(col)
+        self.hero = not self.hero
 
     def adjust(self):
         self.prepareGeometryChange()
@@ -454,14 +468,14 @@ class ArrowGraphicsItem(QGraphicsItem):
 
 
 class BoardAnimationGroup(QParallelAnimationGroup):
-    def __init__(self, parent, adjustItems):
+    def __init__(self, parent, adjustAfterAnimationItems):
         super().__init__(parent)
-        self.adjustItems = adjustItems
+        self.adjustAfterAnimationItems = adjustAfterAnimationItems
 
     def updateCurrentTime(self, currentTime):
         super().updateCurrentTime(currentTime)
 
     def updateState(self, newState, oldState):
         if (newState == QParallelAnimationGroup.Stopped):
-            for i in self.adjustItems:
+            for i in self.adjustAfterAnimationItems:
                 i.adjust()

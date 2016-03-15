@@ -1,11 +1,7 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QMainWindow, QAction,
                              QApplication, QMessageBox,
-                             QDesktopWidget, QFrame,
-                             QSplitter, QPushButton,
-                             QWidget, QStyle, QHBoxLayout,
-                             QSizeGrip, QVBoxLayout,
-                             QSpacerItem, QSizePolicy)
+                             QDesktopWidget)
 import sys
 import userConfig
 import constants
@@ -25,19 +21,40 @@ class MainWindow(QMainWindow):
         self.show()
 
     def initUI(self):
-        # Menus
+        self.setWindowTitle('Open Chess')
+        # TODO: Add an application icon
+        # self.setWindowIcon(QIcon('web.png'))
+
+        # Widget
+        self.centralFrame = CentralFrame(self)
+        self.setCentralWidget(self.centralFrame)
+
+        # Menus (some dependent on widget)
+        menubar = self.menuBar()
+
+        fileMenu = menubar.addMenu('&File')
+        newGameAction = QAction(QIcon('new.png'), '&New Game', self)
+        newGameAction.setShortcut(userConfig.config['HOTKEYS']['newGame'])
+        newGameAction.setStatusTip('Start a new game')
+        newGameAction.triggered.connect(self.centralFrame.openGame.newGame)
         exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
 
-        menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(newGameAction)
         fileMenu.addAction(exitAction)
 
-        self.setWindowTitle('Open Chess')
-        # TODO: Add an application icon
-        # self.setWindowIcon(QIcon('web.png'))
+        boardMenu = menubar.addMenu('&Board')
+        editAction = QAction(QIcon('edit.png'), '&Setup a position', self)
+        editAction.setStatusTip('Change the current position')
+        editAction.triggered.connect(self.centralFrame.editBoard)
+        flipAction = QAction(QIcon('flip.png'), '&Flip', self)
+        flipAction.setStatusTip('Flip the current board')
+        flipAction.triggered.connect(self.centralFrame.boardScene.flipBoard)
+
+        boardMenu.addAction(flipAction)
+        boardMenu.addAction(editAction)
 
         # Geometry
         """This will make the window the correct aspect ratio"""
@@ -59,10 +76,6 @@ class MainWindow(QMainWindow):
         else:
             self.setGeometry(0, 0, idealWidth, idealHeight)
         print("window geometry is", self.geometry())
-
-        # Widget
-        self.centralFrame = CentralFrame(self)
-        self.setCentralWidget(self.centralFrame)
 
     def closeEvent(self, event):
         print('closing')

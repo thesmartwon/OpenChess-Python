@@ -2,8 +2,7 @@ from PyQt5.QtCore import QVariant, pyqtSignal, Qt, QRectF, QPointF, QPoint
 from PyQt5.QtGui import QBrush, QPen, QColor, QRadialGradient
 from PyQt5.QtSvg import QGraphicsSvgItem
 from PyQt5.QtWidgets import (QGraphicsWidget, QGraphicsRectItem,
-                             QGraphicsEllipseItem, QGraphicsItem,
-                             QGraphicsScene)
+                             QGraphicsEllipseItem, QGraphicsItem)
 import chess
 import userConfig
 import constants
@@ -41,6 +40,12 @@ class SquareWidget(QGraphicsWidget):
 
     def boundingRect(self):
         return QRectF(0, 0, self.geometry().width(), self.geometry().width())
+
+    def adjust(self):
+        print('im adjusted')
+        self.updateGeometry()
+        for c in self.children():
+            c.setPos(1, 1)
 
     def countItem(self, itemType):
         count = 0
@@ -147,6 +152,7 @@ class SquareWidget(QGraphicsWidget):
 
 
 class PieceItem(QGraphicsSvgItem):
+    """A Piece to be used in any graphics scene"""
     pieceClicked = pyqtSignal(int)
     pieceDragStarting = pyqtSignal(int)
     pieceDragHappening = pyqtSignal(QPointF)
@@ -186,7 +192,7 @@ class PieceItem(QGraphicsSvgItem):
         if event.button() == Qt.LeftButton:
             if self.isStartingDrag:
                 self.isStartingDrag = False
-                self.setPos(QPoint(0, 0))
+                self.setPos(0, 0)
                 self.pieceDragStopping.emit(self.square,
                                             QPointF(event.scenePos()))
 

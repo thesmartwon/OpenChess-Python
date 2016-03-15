@@ -52,6 +52,7 @@ class OpenGame():
         return False
 
     def newGame(self):
+        print('new game')
         self.board.reset()
         self.game.setup(self.board)
         self.engine.reset(True)
@@ -69,3 +70,8 @@ class OpenGame():
         self.engine.reset()
         self.moveTreeModel.eraseAfterPly(plyNumber)
         self.boardScene.reset()
+
+    def editBoard(self):
+        print('editing board')
+        self.board.reset()
+        self.board.clear_board()

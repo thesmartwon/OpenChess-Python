@@ -10,7 +10,6 @@ This is an cross-platform open-source Chess GUI written in python that can be us
 It is still in its very early stages of development, but the plan is that it would someday be a free alternative to programs like ChessBase.
 Keep it simple, fun, and like a video-game. Keep the board and the game of chess, not the features, to be the focus.
 
-## Feature Plans
 There are some problems that I have with current chess GUIs:
 - There's too much going on at every screen.
     - Less clutter will attract new chess players and encourage them to play chess more.
@@ -22,14 +21,17 @@ There are some problems that I have with current chess GUIs:
 - Lack of mobile support.
     - Basically only DroidFish exists right now. After PC release, all my attention will be turned to Android/Apple release.
 
-
-I want to make Open Chess the perfect companion for lichess.org.
-Besides various 'TODO's in the code, I am planning on eventually adding:
+## Roadmap
+I want to make Open Chess the perfect companion for lichess.org, and chess training in general.
+Base
+- (done) Pieces follow rules in a scene
+- (done) Movetree
+- (done) Engine analysis pane
 - Advantage over time graph
 - Endgame explorer (and some theory training)
 - Opening explorer (and some theory training)
 - Tactics puzzles (lots of mate in X)
-- Lesson plans for Beginner/Intermediate/Expert (I have this all planned out in a separate doc)
+- Lesson plans for Beginner/Intermediate/Expert (I have this planned in lessons.txt)
 - Statistics and stat tracking on nearly EVERYTHING. Personal profile page. Lots of graphs.
 - A page about how Stockfish works
 - Convenient game library with searching
@@ -38,7 +40,7 @@ Besides various 'TODO's in the code, I am planning on eventually adding:
 - Game commentating (drawing arrows, circles, and squares various for youtube videos/lessons)
 - Game annotating (some graphical buttons and icons for game annotators to make and view annotated pgns)
 
-Check back for more feature plans in the future!
+Check back to see the progress and more feature plans in the future!
 
 ## Deploying
 Eventually, I will be using pyqtdeploy and SIP. It will be a pain, but worth it.

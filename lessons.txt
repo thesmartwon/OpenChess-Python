@@ -1,0 +1,44 @@
+These plans are to be general. Each section should have an option to test all at once and to play games from positions like those found in their own games.
+Beginner
+1. Endgames
+    1. K + Q,R vs k
+    2. K + P,(N,B) vs k
+        1. Demonstrate need to promote
+    3. Simple rook and pawn
+    4. K + P + N,B vs k + p
+    5. K + P v k + n
+    6. 
+    7. Customized endgames
+2. Tactics
+    1. Mates in 1
+        1. Demonstrate pinned piece
+    2. Capture +5 or more in 2
+        1. Demonstrate fork and skewer
+    3. Mates in 2
+3. Openings
+    1. Theory
+        1. Explain how and why openings are so theory heavy
+    2. Top 10 openings on lichess (Advise specializing in one)
+    3. 
+
+Intermediate
+1. Endgames
+    1. K + B + N vs k
+    2. K + B + P vs k + p
+    3. K + B vs k + b on same color
+    4. K + B vs k + b on different color
+2. Tactics
+3. Middlegame
+    6. Transitioning to endgame
+        1. Demonstrate king position
+4. Openings
+    
+Expert
+1. Endgames
+    1. K + P,(N,B) vs k + (N,B)
+    2. K + R vs k + (N,B)
+    3. K + (N,B) + (N,B) vs k + r
+    4. K + Q vs k + r + r
+    5. K + Q vs k + r + (b,n)
+    6. K + (N,B,Q,R) vs k + p + p + p
+    7. 

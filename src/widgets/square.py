@@ -42,7 +42,6 @@ class SquareWidget(QGraphicsWidget):
         return QRectF(0, 0, self.geometry().width(), self.geometry().width())
 
     def adjust(self):
-        print('im adjusted')
         self.updateGeometry()
         for c in self.children():
             c.setPos(1, 1)
@@ -102,7 +101,8 @@ class SquareWidget(QGraphicsWidget):
 
     def addEffectItem(self, itemType):
         if self.countItem(itemType) > 0:
-            print('trying to add', itemType, 'when it already is there')
+            print('trying to add', itemType, '(', QGraphicsItem.UserType,
+                  ')when it already is there')
             return
         effectItem = self.createEffectItem(itemType)
         if effectItem is not None:
@@ -167,6 +167,7 @@ class PieceItem(QGraphicsSvgItem):
         self.square = -1
         self.isStartingDrag = False
         self.setAcceptHoverEvents(True)
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
     def mousePressEvent(self, event):
         if (event.button() == Qt.LeftButton):

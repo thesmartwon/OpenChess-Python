@@ -6,7 +6,6 @@ from game import OpenGame
 from widgets.movetree import MoveTreeView, MoveTreeModel
 from widgets.board import BoardScene, BoardSceneView
 from widgets.engine import EngineWidget
-from widgets.pieceselector import PieceSelectorScene, PieceSelectorView
 import chess
 
 
@@ -25,7 +24,7 @@ class CentralFrame(QFrame):
         self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
         self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
         self.engineWidget = EngineWidget(self)
-        self.openGame.setWeakRefs(self.boardScene, self.moveTreeModel,
+        self.openGame.setWeakRefs(self, self.boardScene, self.moveTreeModel,
                                   self.engineWidget)
         self.engineWidget.initEngine(self.openGame.board)
 

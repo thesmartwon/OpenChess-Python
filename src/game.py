@@ -1,3 +1,4 @@
+from PyQt5.QtWidgets import QMessageBox
 import chess
 from chess import pgn
 import constants
@@ -11,11 +12,13 @@ class OpenGame():
     """
     def __init__(self):
         self.game = pgn.Game()
-        self.board = self.game.board()
+        self.current = self.game.root()
+        self.board = self.game.root().board()
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
 
-    def setWeakRefs(self, boardScene, moveTreeModel, engine):
+    def setWeakRefs(self, centralFrame, boardScene, moveTreeModel, engine):
+        self.centralFrame = centralFrame
         self.moveTreeModel = moveTreeModel
         self.boardScene = boardScene
         self.engine = engine
@@ -23,7 +26,8 @@ class OpenGame():
     def doMove(self, move):
         """
         Updates the board state and notifies appropriate objects.
-        If the move is a promotion, this widget will ask for it.
+        If the move is a promotion, this widget will send a message
+        to the board to ask for it.
         :param move: a chess.Move without promotion
         :return: True if the move was able to be made, False
         otherwise
@@ -44,10 +48,27 @@ class OpenGame():
                                                self.board.fullmove_number,
                                                self.board.turn,
                                                self.board.san(move))
-            self.board.push(move)
-            self.engine.updateAfterMove(move)
-            self.boardScene.updatePositionAfterMove(move, castling,
-                                                    isEnPassant)
+            if self.current.is_end():
+                self.current.add_main_variation(move)
+            elif move not in [v.move for v in self.current.variations]:
+                response = QMessageBox.question(self.centralFrame,
+                                                'Add as varation',
+                                                'Add this as a variation?',
+                                                QMessageBox.Yes | QMessageBox.No)
+                if response == QMessageBox.Yes:
+                    self.current.add_variation(move)
+                else:
+                    mainVar = [m for m in self.current.variations if
+                               m.is_main_variation()]
+                    if mainVar:
+                        self.current.demote(mainVar[0])
+                    self.current.add_main_variation(move)
+            self.current = self.current.variation(move)
+            self.board = self.current.board()
+            constants.GAME_STATE = self.board
+            self.engine.updateAfterMove(self.board)
+            self.boardScene.updatePositionAfterMove(self.board,
+                                                    castling, isEnPassant)
             return True
         return False
 
@@ -55,9 +76,9 @@ class OpenGame():
         print('new game')
         self.board.reset()
         self.game.setup(self.board)
-        self.engine.reset(True)
-        self.moveTreeModel.reset()
-        self.boardScene.reset()
+        self.engine.reset(self.board, True)
+        self.moveTreeModel.reset(self.game)
+        self.boardScene.reset(self.board)
 
     def scrollToPly(self, plyNumber):
         curPly = self.board.fullmove_number * 2 + int(not self.board.turn) - 2
@@ -66,10 +87,11 @@ class OpenGame():
             return
         print('scrolling to', plyNumber)
         for i in range(curPly - plyNumber - 1):
-            self.board.pop()
-        self.engine.reset()
-        self.moveTreeModel.eraseAfterPly(plyNumber)
-        self.boardScene.reset()
+            self.current = self.current.parent
+        self.board = self.current.board()
+        self.engine.reset(self.board)
+        # self.moveTreeModel.eraseAfterPly(plyNumber)
+        self.boardScene.reset(self.board)
 
     def editBoard(self):
         print('editing board')

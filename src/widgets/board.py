@@ -25,7 +25,7 @@ class BoardScene(QGraphicsScene):
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.game = constants.GAME_STATE
+        self.board = constants.GAME_STATE
         self.squareWidgets = []
         self.squareWidth = 0
         curs = QPixmap(constants.RESOURCES_PATH + '/cursor.png')
@@ -52,8 +52,8 @@ class BoardScene(QGraphicsScene):
             newSquareWidget = SquareWidget(s, squareWidth)
             newSquareWidget.pieceReleased.connect(self.makeMoveTo)
             newSquareWidget.invalidDrop.connect(self.deselectSquares)
-            if self.game.piece_at(s) is not None:
-                piece = self.createPiece(self.game.piece_at(s))
+            if self.board.piece_at(s) is not None:
+                piece = self.createPiece(self.board.piece_at(s))
                 newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
@@ -79,7 +79,7 @@ class BoardScene(QGraphicsScene):
             self.selectedSquare = -1
             return
         # Add the valid move squares
-        for m in self.game.legal_moves:
+        for m in self.board.legal_moves:
             if m.from_square == self.selectedSquare:
                 self.squareWidgets[m.to_square].addEffectItem(
                     SquareWidget.ValidMove)
@@ -107,20 +107,20 @@ class BoardScene(QGraphicsScene):
         # Note that updating engine items is called
         # automatically by the engine widget, not here.
         for s in self.squareWidgets:
-            p = self.game.piece_at(s.square)
+            p = self.board.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
                 s.clearEffectItems()
                 s.addEffectItem(SquareWidget.LastMove)
-            elif (self.game.is_check() and p is not None and
+            elif (self.board.is_check() and p is not None and
                     p.piece_type == chess.KING and
-                    p.color == self.game.turn):
+                    p.color == self.board.turn):
                 s.addEffectItem(SquareWidget.CheckSquare)
             else:
                 s.clearEffectItems()
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def updatePositionAfterMove(self, move, castling, isEnPassant):
+    def updatePositionAfterMove(self, board, castling, isEnPassant):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
@@ -128,12 +128,14 @@ class BoardScene(QGraphicsScene):
         :param isEnPassant: whether the move that just occured was an ep
         :return: void
         """
+        self.board = board
+        move = board.move_stack[-1]
         if move.promotion is None:
             newPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
         else:
             newPieceItem = self.createPiece(chess.Piece(move.promotion,
-                                            not self.game.turn))
+                                            not self.board.turn))
             self.squareWidgets[move.from_square].removePiece(True)
 
         self.squareWidgets[move.to_square].removePiece()
@@ -155,7 +157,7 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
         elif isEnPassant:
             # remember we are updating after the move has occurred
-            if self.game.turn == chess.BLACK:
+            if self.board.turn == chess.BLACK:
                 self.squareWidgets[move.to_square - 8].removePiece()
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
@@ -206,19 +208,19 @@ class BoardScene(QGraphicsScene):
     def refreshPosition(self):
         """
         Clears all pieces and creates new pieces according to
-        self.game.
+        self.board.
         Also clears the selected square and adds check effects if in check.
         :return: Void
         """
         for s in self.squareWidgets:
             s.clearEffectItems()
             s.removePiece()
-            p = self.game.piece_at(s.square)
+            p = self.board.piece_at(s.square)
             if p is not None:
                 newPieceItem = self.createPiece(p)
                 s.addPiece(newPieceItem)
-        if self.game.is_check():
-            kingSet = self.game.pieces(chess.KING, self.game.turn)
+        if self.board.is_check():
+            kingSet = self.board.pieces(chess.KING, self.board.turn)
             assert len(kingSet) == 1
             kingSquare = self.squareWidgets[list(kingSet)[0]]
             kingSquare.addEffectItem(SquareWidget.CheckSquare)
@@ -248,7 +250,7 @@ class BoardScene(QGraphicsScene):
                 opacity = 1.0 - i / length
                 arrow[0].setOpacity(opacity)
             else:
-                hero = constants.HERO == (not i % 2 + self.game.turn - 1)
+                hero = constants.HERO == (not i % 2 + self.board.turn - 1)
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)
@@ -280,7 +282,7 @@ class BoardScene(QGraphicsScene):
 
     def pieceClicked(self, square):
         # This is a two-click capture move.
-        if (self.game.piece_at(square).color != self.game.turn):
+        if (self.board.piece_at(square).color != self.board.turn):
             if self.selectedSquare != -1:
                 self.makeMoveTo(square)
             return
@@ -344,7 +346,8 @@ class BoardScene(QGraphicsScene):
             SquareWidget.Selected)
         self.selectedSquare = -1
 
-    def reset(self):
+    def reset(self, newBoard):
+        self.board = newBoard
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.selectedSquare = -1

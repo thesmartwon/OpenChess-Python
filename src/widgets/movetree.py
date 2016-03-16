@@ -58,10 +58,10 @@ class MoveTreeModel(QStandardItemModel):
     def updateAfterMove(self, move, fullMoveNum, turn, moveSan):
         newItem = MoveTreeItem(fullMoveNum * 2 + int(not turn) - 2)
         newItem.setText(moveSan)
-        print('setting', fullMoveNum - 1, ',', int(not turn))
         self.setItem(fullMoveNum - 1, int(not turn), newItem)
 
-    def reset(self):
+    def reset(self, newGame):
+        # TODO: implement
         self.clear()
         self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
                                         strings.COLOR_SECOND])

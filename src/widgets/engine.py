@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
                              QHBoxLayout)
 from PyQt5.QtGui import QFontMetrics
@@ -6,10 +6,10 @@ import chess.uci
 import constants
 import userConfig
 import platform
-# TODO: isready everything. need a new board for the board state
-# also, subclassing infohandler is much better than timer loop.
 
 
+# Note that no assumptions can really be maade about the engine
+# state thanks to isready() being essential and ASYNCRONOUS
 class EngineWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -19,13 +19,11 @@ class EngineWidget(QWidget):
         self.lastlongestPV = []
         self.initUI()
 
-        self.startTimer(250)
-
     def initUI(self):
         self.pvLabel = PVLabel(self)
         self.scoreLabel = ScoreLabel(self)
         self.depthLabel = DepthLabel(self)
-        self.analyzeButton = AnalyzeButton(self, self.updateAnalyze)
+        self.analyzeButton = AnalyzeButton(self, self.doEngineActions)
 
         horiLayout = QHBoxLayout()
         horiLayout.setSpacing(0)
@@ -44,42 +42,48 @@ class EngineWidget(QWidget):
         print(constants.ENGINES_PATH + '/' + engPath)
         self.engine = chess.uci.popen_engine(constants.ENGINES_PATH + '/' +
                                              engPath)
-        self.infoHandler = chess.uci.InfoHandler()
+        self.infoHandler = EngineInfoHandler(self)
+        self.infoHandler.newInfo.connect(self.newInfoRecieved)
         self.engine.info_handlers.append(self.infoHandler)
         self.board = board
-        self.engine.position(board)
         self.engine.uci()
-        self.engine.isready()
+        self.engine.isready(self.syncEnginePosition)
 
-    def goInfinite(self, stuff):
+    def goInfinite(self, stuff=None):
         print('engine infinite thinking')
         self.command = self.engine.go(infinite=True, async_callback=True)
 
-    def syncEngine(self):
-        self.engine.stop()
-        self.engine.position(self.board)
-        self.command = None
-
-    def updateAnalyze(self):
+    def doEngineActions(self):
+        assert self.command is None
         if self.analyzeButton.isChecked():
             self.engine.isready(self.goInfinite)
-        else:
-            self.engine.stop()
+        # TODO: Add timed engine
 
-    def updateAfterMove(self, move):
+    def stopEngine(self, stuff=None):
+        print('engine stopping')
+        self.engine.stop()
+
+    def syncEnginePosition(self, newGame=False):
+        self.stopEngine()
+        print('engine syncing position', self.board.fen())
+        self.engine.isready()
+        if newGame:
+            self.engine.ucinewgame()
+        else:
+            self.engine.position(self.board)
+        self.command = None
+
+    def updateAfterMove(self, board):
+        self.board = board
+        move = board.move_stack[-1]
         if self.longestPV and move == self.longestPV[0]:
             self.longestPV = self.longestPV[1:]
         else:
             self.longestPV = []
-        self.syncEngine()
-        self.updateAnalyze()
+        self.syncEnginePosition()
+        self.doEngineActions()
         self.updateText()
         self.updateBoard()
-
-    def updateBoard(self):
-        if self.longestPV != self.lastlongestPV:
-            boardScene = self.parent().parent().boardScene
-            boardScene.updateEngineItems(self.longestPV)
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:
@@ -117,7 +121,6 @@ class EngineWidget(QWidget):
 
             if 1 in self.infoHandler.info['pv']:
                 pvTxt = self.createPVText(self.infoHandler.info['pv'], stale)
-
             if not stale and 'depth' in self.infoHandler.info.keys():
                 depthTxt = str(self.infoHandler.info['depth'])
 
@@ -125,33 +128,51 @@ class EngineWidget(QWidget):
         self.pvLabel.setText(pvTxt)
         self.depthLabel.setText(depthTxt)
 
-    def timerEvent(self, event):
-        if self.analyzeButton.isChecked():
-            with self.infoHandler:
-                pvInfo = self.infoHandler.info['pv']
-                if 1 in pvInfo:
-                    if (not self.longestPV or pvInfo[1][0] != self.longestPV[0]):
-                        self.longestPV = self.infoHandler.info['pv'][1]
-                    elif len(pvInfo[1]) > len(self.longestPV):
-                        self.longestPV = self.infoHandler.info['pv'][1]
+    def updateBoard(self):
+        if self.longestPV != self.lastlongestPV:
+            boardScene = self.parent().parent().boardScene
+            boardScene.updateEngineItems(self.longestPV)
+
+    def newInfoRecieved(self):
+        with self.infoHandler:
+            pvInfo = self.infoHandler.info['pv']
+            if 1 in pvInfo:
+                if (not self.longestPV or pvInfo[1][0] != self.longestPV[0]):
+                    self.longestPV = pvInfo[1]
+                elif len(pvInfo[1]) > len(self.longestPV):
+                    self.longestPV = pvInfo[1]
+        if (self.longestPV != self.lastlongestPV and
+                self.analyzeButton.isChecked()):
+            self.updateText()
+            self.updateBoard()
+            self.lastlongestPV = list(self.longestPV)
+
+    def reset(self, newBoard, turnOffEngine=False):
+        self.board = newBoard
+        self.syncEnginePosition(turnOffEngine)
+        if turnOffEngine:
+            self.analyzeButton.setChecked(False)
+        else:
+            self.doEngineActions()
+        self.longestPV = []
+        self.lastlongestPV = []
         self.updateText()
-        self.updateBoard()
-        self.lastlongestPV = self.longestPV
 
     def destroyEvent(self):
         print('closing engine')
         self.engine.quit()
 
-    def reset(self, turnOffEngine=False):
-        self.engine.ucinewgame()
-        if turnOffEngine:
-            self.analyzeButton.setChecked(False)
-        else:
-            self.updateAnalyze()
-        self.longestPV = []
-        self.lastlongestPV = []
-        self.syncEngine()
-        self.updateText()
+
+class EngineInfoHandler(QObject, chess.uci.InfoHandler):
+    newInfo = pyqtSignal()
+
+    def __init__(self, parent):
+        super(chess.uci.InfoHandler, self).__init__()
+        super(QObject, self).__init__(parent)
+
+    def post_info(self):
+        super().post_info()
+        self.newInfo.emit()
 
 
 class ScoreLabel(QLabel):
@@ -171,7 +192,9 @@ class PVLabel(QLabel):
         super().__init__(parent)
         pvMet = QFontMetrics(self.font())
         pvLineHeight = pvMet.height()
+        self.setMaximumHeight(pvLineHeight * 12)
         self.setMinimumHeight(pvLineHeight * 12)
+        self.setMaximumWidth(self.width())
         self.setWordWrap(True)
 
 

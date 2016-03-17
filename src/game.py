@@ -32,8 +32,11 @@ class OpenGame():
         :return: True if the move was able to be made, False
         otherwise
         """
-        if (self.board.piece_at(move.from_square).piece_type == chess.PAWN and
-                chess.rank_index(move.to_square) in [0, 7]):
+        myPossibleMoves = [m for m in self.board.legal_moves
+                           if m.from_square == move.from_square and
+                           m.to_square == move.to_square]
+        move = myPossibleMoves[0]
+        if move.promotion:
             # TODO: ask for a real promotion piece
             move.promotion = chess.QUEEN
         assert(move in self.board.legal_moves)

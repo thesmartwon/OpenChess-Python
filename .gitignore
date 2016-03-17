@@ -26,6 +26,7 @@ __pycache__/
 *.app
 
 # Debug/Release folders
+pyqtdeploy/
 build/
 bin/
 Debug/

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QDialog
 import chess
 from chess import pgn
 import constants
@@ -36,17 +36,12 @@ class OpenGame():
                            if m.from_square == move.from_square and
                            m.to_square == move.to_square]
         move = myPossibleMoves[0]
-        if move.promotion:
+        if move.promotion is not None:
             # TODO: ask for a real promotion piece
+            print('promoting to queen')
             move.promotion = chess.QUEEN
         assert(move in self.board.legal_moves)
         if move in self.board.legal_moves:
-            isEnPassant = self.board.is_en_passant(move)
-            castling = 0
-            if self.board.is_queenside_castling(move):
-                castling = 1
-            elif self.board.is_kingside_castling(move):
-                castling = 2
             self.moveTreeModel.updateAfterMove(move,
                                                self.board.fullmove_number,
                                                self.board.turn,
@@ -54,11 +49,8 @@ class OpenGame():
             if self.current.is_end():
                 self.current.add_main_variation(move)
             elif move not in [v.move for v in self.current.variations]:
-                response = QMessageBox.question(self.centralFrame,
-                                                'Add as varation',
-                                                'Add this as a variation?',
-                                                QMessageBox.Yes | QMessageBox.No)
-                if response == QMessageBox.Yes:
+                response = VariationDialog(self.centralFrame)
+                if response:
                     self.current.add_variation(move)
                 else:
                     mainVar = [m for m in self.current.variations if
@@ -69,9 +61,8 @@ class OpenGame():
             self.current = self.current.variation(move)
             self.board = self.current.board()
             constants.GAME_STATE = self.board
+            self.boardScene.updatePositionAfterMove(self.board)
             self.engine.updateAfterMove(self.board)
-            self.boardScene.updatePositionAfterMove(self.board,
-                                                    castling, isEnPassant)
             return True
         return False
 
@@ -100,3 +91,9 @@ class OpenGame():
         print('editing board')
         self.board.reset()
         self.board.clear_board()
+
+
+class VariationDialog(QDialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setText('')

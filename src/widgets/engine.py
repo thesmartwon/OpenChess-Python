@@ -54,14 +54,17 @@ class EngineWidget(QWidget):
         self.command = self.engine.go(infinite=True, async_callback=True)
 
     def doEngineActions(self):
-        assert self.command is None
         if self.analyzeButton.isChecked():
+            assert self.command is None
             self.engine.isready(self.goInfinite)
+        else:
+            self.stopEngine()
         # TODO: Add timed engine
 
     def stopEngine(self, stuff=None):
         print('engine stopping')
         self.engine.stop()
+        self.command = None
 
     def syncEnginePosition(self, newGame=False):
         self.stopEngine()
@@ -71,7 +74,6 @@ class EngineWidget(QWidget):
             self.engine.ucinewgame()
         else:
             self.engine.position(self.board)
-        self.command = None
 
     def updateAfterMove(self, board):
         self.board = board

@@ -120,7 +120,7 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def updatePositionAfterMove(self, board, castling, isEnPassant):
+    def updatePositionAfterMove(self, board):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
@@ -129,39 +129,38 @@ class BoardScene(QGraphicsScene):
         :return: void
         """
         self.board = board
-        move = board.move_stack[-1]
+        move = board.pop()
         if move.promotion is None:
-            newPieceItem = self.squareWidgets[move.from_square].pieceItem
+            fromPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
         else:
-            newPieceItem = self.createPiece(chess.Piece(move.promotion,
+            fromPieceItem = self.createPiece(chess.Piece(move.promotion,
                                             not self.board.turn))
             self.squareWidgets[move.from_square].removePiece(True)
-
-        self.squareWidgets[move.to_square].removePiece()
-        self.squareWidgets[move.to_square].addPiece(newPieceItem)
-        # TODO: support king takes rook castling
-        # I'm going to stay consistent with python.chess's
-        # implementation of castling.
-        # Oddly enough, it 'e1g1' or 'e1c1'.
-
-        if castling == 1:
-            fromWid = self.squareWidgets[move.to_square - 2]
-            newPieceItem = fromWid.pieceItem
-            fromWid.removePiece()
-            self.squareWidgets[move.to_square + 1].addPiece(newPieceItem)
-        elif castling == 2:
-            fromWidg = self.squareWidgets[move.to_square + 1]
-            newPieceItem = fromWidg.pieceItem
-            fromWidg.removePiece()
-            self.squareWidgets[move.to_square - 1].addPiece(newPieceItem)
-        elif isEnPassant:
+        if self.board.is_queenside_castling(move):
+            # Fix rook, move.to_square is the rook square
+            rookWid = self.squareWidgets[move.to_square]
+            newPieceItem = rookWid.pieceItem
+            rookWid.removePiece()
+            self.squareWidgets[move.to_square + 3].addPiece(newPieceItem)
+            move.to_square = move.from_square - 2
+        elif self.board.is_kingside_castling(move):
+            # Fix rook
+            rookWidg = self.squareWidgets[move.to_square]
+            newPieceItem = rookWidg.pieceItem
+            rookWidg.removePiece()
+            self.squareWidgets[move.to_square - 2].addPiece(newPieceItem)
+            move.to_square = move.from_square + 2
+        elif self.board.is_en_passant(move):
             # remember we are updating after the move has occurred
             if self.board.turn == chess.BLACK:
                 self.squareWidgets[move.to_square - 8].removePiece()
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
 
+        self.squareWidgets[move.to_square].removePiece()
+        self.squareWidgets[move.to_square].addPiece(fromPieceItem)
+        self.board.push(move)
         self.updateSquareEffectsAfterMove(move)
 
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
@@ -246,11 +245,12 @@ class BoardScene(QGraphicsScene):
         # Add new arrows, or modify existing ones
         for i, m in enumerate(moveList):
             arrow = [a for a in curArrows if a.move == m]
-            if len(arrow) > 0:
+            if arrow:
                 opacity = 1.0 - i / length
                 arrow[0].setOpacity(opacity)
             else:
-                hero = constants.HERO == (not i % 2 + self.board.turn - 1)
+                print(m, 'arrow', i, self.board.turn)
+                hero = constants.HERO == (i+self.board.turn) % 2
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)

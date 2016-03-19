@@ -28,28 +28,27 @@ class OpenGame():
         Updates the board state and notifies appropriate objects.
         If the move is a promotion, this widget will send a message
         to the board to ask for it.
-        :param move: a chess.Move without promotion
-        :return: True if the move was able to be made, False
+        If the move overwrites the current main line, this widget
+        will ask for the default option.
+        :param move: A chess.Move without promotion
+        :return: True if the move was able to be made, False otherwise
         otherwise
         """
         myPossibleMoves = [m for m in self.board.legal_moves
                            if m.from_square == move.from_square and
                            m.to_square == move.to_square]
         move = myPossibleMoves[0]
+        assert move
         if move.promotion is not None:
             # TODO: ask for a real promotion piece
             print('promoting to queen')
             move.promotion = chess.QUEEN
         assert(move in self.board.legal_moves)
         if move in self.board.legal_moves:
-            self.moveTreeModel.updateAfterMove(move,
-                                               self.board.fullmove_number,
-                                               self.board.turn,
-                                               self.board.san(move))
             if self.current.is_end():
                 self.current.add_main_variation(move)
             elif move not in [v.move for v in self.current.variations]:
-                response = VariationDialog(self.centralFrame)
+                response = True # VariationDialog(self.centralFrame)
                 if response:
                     self.current.add_variation(move)
                 else:
@@ -61,6 +60,7 @@ class OpenGame():
             self.current = self.current.variation(move)
             self.board = self.current.board()
             constants.GAME_STATE = self.board
+            self.moveTreeModel.updateAfterMove(self.current)
             self.boardScene.updatePositionAfterMove(self.board)
             self.engine.updateAfterMove(self.board)
             return True

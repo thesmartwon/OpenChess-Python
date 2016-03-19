@@ -21,8 +21,6 @@ class BoardScene(QGraphicsScene):
     Sends moves up to the gameCopy given, which must
     be a chess.Board
     """
-    # Can go up to +20
-
     def __init__(self, parent):
         super().__init__(parent)
         self.board = constants.GAME_STATE
@@ -249,7 +247,6 @@ class BoardScene(QGraphicsScene):
                 opacity = 1.0 - i / length
                 arrow[0].setOpacity(opacity)
             else:
-                print(m, 'arrow', i, self.board.turn)
                 hero = constants.HERO == (i+self.board.turn) % 2
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,

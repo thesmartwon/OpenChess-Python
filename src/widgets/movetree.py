@@ -55,7 +55,22 @@ class MoveTreeModel(QStandardItemModel):
         self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
                                         strings.COLOR_SECOND])
 
-    def updateAfterMove(self, move, fullMoveNum, turn, moveSan):
+    def addMoveText(self, node):
+        if node.parent.is_main_line(node.move):
+            
+        for v in node.variations:
+            self.addMoveText(v)
+
+    def updateAfterMove(self, newGameNode):
+        self.addMoveText(newGameNode.root())
+        # cur = newGameNode.root()
+        # while cur.variations:
+
+        move = newGameNode.move
+        fullMoveNum = newGameNode.parent.board().fullmove_number
+        turn = newGameNode.parent.board().turn
+        moveSan = newGameNode.parent.board().san(move)
+
         newItem = MoveTreeItem(fullMoveNum * 2 + int(not turn) - 2)
         newItem.setText(moveSan)
         self.setItem(fullMoveNum - 1, int(not turn), newItem)

@@ -55,6 +55,7 @@ class BoardScene(QGraphicsScene):
                 newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
+        self.setSceneRect(QRectF(0, 0, squareWidth * 8, squareWidth * 8))
 
     # Helper methods
     def makeMoveTo(self, toSquare, fromSquare=None):

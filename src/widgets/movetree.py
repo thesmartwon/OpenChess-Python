@@ -1,11 +1,11 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPalette,
-                         QFontMetrics)
-from PyQt5.QtWidgets import QTableView, QMenu
+from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtGui import (QGraphicsView, QGraphicsScene, QPalette,
+                         QFontMetrics, QGraphicsItem)
+from PyQt5.QtWidgets import QMenu
 import strings
 
 
-class MoveTreeView(QTableView):
+class MoveTreeView(QGraphicsView):
     def __init__(self, parent, model):
         super().__init__(parent)
         self.setModel(model)
@@ -17,12 +17,13 @@ class MoveTreeView(QTableView):
         self.setAutoFillBackground(True)
         self.setPalette(pal)
         met = QFontMetrics(self.font())
-        maxFile = max([met.width(c) for c in strings.FILE_NAMES])
-        maxRank = max([met.width(c) for c in strings.RANK_NAMES])
-        maxPiece = max([met.width(c) for c in strings.PIECE_SYMBOLS])
-        maxEnd = max([met.width(c) for c in ['+', '#']])
-        maxTake = met.width('x')
-        maxColWidth = maxPiece + maxRank * 2 + maxFile * 2 + maxTake + maxEnd
+        maxFileWidth = max([met.width(c) for c in strings.FILE_NAMES])
+        maxRankWidth = max([met.width(c) for c in strings.RANK_NAMES])
+        maxPieceWidth = max([met.width(c) for c in strings.PIECE_SYMBOLS])
+        maxEndWidth = max([met.width(c) for c in ['+', '#']])
+        maxTakeWidth = met.width('x')
+        maxColWidth = maxPieceWidth + maxRankWidth * 2 + maxFileWidth * 2 +\
+            maxTakeWidth + maxEndWidth
         self.vScrollBarWidth = 17
         self.setMinimumWidth(maxColWidth * 2 + 17)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -47,46 +48,19 @@ class MoveTreeView(QTableView):
             action = menu.popup(self.mapToGlobal(point))
 
 
-class MoveTreeModel(QStandardItemModel):
-    moveItemClicked = pyqtSignal(int)
-
+class MoveTreeScene(QGraphicsScene):
     def __init__(self):
         super().__init__()
-        self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
-                                        strings.COLOR_SECOND])
+        self.moveItems = []
 
-    def addMoveText(self, node):
-        if node.parent.is_main_line(node.move):
-            
-        for v in node.variations:
-            self.addMoveText(v)
-
-    def updateAfterMove(self, newGameNode):
-        self.addMoveText(newGameNode.root())
-        # cur = newGameNode.root()
-        # while cur.variations:
-
-        move = newGameNode.move
-        fullMoveNum = newGameNode.parent.board().fullmove_number
-        turn = newGameNode.parent.board().turn
-        moveSan = newGameNode.parent.board().san(move)
-
-        newItem = MoveTreeItem(fullMoveNum * 2 + int(not turn) - 2)
-        newItem.setText(moveSan)
-        self.setItem(fullMoveNum - 1, int(not turn), newItem)
+    def updateAfterMove(self, gameNode):
+        # TODO: implement positioning and going through tree
+        turn = gameNode.parent.board().turn
+        pass
 
     def reset(self, newGame):
         # TODO: implement
-        self.clear()
-        self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
-                                        strings.COLOR_SECOND])
-
-    def eraseAfterPly(self, plyNumber):
-        rowNumber = int(plyNumber / 2) + 1
-        numToErase = self.rowCount() - int(plyNumber / 2) - 1
-        self.removeRows(rowNumber, numToErase)
-        if plyNumber % 2 == 0:
-            self.setItem(int(plyNumber) / 2, 1, QStandardItem())
+        pass
 
     def itemClicked(self, current):
         if current.isValid():
@@ -96,10 +70,34 @@ class MoveTreeModel(QStandardItemModel):
                 self.moveItemClicked.emit(moveItem.plyNumber)
 
 
-class MoveTreeItem(QStandardItem):
-    def __init__(self, plyNumber):
+class MoveTreeItem(QGraphicsItem):
+    """
+    Creates the text associated with a move
+    from a game state. The gameNode must have
+    a parent (ie don't sent the root node).
+    """
+    Type = QGraphicsItem.UserType + 11
+
+    def __init__(self, gameNode, width):
         super().__init__()
-        self.plyNumber = plyNumber
+        fullMoveNum = gameNode.parent.board().fullmove_number
+        turn = gameNode.parent.board().turn
+        moveSan = gameNode.parent.board().san(gameNode.move)
+        if turn:
+            self.moveText = str(fullMoveNum)
+        else:
+            self.moveText = ''
+        self.moveText += ' ' + moveSan
+        self.width = width
 
     def clicked(self, event):
-        print('yea')
+        print('item', str(self), 'clicked')
+
+    def type(self):
+        return self.Type
+
+    def boundingRect(self):
+        return QRectF(0, 0, self.width, self.width)
+
+    def paint(self, painter, option, widget):
+        pass

@@ -31,7 +31,7 @@ class OpenGame():
         If the move overwrites the current main line, this widget
         will ask for the default option.
         :param move: A chess.Move without promotion
-        :return: True if the move was able to be made, False otherwise
+        :return: True if the move was able to be made, False
         otherwise
         """
         myPossibleMoves = [m for m in self.board.legal_moves

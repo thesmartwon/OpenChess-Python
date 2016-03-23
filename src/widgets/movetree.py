@@ -1,7 +1,8 @@
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtCore import Qt, QRectF, pyqtSignal
 from PyQt5.QtGui import (QGraphicsView, QGraphicsScene, QPalette,
                          QFontMetrics, QGraphicsItem)
 from PyQt5.QtWidgets import QMenu
+from chess import pgn
 import strings
 
 
@@ -49,6 +50,8 @@ class MoveTreeView(QGraphicsView):
 
 
 class MoveTreeScene(QGraphicsScene):
+    scrollToMove = pyqtSignal(pgn.GameNode)
+
     def __init__(self):
         super().__init__()
         self.moveItems = []
@@ -59,15 +62,8 @@ class MoveTreeScene(QGraphicsScene):
         pass
 
     def reset(self, newGame):
-        # TODO: implement
-        pass
-
-    def itemClicked(self, current):
-        if current.isValid():
-            moveItem = self.itemFromIndex(current)
-            # current.model().itemFromIndex(current)
-            if type(moveItem) == MoveTreeItem:
-                self.moveItemClicked.emit(moveItem.plyNumber)
+        self.clear()
+        self.updateAfterMove(newGame.root())
 
 
 class MoveTreeItem(QGraphicsItem):
@@ -88,9 +84,11 @@ class MoveTreeItem(QGraphicsItem):
         else:
             self.moveText = ''
         self.moveText += ' ' + moveSan
+        self.gameNode = gameNode
         self.width = width
 
     def clicked(self, event):
+        self.parent().scrollToMove.emit(self.gameNode)
         print('item', str(self), 'clicked')
 
     def type(self):
@@ -100,4 +98,6 @@ class MoveTreeItem(QGraphicsItem):
         return QRectF(0, 0, self.width, self.width)
 
     def paint(self, painter, option, widget):
+        painter.setBrush()
+        painter.drawRect(0, 0, self.width, self.width)
         pass

@@ -58,7 +58,7 @@ class BoardScene(QGraphicsScene):
         self.setSceneRect(QRectF(0, 0, squareWidth * 8, squareWidth * 8))
 
     # Helper methods
-    def makeMoveTo(self, toSquare, fromSquare=None):
+    def sendMove(self, toSquare, fromSquare=None):
         """
         Passes the move to the parent. Then updates the board graphics.
         Does not validate move, although it should be valid.
@@ -282,7 +282,7 @@ class BoardScene(QGraphicsScene):
         # This is a two-click capture move.
         if (self.board.piece_at(square).color != self.board.turn):
             if self.selectedSquare != -1:
-                self.makeMoveTo(square)
+                self.sendMove(square)
             return
         lastSelection = self.selectedSquare
         # Clicking on a new or old piece deselects the previous squares
@@ -328,7 +328,7 @@ class BoardScene(QGraphicsScene):
             print("attempt", chess.Move(square, toWidget.square))
             self.dragPieceAhead.setCursor(Qt.ArrowCursor)
             self.dragPieceAhead = None
-            self.makeMoveTo(toWidget.square, square)
+            self.sendMove(toWidget.square, square)
         else:
             self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
             self.dragPieceAhead = None

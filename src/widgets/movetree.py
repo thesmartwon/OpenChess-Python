@@ -1,22 +1,22 @@
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal
-from PyQt5.QtGui import (QGraphicsView, QGraphicsScene, QPalette,
-                         QFontMetrics, QGraphicsItem)
-from PyQt5.QtWidgets import QMenu
+from PyQt5.QtGui import (QPalette, QFontMetrics, QBrush, QColor)
+from PyQt5.QtWidgets import QWidget, QMenu, QScrollArea
 from chess import pgn
 import strings
+import userConfig
+import constants
 
 
-class MoveTreeView(QGraphicsView):
+class MoveTree(QScrollArea):
     def __init__(self, parent, model):
         super().__init__(parent)
-        self.setModel(model)
         self.initUI()
 
     def initUI(self):
         pal = QPalette(self.palette())
         pal.setColor(QPalette.Background, Qt.red)
-        self.setAutoFillBackground(True)
         self.setPalette(pal)
+        self.setAutoFillBackground(True)
         met = QFontMetrics(self.font())
         maxFileWidth = max([met.width(c) for c in strings.FILE_NAMES])
         maxRankWidth = max([met.width(c) for c in strings.RANK_NAMES])
@@ -29,7 +29,7 @@ class MoveTreeView(QGraphicsView):
         self.setMinimumWidth(maxColWidth * 2 + 17)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.displayContextMenu)
+        # self.customContextMenuRequested.connect(self.displayContextMenu)
 
     def resizeEvent(self, event):
         if self.verticalScrollBar().isVisible():
@@ -39,65 +39,90 @@ class MoveTreeView(QGraphicsView):
         self.setColumnWidth(0, int(self.width() / 2 - extra))
         self.setColumnWidth(1, int(self.width() / 2 - extra))
 
-    def displayContextMenu(self, point):
-        index = self.indexAt(point)
-        if index.isValid():
-            # self.model().itemFromIndex(index)
-            menu = QMenu(self)
-            flipAction = menu.addAction("Flip board")
-            newGameAction = menu.addAction("New game")
-            action = menu.popup(self.mapToGlobal(point))
-
-
-class MoveTreeScene(QGraphicsScene):
-    scrollToMove = pyqtSignal(pgn.GameNode)
-
-    def __init__(self):
-        super().__init__()
-        self.moveItems = []
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        flipAction = menu.addAction("scrollarea1")
+        newGameAction = menu.addAction("scrollarea2")
+        action = menu.popup(event.globalPos())
 
     def updateAfterMove(self, gameNode):
-        # TODO: implement positioning and going through tree
-        turn = gameNode.parent.board().turn
-        pass
+        # TODO: implement just tweaking parts of tree that changed
+        for v in gameNode.variations:
+            if v.is_main_line():
+                turn = gameNode.parent.board().turn
+                if turn:
+                    fullMoveNum = self.gameNode.parent.board().fullmove_number
+                    HeaderWidget(self, str(fullMoveNum))
+                MoveWidget(self, v)
+                if not v.is_end():
+                    self.updateAfterMove(v)
+            else:
+                VariationWidget(self, v)
 
     def reset(self, newGame):
-        self.clear()
+        for c in self.children():
+            c.close()
         self.updateAfterMove(newGame.root())
 
 
-class MoveTreeItem(QGraphicsItem):
+
+class HeaderWidget(QWidget):
     """
-    Creates the text associated with a move
+    The move number or opening title.
+    """
+    def __init__(self, parent, text, boldText=''):
+        super().__init__(parent)
+        self.text = text
+        self.boldText = boldText
+        col = QColor(userConfig.config['MOVETREE']['moveheadercolor'])
+        self.setBrush(QBrush(col))
+
+    def paint(self, painter, option, widget):
+        painter.setBrush(self.brush())
+        painter.drawRect(0, 0, self.width(), self.height())
+        met = QFontMetrics(self.font())
+        x = (self.width() - met.width(self.text)) / 2.0
+        y = (self.height() - met.height(self.text)) / 2.0
+        painter.drawText()
+
+
+class MoveWidget(QWidget):
+    """
+    The text associated with a move
     from a game state. The gameNode must have
     a parent (ie don't sent the root node).
     """
-    Type = QGraphicsItem.UserType + 11
-
-    def __init__(self, gameNode, width):
-        super().__init__()
-        fullMoveNum = gameNode.parent.board().fullmove_number
-        turn = gameNode.parent.board().turn
-        moveSan = gameNode.parent.board().san(gameNode.move)
-        if turn:
-            self.moveText = str(fullMoveNum)
-        else:
-            self.moveText = ''
-        self.moveText += ' ' + moveSan
+    def __init__(self, parent, gameNode):
+        super().__init__(parent)
         self.gameNode = gameNode
-        self.width = width
+        col = QColor(userConfig.config['MOVETREE']['movetilecolor'])
+        self.setBrush(QBrush(col))
+        self.setHoverEnabled(True)
 
     def clicked(self, event):
         self.parent().scrollToMove.emit(self.gameNode)
         print('item', str(self), 'clicked')
 
-    def type(self):
-        return self.Type
-
-    def boundingRect(self):
-        return QRectF(0, 0, self.width, self.width)
-
     def paint(self, painter, option, widget):
-        painter.setBrush()
-        painter.drawRect(0, 0, self.width, self.width)
-        pass
+        moveText = self.gameNode.parent.board().san(self.gameNode.move)
+        painter.setBrush(self.brush())
+        painter.drawRect(0, 0, self.width(), self.height())
+        x = constants.MOVE_ITEM_PADDING
+        y = int((self.height() - self.font().pointSize()) / 2.0)
+        painter.drawText(x, y, moveText)
+
+    def displayContextMenu(self, point):
+        menu = QMenu(self)
+        menu.addAction("Dummy1")
+        menu.addAction("Dummy2")
+        menu.popup(self.mapToGlobal(point))
+
+    def hoverEnterEvent(self, event):
+        self.setCursor(Qt.PointingHandCursor)
+
+    def hoverLeaveEvent(self, event):
+        self.setCursor(Qt.ArrowCursor)
+
+class VariationWidget(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)

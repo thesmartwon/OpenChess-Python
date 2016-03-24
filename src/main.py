@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         boardMenu = menubar.addMenu('&Board')
         editAction = QAction(QIcon('edit.png'), '&Setup a position', self)
         editAction.setStatusTip('Change the current position')
-        editAction.triggered.connect(self.centralFrame.editBoard)
+        editAction.triggered.connect(self.centralFrame.boardScene.editBoard)
         flipAction = QAction(QIcon('flip.png'), '&Flip', self)
         flipAction.setStatusTip('Flip the current board')
         flipAction.triggered.connect(self.centralFrame.boardScene.flipBoard)

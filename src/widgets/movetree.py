@@ -1,20 +1,20 @@
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal
 from PyQt5.QtGui import (QPalette, QFontMetrics, QBrush, QColor)
-from PyQt5.QtWidgets import QWidget, QMenu, QScrollArea
-from chess import pgn
+from PyQt5.QtWidgets import QWidget, QMenu, QScrollArea, QLabel, QGridLayout
 import strings
 import userConfig
 import constants
 
 
-class MoveTree(QScrollArea):
-    def __init__(self, parent, model):
+class MoveTreeWidget(QScrollArea):
+    def __init__(self, parent, gameRoot):
         super().__init__(parent)
+        self.gameRoot = gameRoot
         self.initUI()
 
     def initUI(self):
         pal = QPalette(self.palette())
-        pal.setColor(QPalette.Background, Qt.red)
+        pal.setColor(QPalette.Background, Qt.blue)
         self.setPalette(pal)
         self.setAutoFillBackground(True)
         met = QFontMetrics(self.font())
@@ -28,16 +28,15 @@ class MoveTree(QScrollArea):
         self.vScrollBarWidth = 17
         self.setMinimumWidth(maxColWidth * 2 + 17)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        # self.customContextMenuRequested.connect(self.displayContextMenu)
 
-    def resizeEvent(self, event):
-        if self.verticalScrollBar().isVisible():
-            extra = self.vScrollBarWidth / 2 + 1 + 9
-        else:
-            extra = 8
-        self.setColumnWidth(0, int(self.width() / 2 - extra))
-        self.setColumnWidth(1, int(self.width() / 2 - extra))
+        layout = QGridLayout()
+        self.header = HeaderWidget(self, 'A00', " King's Pawn")
+        #                             r  c rspan cspan
+        layout.addWidget(self.header, 0, 0, 3, 1)
+        #self.header2 = HeaderWidget(self, '1.')
+        #layout.addWidget(self.header2, 4, 4, 1, 1)
+        # self.setContextMenuPolicy(Qt.CustomContextMenu)
+        # self.customContextMenuRequested.connect(self.displayContextMenu)
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
@@ -65,51 +64,46 @@ class MoveTree(QScrollArea):
         self.updateAfterMove(newGame.root())
 
 
-
-class HeaderWidget(QWidget):
+class HeaderWidget(QLabel):
     """
     The move number or opening title.
     """
     def __init__(self, parent, text, boldText=''):
         super().__init__(parent)
-        self.text = text
-        self.boldText = boldText
+        pal = self.palette()
         col = QColor(userConfig.config['MOVETREE']['moveheadercolor'])
-        self.setBrush(QBrush(col))
-
-    def paint(self, painter, option, widget):
-        painter.setBrush(self.brush())
-        painter.drawRect(0, 0, self.width(), self.height())
-        met = QFontMetrics(self.font())
-        x = (self.width() - met.width(self.text)) / 2.0
-        y = (self.height() - met.height(self.text)) / 2.0
-        painter.drawText()
+        pal.setColor(QPalette.Background, col)
+        self.setAutoFillBackground(True)
+        self.setPalette(pal)
+        myText = "<span style='font-size:18pt; font-weight:600; color:" +\
+                 "#aa0000;'>" + text + "</span><span style='font-size:10pt;" +\
+                 "font-weight:600; color:#00aa00;'>" + boldText + "</span>"
+        self.setText(myText)
 
 
-class MoveWidget(QWidget):
+class MoveWidget(QLabel):
     """
     The text associated with a move
     from a game state. The gameNode must have
     a parent (ie don't sent the root node).
     """
-    def __init__(self, parent, gameNode):
+    def __init__(self, parent, gameNode, isVariation=False):
         super().__init__(parent)
         self.gameNode = gameNode
+        pal = self.palette()
         col = QColor(userConfig.config['MOVETREE']['movetilecolor'])
-        self.setBrush(QBrush(col))
+        pal.setColor(QPalette.Background, col)
+        self.setAutoFillBackground(True)
+        self.setPalette(pal)
+
+        moveText = self.gameNode.parent.board().san(self.gameNode.move)
+        self.setText(moveText)
+
         self.setHoverEnabled(True)
 
     def clicked(self, event):
         self.parent().scrollToMove.emit(self.gameNode)
         print('item', str(self), 'clicked')
-
-    def paint(self, painter, option, widget):
-        moveText = self.gameNode.parent.board().san(self.gameNode.move)
-        painter.setBrush(self.brush())
-        painter.drawRect(0, 0, self.width(), self.height())
-        x = constants.MOVE_ITEM_PADDING
-        y = int((self.height() - self.font().pointSize()) / 2.0)
-        painter.drawText(x, y, moveText)
 
     def displayContextMenu(self, point):
         menu = QMenu(self)
@@ -122,6 +116,7 @@ class MoveWidget(QWidget):
 
     def hoverLeaveEvent(self, event):
         self.setCursor(Qt.ArrowCursor)
+
 
 class VariationWidget(QWidget):
     def __init__(self, parent):

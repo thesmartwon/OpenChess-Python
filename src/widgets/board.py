@@ -48,7 +48,7 @@ class BoardScene(QGraphicsScene):
         constants.PIECE_PADDING_BOT = constants.PIECE_PADDING_BOT * squareWidth
         for s in chess.SQUARES:
             newSquareWidget = SquareWidget(s, squareWidth)
-            newSquareWidget.pieceReleased.connect(self.makeMoveTo)
+            newSquareWidget.pieceReleased.connect(self.sendMove)
             newSquareWidget.invalidDrop.connect(self.deselectSquares)
             if self.board.piece_at(s) is not None:
                 piece = self.createPiece(self.board.piece_at(s))
@@ -354,6 +354,16 @@ class BoardScene(QGraphicsScene):
         self.longestPV = []
         self.clearEffectItems()
         self.refreshPosition()
+
+    def editBoard(self):
+        pieces = []
+        for t in chess.PIECE_TYPES:
+            for c in chess.COLORS:
+                pieces.append(chess.Piece(t, c))
+        # TODO: implement
+        dimen = self.moveTreeView.geometry()
+        pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
+        self.moveTreeView.setVisible(False)
 
 
 class BoardSceneView(QGraphicsView):

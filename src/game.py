@@ -17,9 +17,9 @@ class OpenGame():
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
 
-    def setWeakRefs(self, centralFrame, boardScene, moveTreeModel, engine):
+    def setWeakRefs(self, centralFrame, boardScene, moveTree, engine):
         self.centralFrame = centralFrame
-        self.moveTreeModel = moveTreeModel
+        self.moveTree = moveTree
         self.boardScene = boardScene
         self.engine = engine
 
@@ -60,7 +60,7 @@ class OpenGame():
             self.current = self.current.variation(move)
             self.board = self.current.board()
             constants.GAME_STATE = self.board
-            self.moveTreeModel.updateAfterMove(self.current)
+            self.moveTree.updateAfterMove(self.current)
             self.boardScene.updatePositionAfterMove(self.board)
             self.engine.updateAfterMove(self.board)
             return True

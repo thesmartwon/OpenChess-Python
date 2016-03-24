@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QWidget,
                              QDesktopWidget)
 from game import OpenGame
-from widgets.movetree import MoveTreeView, MoveTreeModel
+from widgets.movetree import MoveTreeWidget
 from widgets.board import BoardScene, BoardSceneView
 from widgets.engine import EngineWidget
 import chess
@@ -19,12 +19,9 @@ class CentralFrame(QFrame):
         self.openGame = OpenGame()
         self.boardScene = BoardScene(self)
         self.boardSceneView = BoardSceneView(self, self.boardScene)
-        self.moveTreeModel = MoveTreeModel()
-        self.moveTreeModel.moveItemClicked.connect(self.openGame.scrollToPly)
-        self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
-        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
+        self.moveTree = MoveTreeWidget(self, self.openGame.game)
         self.engineWidget = EngineWidget(self)
-        self.openGame.setWeakRefs(self, self.boardScene, self.moveTreeModel,
+        self.openGame.setWeakRefs(self, self.boardScene, self.moveTree,
                                   self.engineWidget)
         self.engineWidget.initEngine(self.openGame.board)
 
@@ -51,7 +48,7 @@ class CentralFrame(QFrame):
         self.vertLayout = QVBoxLayout(self)
         self.vertLayout.setSpacing(0)
         self.vertLayout.setContentsMargins(0, 0, 0, 0)
-        self.vertLayout.addWidget(self.moveTreeView)
+        self.vertLayout.addWidget(self.moveTree)
         self.vertLayout.addWidget(self.engineWidget)
         self.vertWidget = QWidget(self)
         self.vertWidget.setLayout(self.vertLayout)
@@ -61,13 +58,3 @@ class CentralFrame(QFrame):
         horiLayout.addWidget(self.boardSceneView)
         horiLayout.addWidget(self.vertWidget)
         self.setLayout(horiLayout)
-
-    def editBoard(self):
-        pieces = []
-        for t in chess.PIECE_TYPES:
-            for c in chess.COLORS:
-                pieces.append(chess.Piece(t, c))
-        # TODO: implement
-        dimen = self.moveTreeView.geometry()
-        pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
-        self.moveTreeView.setVisible(False)

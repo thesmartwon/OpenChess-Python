@@ -48,7 +48,7 @@ class OpenGame():
             if self.current.is_end():
                 self.current.add_main_variation(move)
             elif move not in [v.move for v in self.current.variations]:
-                response = True # VariationDialog(self.centralFrame)
+                response = True  # VariationDialog(self.centralFrame)
                 if response:
                     self.current.add_variation(move)
                 else:

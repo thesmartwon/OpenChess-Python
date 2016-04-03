@@ -9,7 +9,7 @@ from widgets.engine import EngineWidget
 import chess
 
 
-class CentralFrame(QFrame):
+class CentralWidget(QFrame):
     """
     Takes up the center of the screen and initializes
     communications between all of the widgets there.

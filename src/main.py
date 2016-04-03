@@ -1,17 +1,15 @@
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QMainWindow, QAction,
-                             QApplication, QMessageBox,
-                             QDesktopWidget)
+                             QApplication, QDesktopWidget)
 import sys
 import userConfig
 import constants
-from widgets.centralframe import CentralFrame
+from widgets.centralwidget import CentralWidget
 
 
 class MainWindow(QMainWindow):
     """
-    Houses the menubars and game, which is just
-    a QFrame with many widgets.
+    Houses the menubars and CentralWidget
     """
     def __init__(self):
         super().__init__()
@@ -21,40 +19,14 @@ class MainWindow(QMainWindow):
         self.show()
 
     def initUI(self):
+        # Look and feel
+        antiAliasedFont = QApplication.font()
+        antiAliasedFont.setStyleStrategy(QFont.PreferAntialias)
+        QApplication.setFont(antiAliasedFont)
+
         self.setWindowTitle('Open Chess')
         # TODO: Add an application icon
         # self.setWindowIcon(QIcon('web.png'))
-
-        # Widget
-        self.centralFrame = CentralFrame(self)
-        self.setCentralWidget(self.centralFrame)
-
-        # Menus (some dependent on widget)
-        menubar = self.menuBar()
-
-        fileMenu = menubar.addMenu('&File')
-        newGameAction = QAction(QIcon('new.png'), '&New Game', self)
-        newGameAction.setShortcut(userConfig.config['HOTKEYS']['newGame'])
-        newGameAction.setStatusTip('Start a new game')
-        newGameAction.triggered.connect(self.centralFrame.openGame.newGame)
-        exitAction = QAction(QIcon('exit.png'), '&Exit', self)
-        exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
-        exitAction.setStatusTip('Exit application')
-        exitAction.triggered.connect(self.close)
-
-        fileMenu.addAction(newGameAction)
-        fileMenu.addAction(exitAction)
-
-        boardMenu = menubar.addMenu('&Board')
-        editAction = QAction(QIcon('edit.png'), '&Setup a position', self)
-        editAction.setStatusTip('Change the current position')
-        editAction.triggered.connect(self.centralFrame.boardScene.editBoard)
-        flipAction = QAction(QIcon('flip.png'), '&Flip', self)
-        flipAction.setStatusTip('Flip the current board')
-        flipAction.triggered.connect(self.centralFrame.boardScene.flipBoard)
-
-        boardMenu.addAction(flipAction)
-        boardMenu.addAction(editAction)
 
         # Geometry
         """This will make the window the correct aspect ratio"""
@@ -77,6 +49,37 @@ class MainWindow(QMainWindow):
             self.setGeometry(0, 0, idealWidth, idealHeight)
         print("window geometry is", self.geometry())
 
+        # Widget
+        self.centralWidget = CentralWidget()
+        self.setCentralWidget(self.centralWidget)
+
+        # Menus (some dependent on widget)
+        menubar = self.menuBar()
+
+        fileMenu = menubar.addMenu('&File')
+        newGameAction = QAction(QIcon('new.png'), '&New Game', self)
+        newGameAction.setShortcut(userConfig.config['HOTKEYS']['newGame'])
+        newGameAction.setStatusTip('Start a new game')
+        newGameAction.triggered.connect(self.centralWidget.openGame.newGame)
+        exitAction = QAction(QIcon('exit.png'), '&Exit', self)
+        exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
+        exitAction.setStatusTip('Exit application')
+        exitAction.triggered.connect(self.close)
+
+        fileMenu.addAction(newGameAction)
+        fileMenu.addAction(exitAction)
+
+        boardMenu = menubar.addMenu('&Board')
+        editAction = QAction(QIcon('edit.png'), '&Setup a position', self)
+        editAction.setStatusTip('Change the current position')
+        editAction.triggered.connect(self.centralWidget.boardScene.editBoard)
+        flipAction = QAction(QIcon('flip.png'), '&Flip', self)
+        flipAction.setStatusTip('Flip the current board')
+        flipAction.triggered.connect(self.centralWidget.boardScene.flipBoard)
+
+        boardMenu.addAction(flipAction)
+        boardMenu.addAction(editAction)
+
     def closeEvent(self, event):
         print('closing')
         # TODO: Implement saving before close
@@ -88,7 +91,7 @@ class MainWindow(QMainWindow):
         #     event.accept()
         # else:
         #     event.ignore()
-        self.centralFrame.engineWidget.destroyEvent()
+        self.centralWidget.engineWidget.destroyEvent()
         userConfig.saveFile(constants.CONFIG_PATH)
         event.accept()
 
@@ -106,6 +109,6 @@ def main():
     win.show()
     sys.exit(app.exec_())
 
-# TODO: fix leaks and put main below
+# TODO: when finished put main below
 if __name__ == '__main__':
     main()

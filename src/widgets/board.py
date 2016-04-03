@@ -1,6 +1,6 @@
 from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
                           QPropertyAnimation, QByteArray,
-                          QParallelAnimationGroup)
+                          QParallelAnimationGroup, pyqtSignal)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
                          QBrush, QPen, QPolygonF)
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
@@ -14,16 +14,49 @@ import constants
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
+class BoardSceneView(QGraphicsView):
+    def __init__(self, parent, scene):
+        super().__init__(parent)
+        self.setScene(scene)
+        if QGLFormat.hasOpenGL():
+            self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
+
+    def initUI(self, initialSceneWidth):
+        self.initialSceneWidth = initialSceneWidth
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setBackgroundBrush(QBrush(Qt.red))
+        self.setMinimumWidth(200)
+        self.setMinimumHeight(200)
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        newGameAction = menu.addAction("New game")
+        newGameAction.triggered.connect(self.parent().openGame.newGame)
+        flipAction = menu.addAction("Flip board")
+        flipAction.triggered.connect(self.scene().flipBoard)
+        menu.popup(self.mapToGlobal(event.pos()))
+
+    def resizeEvent(self, event):
+        sceneWidth = min(event.size().width(), event.size().height())
+        trans = QTransform()
+        trans.scale(sceneWidth / self.initialSceneWidth,
+                    sceneWidth / self.initialSceneWidth)
+        self.setTransform(trans)
+        self.centerOn(sceneWidth / 2.0, sceneWidth / 2.0)
+
+
 class BoardScene(QGraphicsScene):
     """
     Contains and manages SquareWidgets interacting
     with each other.
-    Sends moves up to the gameCopy given, which must
-    be a chess.Board
+    Sends moves and premoves through signals.
     """
-    def __init__(self, parent):
+    moveDone = pyqtSignal(chess.Move)
+
+    def __init__(self, parent, board):
         super().__init__(parent)
-        self.board = constants.GAME_STATE
+        self.board = board
         self.squareWidgets = []
         self.squareWidth = 0
         curs = QPixmap(constants.RESOURCES_PATH + '/cursor.png')
@@ -55,7 +88,7 @@ class BoardScene(QGraphicsScene):
                 newSquareWidget.addPiece(piece)
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
-        self.setSceneRect(QRectF(0, 0, squareWidth * 8, squareWidth * 8))
+        self.setSceneRect(0, 0, int(squareWidth * 8), int(squareWidth * 8))
 
     # Helper methods
     def sendMove(self, toSquare, fromSquare=None):
@@ -66,7 +99,7 @@ class BoardScene(QGraphicsScene):
         if fromSquare is None:
             fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
-        self.parent().openGame.doMove(m)
+        self.moveDone.emit(m)
 
     def updateSelectionGraphics(self, lastSelection, square):
         # Clicking on a new piece selects it.
@@ -134,7 +167,7 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets[move.from_square].removePiece()
         else:
             fromPieceItem = self.createPiece(chess.Piece(move.promotion,
-                                            not self.board.turn))
+                                             not self.board.turn))
             self.squareWidgets[move.from_square].removePiece(True)
         if self.board.is_queenside_castling(move):
             # Fix rook, move.to_square is the rook square
@@ -361,38 +394,9 @@ class BoardScene(QGraphicsScene):
             for c in chess.COLORS:
                 pieces.append(chess.Piece(t, c))
         # TODO: implement
-        dimen = self.moveTreeView.geometry()
-        pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
+        # dimen = self.moveTreeView.geometry()
+        # pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
         self.moveTreeView.setVisible(False)
-
-
-class BoardSceneView(QGraphicsView):
-    def __init__(self, parent, scene):
-        super().__init__(parent)
-        self.setScene(scene)
-        if QGLFormat.hasOpenGL():
-            self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
-
-    def initUI(self, initialSceneWidth):
-        self.initialSceneWidth = initialSceneWidth
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setBackgroundBrush(QBrush(Qt.red))
-
-    def contextMenuEvent(self, event):
-        menu = QMenu(self)
-        newGameAction = menu.addAction("New game")
-        newGameAction.triggered.connect(self.parent().openGame.newGame)
-        flipAction = menu.addAction("Flip board")
-        flipAction.triggered.connect(self.scene().flipBoard)
-        menu.popup(self.mapToGlobal(event.pos()))
-
-    def resizeEvent(self, event):
-        sceneWidth = min(event.size().width(), event.size().height())
-        trans = QTransform()
-        trans.scale(sceneWidth / self.initialSceneWidth,
-                    sceneWidth / self.initialSceneWidth)
-        self.setTransform(trans)
 
 
 class ArrowGraphicsItem(QGraphicsItem):

@@ -7,8 +7,7 @@
 This is an cross-platform open-source Chess GUI written in python that can be used for playing or analyzing large amounts of chess games.
 
 ## Philosophy
-It is still in its very early stages of development, but the plan is that it would someday be a free alternative to programs like ChessBase.
-Keep it simple, fun, and videogame-like. Keep the board and the game of chess, not the features, the focus.
+It is still in its very early stages of development,  simple, fun, and videogame-like. Keep the board and the game of chess, not the features, the focus. All the features in ChessBase are to be supported, however.
 
 There are some problems that I have with current chess GUIs:
 - There's too much going on at every screen.
@@ -16,7 +15,7 @@ There are some problems that I have with current chess GUIs:
 - There isn't an all-in-one beginner to master lesson plan for free anywhere on the internet. Let alone one that is interactive.
     - Chess boils down to quick pattern recognition. Training lessons should be like playing a video-game: fun and simple.
     - See lessons.txt
-- Cannot anaylze multiple games at once (or is very finicky).
+- Cannot analyze multiple games at once (or is very finicky).
 - Lack of mobile support.
     - There are no good apps on Android/iOS that will train from beginner to NM level. After release 1.0, all my attention will be turned to an Android/iOS release.
 

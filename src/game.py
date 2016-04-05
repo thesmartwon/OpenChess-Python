@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QDialog
 import chess
 from chess import pgn
 import constants
+import time
 
 
 class OpenGame():
@@ -16,10 +17,11 @@ class OpenGame():
         self.board = self.game.root().board()
         constants.GAME_STATE = self.board
         constants.HERO = chess.WHITE
+        self.times = [[] for i in range(3)]
 
-    def setWeakRefs(self, centralFrame, boardScene, moveTree, engine):
+    def setWeakRefs(self, centralFrame, boardScene, moveTreeModel, engine):
         self.centralFrame = centralFrame
-        self.moveTree = moveTree
+        self.moveTreeModel = moveTreeModel
         self.boardScene = boardScene
         self.engine = engine
 
@@ -57,14 +59,29 @@ class OpenGame():
                     if mainVar:
                         self.current.demote(mainVar[0])
                     self.current.add_main_variation(move)
-            self.current = self.current.variation(move)
-            self.board = self.current.board()
-            constants.GAME_STATE = self.board
-            self.moveTree.updateAfterMove(self.current)
+            self.updateCurrent(self.current.variation(move))
+            start = time.time()
+            self.moveTreeModel.updateAfterMove(self.current)
+            moveTreeTime = time.time() - start
+            self.times[0].append(moveTreeTime)
+            start = time.time()
             self.boardScene.updatePositionAfterMove(self.board)
+            # boardTime = time.time() - start
+            # self.times[1].append(boardTime)
+            start = time.time()
             self.engine.updateAfterMove(self.board)
+            engineTime = time.time() - start
+            self.times[2].append(engineTime)
+            print('movetree update took', moveTreeTime, sum(self.times[0]) / len(self.times[0]))
+            # print('boardscene update took', boardTime, sum(self.times[1]) / len(self.times[1]))
+            print('engine update took', engineTime, sum(self.times[2]) / len(self.times[2]))
             return True
         return False
+
+    def updateCurrent(self, newCur):
+        self.current = newCur
+        self.board = self.current.board()
+        constants.GAME_STATE = self.board
 
     def newGame(self):
         print('new game')
@@ -74,18 +91,13 @@ class OpenGame():
         self.moveTreeModel.reset(self.game)
         self.boardScene.reset(self.board)
 
-    def scrollToPly(self, plyNumber):
-        curPly = self.board.fullmove_number * 2 + int(not self.board.turn) - 2
-        assert curPly >= plyNumber
-        if curPly == plyNumber:
+    def scrollToMove(self, moveNode):
+        if self.current == moveNode:
             return
-        print('scrolling to', plyNumber)
-        for i in range(curPly - plyNumber - 1):
-            self.current = self.current.parent
-        self.board = self.current.board()
-        self.engine.reset(self.board)
-        # self.moveTreeModel.eraseAfterPly(plyNumber)
+        self.updateCurrent(moveNode)
+        # movetree stays the same
         self.boardScene.reset(self.board)
+        self.engine.reset(self.board)
 
     def editBoard(self):
         print('editing board')

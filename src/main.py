@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QMainWindow, QAction,
-                             QApplication, QDesktopWidget)
+                             QApplication, QDesktopWidget, QStyle)
 import sys
 import userConfig
 import constants
@@ -14,8 +14,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-
-        self.center()
         self.show()
 
     def initUI(self):
@@ -30,27 +28,33 @@ class MainWindow(QMainWindow):
 
         # Geometry
         """This will make the window the correct aspect ratio"""
-        screenGeo = QApplication.desktop().screenGeometry()
+        screenGeo = QDesktopWidget().availableGeometry()
         idealWidth = constants.IDEAL_RESOLUTION['width']
         idealHeight = constants.IDEAL_RESOLUTION['height']
+        # TODO: maybe there is a good way to get this value?
+        guessedFrame = 2
+        titlebarHeight = QApplication.style().pixelMetric(
+                            QStyle.PM_TitleBarHeight) + guessedFrame
         widthDisparity = screenGeo.width() - idealWidth
         heightDisparity = screenGeo.height() - idealHeight
         if widthDisparity < 0 and widthDisparity < heightDisparity:
             width = idealWidth + widthDisparity
             ratio = float(idealHeight) / idealWidth
             height = int(ratio * (idealWidth + widthDisparity))
-            self.setGeometry(0, 0, width, height)
+            self.setGeometry(0, 0, width - guessedFrame * 2,
+                             height - titlebarHeight)
         elif heightDisparity < 0 and heightDisparity < widthDisparity:
             ratio = float(idealWidth) / idealHeight
             width = int(ratio * (idealHeight + heightDisparity))
             height = idealHeight + heightDisparity
-            self.setGeometry(0, 0, width, height)
+            self.setGeometry(0, 0, width - guessedFrame * 2,
+                             height - titlebarHeight)
         else:
             self.setGeometry(0, 0, idealWidth, idealHeight)
         print("window geometry is", self.geometry())
 
         # Widget
-        self.centralWidget = CentralWidget()
+        self.centralWidget = CentralWidget(self)
         self.setCentralWidget(self.centralWidget)
 
         # Menus (some dependent on widget)
@@ -80,6 +84,16 @@ class MainWindow(QMainWindow):
         boardMenu.addAction(flipAction)
         boardMenu.addAction(editAction)
 
+        # Center the window on the desktop
+        # TODO: Add option for setting startup xy and saving layout in general
+        # qr = self.frameGeometry()
+        # cp = QDesktopWidget().geometry().center()
+        # qr.moveCenter(cp)
+        frameGeo = self.geometry()
+        frameGeo.setHeight(frameGeo.height() + titlebarHeight + guessedFrame)
+        frameGeo.setWidth(frameGeo.width() + guessedFrame * 2)
+        self.move(QDesktopWidget().geometry().center() - frameGeo.center())
+
     def closeEvent(self, event):
         print('closing')
         # TODO: Implement saving before close
@@ -94,13 +108,6 @@ class MainWindow(QMainWindow):
         self.centralWidget.engineWidget.destroyEvent()
         userConfig.saveFile(constants.CONFIG_PATH)
         event.accept()
-
-    def center(self):
-        # TODO: Add option for setting startup xy and saving layout in general
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
 
 
 def main():

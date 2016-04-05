@@ -2,14 +2,15 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
                              QHBoxLayout)
 from PyQt5.QtGui import QFontMetrics
+import platform
+import time
 import chess.uci
 import constants
 import userConfig
-import platform
 
 
 # Note that no assumptions can really be maade about the engine
-# state thanks to isready() being essential and ASYNCRONOUS
+# state thanks to isready() being ASYNCRONOUS
 class EngineWidget(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -78,14 +79,22 @@ class EngineWidget(QWidget):
     def updateAfterMove(self, board):
         self.board = board
         move = board.move_stack[-1]
-        if self.longestPV and move == self.longestPV[0]:
+        if self.longestPV and self.longestPV[0] == move:
             self.longestPV = self.longestPV[1:]
         else:
-            self.longestPV = []
+            self.longestPV.clear()
+        start = time.time()
         self.syncEnginePosition()
+        print ('t1', time.time() - start)
+        start = time.time()
         self.doEngineActions()
+        print ('t2', time.time() - start)
+        start = time.time()
         self.updateText()
+        print ('t3', time.time() - start)
+        start = time.time()
         self.updateBoard()
+        print ('t4', time.time() - start)
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:

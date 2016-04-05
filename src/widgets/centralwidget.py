@@ -3,10 +3,9 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QWidget,
                              QDesktopWidget)
 from game import OpenGame
-from widgets.movetree import MoveTreeWidget
+from widgets.movetree import MoveTreeModel, MoveTreeView
 from widgets.board import BoardScene, BoardSceneView
 from widgets.engine import EngineWidget
-import chess
 
 
 class CentralWidget(QFrame):
@@ -17,11 +16,15 @@ class CentralWidget(QFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.openGame = OpenGame()
-        self.boardScene = BoardScene(self)
+        self.boardScene = BoardScene(self, self.openGame.board)
         self.boardSceneView = BoardSceneView(self, self.boardScene)
-        self.moveTree = MoveTreeWidget(self, self.openGame.game)
+        self.boardScene.moveDone.connect(self.openGame.doMove)
+        self.moveTreeModel = MoveTreeModel()
+        self.moveTreeModel.moveItemClicked.connect(self.openGame.scrollToMove)
+        self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
+        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
         self.engineWidget = EngineWidget(self)
-        self.openGame.setWeakRefs(self, self.boardScene, self.moveTree,
+        self.openGame.setWeakRefs(self, self.boardScene, self.moveTreeModel,
                                   self.engineWidget)
         self.engineWidget.initEngine(self.openGame.board)
 
@@ -48,7 +51,7 @@ class CentralWidget(QFrame):
         self.vertLayout = QVBoxLayout(self)
         self.vertLayout.setSpacing(0)
         self.vertLayout.setContentsMargins(0, 0, 0, 0)
-        self.vertLayout.addWidget(self.moveTree)
+        self.vertLayout.addWidget(self.moveTreeView)
         self.vertLayout.addWidget(self.engineWidget)
         self.vertWidget = QWidget(self)
         self.vertWidget.setLayout(self.vertLayout)

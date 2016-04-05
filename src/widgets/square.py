@@ -101,11 +101,10 @@ class SquareWidget(QGraphicsWidget):
 
     def addEffectItem(self, itemType):
         if self.countItem(itemType) > 0:
-            print('trying to add', itemType, '(', QGraphicsItem.UserType,
-                  ')when it already is there')
+            print('trying to add', itemType, 'when it already is there')
             return
         effectItem = self.createEffectItem(itemType)
-        if effectItem is not None:
+        if effectItem:
             effectItem.setData(0, QVariant(itemType))
             effectItem.setZValue(1)
             effectItem.setParentItem(self)
@@ -121,7 +120,7 @@ class SquareWidget(QGraphicsWidget):
         self.isOccupied = True
 
     def removePiece(self, delete=False):
-        if self.pieceItem is not None:
+        if self.pieceItem:
             self.pieceItem.setParentItem(None)
             if delete:
                 self.pieceItem.setParentItem(None)

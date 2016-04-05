@@ -185,7 +185,7 @@ class BoardScene(QGraphicsScene):
             move.to_square = move.from_square + 2
         elif self.board.is_en_passant(move):
             # remember we are updating after the move has occurred
-            if self.board.turn == chess.BLACK:
+            if self.board.turn == chess.WHITE:
                 self.squareWidgets[move.to_square - 8].removePiece()
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()

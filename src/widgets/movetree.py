@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPalette,
                          QFontMetrics)
 from PyQt5.QtWidgets import QTableView, QMenu, QHeaderView
+import copy
 from chess import pgn
 import strings
 
@@ -14,7 +15,7 @@ class MoveTreeView(QTableView):
 
     def initUI(self):
         pal = QPalette(self.palette())
-        pal.setColor(QPalette.Background, Qt.red)
+        pal.setColor(QPalette.Background, Qt.blue)
         self.setAutoFillBackground(True)
         self.setPalette(pal)
         met = QFontMetrics(self.font())
@@ -50,40 +51,49 @@ class MoveTreeView(QTableView):
             newGameAction = menu.addAction("movetreeviewstuff2")
             action = menu.popup(self.mapToGlobal(point))
 
+    def entryAdded(self, row, col):
+        if row == self.model().rowCount() - 1:
+            self.scrollToBottom()
+        else:
+            self.scrollTo(self.model().index(row, col))
+        self.setCurrentIndex(self.model().index(row, col))
+
 
 class MoveTreeModel(QStandardItemModel):
+    moveItemAdded = pyqtSignal(int, int)
     moveItemClicked = pyqtSignal(pgn.GameNode)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         # self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
         #                                 strings.COLOR_SECOND])
-        self.setItem(0, 0, QStandardItem('...'))
-        self.setItem(0, 1, QStandardItem(''))
-        self.curRow = 0
-        self.curCol = 0
+        self.reset()
 
     def updateTree(self, gameNode):
         # TODO: this is slow. maybe use visitors?
         for v in gameNode.variations:
             turn = v.parent.board().turn
-            self.col = int(not turn)
+            self.curCol = int(not turn)
             if v.is_main_line():
                 fullMoveNum = v.parent.board().fullmove_number
                 turn = v.parent.board().turn
-                itemThere = self.item(self.row, self.col)
+                itemThere = self.item(self.curRow, self.curCol)
                 if not itemThere or type(itemThere) == QStandardItem:
+                    print('making', fullMoveNum, turn, v.move)
+                    b = copy.deepcopy(v.parent.board())
+                    print(v.board())
+                    print(b.san(v.move))
                     newItem = MoveTreeItem(v)
-                    self.setItem(self.row, self.col, newItem)
-                    self.setHeaderData(self.row, Qt.Vertical, str(fullMoveNum))
+                    self.setItem(self.curRow, self.curCol, newItem)
+                    self.setHeaderData(self.curRow, Qt.Vertical, str(fullMoveNum))
                     print('made moveWidg', newItem)
                 if not turn:
-                    self.row += 1
+                    self.curRow += 1
                 if not v.is_end():
                     self.updateTree(v)
             else:
-                print('making variation', self.row, self.col)
-                self.row += 1
+                print('making variation', self.curRow, self.curCol)
+                self.curRow += 1
 
     def updateAfterMove(self, newGameNode):
         # self.updateTree(newGameNode.root())
@@ -93,6 +103,8 @@ class MoveTreeModel(QStandardItemModel):
             newItem = MoveTreeItem(newGameNode)
             self.setItem(self.curRow, self.curCol, newItem)
             self.setHeaderData(self.curRow, self.curCol, str(fullMoveNum))
+            self.moveItemAdded.emit(self.curRow, self.curCol)
+            print('code continued yay')
             if self.curCol == 0:
                 self.curCol += 1
             else:
@@ -101,18 +113,15 @@ class MoveTreeModel(QStandardItemModel):
         else:
             print('making variation')
 
-    def reset(self, newGame):
-        # TODO: implement
+    def reset(self, newRootNode=None):
         self.clear()
-        self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
-                                        strings.COLOR_SECOND])
-
-    def eraseAfterPly(self, plyNumber):
-        rowNumber = int(plyNumber / 2) + 1
-        numToErase = self.rowCount() - int(plyNumber / 2) - 1
-        self.removeRows(rowNumber, numToErase)
-        if plyNumber % 2 == 0:
-            self.setItem(int(plyNumber) / 2, 1, QStandardItem())
+        self.setItem(0, 0, QStandardItem('...'))
+        self.setItem(0, 1, QStandardItem(''))
+        self.curRow = 0
+        self.curCol = 0
+        if newRootNode:
+            self.updateTree(newRootNode)
+            self.moveItemAdded.emit(self.curRow, self.curCol)
 
     def itemClicked(self, current):
         # Because of self.setSelectionMode(QTableView.SingleSelection)

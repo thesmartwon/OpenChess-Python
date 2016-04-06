@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QWidget,
                              QDesktopWidget)
-from game import OpenGame
+from game import OpenChessGame
 from widgets.movetree import MoveTreeModel, MoveTreeView
 from widgets.board import BoardScene, BoardSceneView
 from widgets.engine import EngineWidget
@@ -15,21 +15,30 @@ class CentralWidget(QFrame):
     """
     def __init__(self, parent):
         super().__init__(parent)
-        self.openGame = OpenGame()
-        self.boardScene = BoardScene(self, self.openGame.board)
+        self.chessGame = OpenChessGame(self)
+        self.boardScene = BoardScene(self, self.chessGame.board)
         self.boardSceneView = BoardSceneView(self, self.boardScene)
-        self.boardScene.moveDone.connect(self.openGame.doMove)
-        self.moveTreeModel = MoveTreeModel()
-        self.moveTreeModel.moveItemClicked.connect(self.openGame.scrollToMove)
+        self.moveTreeModel = MoveTreeModel(self)
         self.moveTreeView = MoveTreeView(self, self.moveTreeModel)
-        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
         self.engineWidget = EngineWidget(self)
-        self.openGame.setWeakRefs(self, self.boardScene, self.moveTreeModel,
-                                  self.engineWidget)
-        self.engineWidget.initEngine(self.openGame.board)
+        self.engineWidget.initEngine(self.chessGame.board)
 
+        self.wireWidgets()
         self.initUI()
         self.show()
+
+    def wireWidgets(self):
+        self.boardScene.moveInputted.connect(self.chessGame.doMove)
+        self.moveTreeModel.moveItemClicked.connect(self.chessGame.scrollToMove)
+        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
+        self.moveTreeModel.moveItemAdded.connect(self.moveTreeView.entryAdded)
+        self.chessGame.moveDone.connect(self.moveTreeModel.updateAfterMove)
+        self.chessGame.moveDone.connect(self.engineWidget.updateAfterMove)
+        self.chessGame.newGameOpened.connect(self.boardScene.reset)
+        self.chessGame.newGameOpened.connect(self.moveTreeModel.reset)
+        self.chessGame.newGameOpened.connect(self.engineWidget.reset)
+        self.chessGame.positionChanged.connect(self.boardScene.reset)
+        self.chessGame.positionChanged.connect(self.engineWidget.reset)
 
     def initUI(self):
         """Creates parts of layout that account for sizes.

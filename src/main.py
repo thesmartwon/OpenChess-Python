@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QKeySequence
 from PyQt5.QtWidgets import (QMainWindow, QAction,
                              QApplication, QDesktopWidget, QStyle)
 import sys
@@ -57,32 +57,8 @@ class MainWindow(QMainWindow):
         self.centralWidget = CentralWidget(self)
         self.setCentralWidget(self.centralWidget)
 
-        # Menus (some dependent on widget)
-        menubar = self.menuBar()
-
-        fileMenu = menubar.addMenu('&File')
-        newGameAction = QAction(QIcon('new.png'), '&New Game', self)
-        newGameAction.setShortcut(userConfig.config['HOTKEYS']['newGame'])
-        newGameAction.setStatusTip('Start a new game')
-        newGameAction.triggered.connect(self.centralWidget.openGame.newGame)
-        exitAction = QAction(QIcon('exit.png'), '&Exit', self)
-        exitAction.setShortcut(userConfig.config['HOTKEYS']['exit'])
-        exitAction.setStatusTip('Exit application')
-        exitAction.triggered.connect(self.close)
-
-        fileMenu.addAction(newGameAction)
-        fileMenu.addAction(exitAction)
-
-        boardMenu = menubar.addMenu('&Board')
-        editAction = QAction(QIcon('edit.png'), '&Setup a position', self)
-        editAction.setStatusTip('Change the current position')
-        editAction.triggered.connect(self.centralWidget.boardScene.editBoard)
-        flipAction = QAction(QIcon('flip.png'), '&Flip', self)
-        flipAction.setStatusTip('Flip the current board')
-        flipAction.triggered.connect(self.centralWidget.boardScene.flipBoard)
-
-        boardMenu.addAction(flipAction)
-        boardMenu.addAction(editAction)
+        self.createActions()
+        self.createMenus()
 
         # Center the window on the desktop
         # TODO: Add option for setting startup xy and saving layout in general
@@ -92,7 +68,43 @@ class MainWindow(QMainWindow):
         frameGeo = self.geometry()
         frameGeo.setHeight(frameGeo.height() + titlebarHeight + guessedFrame)
         frameGeo.setWidth(frameGeo.width() + guessedFrame * 2)
-        self.move(QDesktopWidget().geometry().center() - frameGeo.center())
+        self.move(QDesktopWidget().screenGeometry().center() - frameGeo.center())
+
+    def createActions(self):
+        self.newGameAction = QAction('&New Game', self)
+        self.newGameAction.setShortcut(QKeySequence.New)
+        self.newGameAction.setStatusTip('Start a new game')
+        self.newGameAction.triggered.connect(self.centralWidget.chessGame.newGame)
+        self.openGameAction = QAction('&Open a Game', self)
+        self.openGameAction.setShortcut(QKeySequence.Open)
+        self.openGameAction.setStatusTip('Start a new game')
+        self.openGameAction.triggered.connect(self.centralWidget.chessGame.openGame)
+        self.exitAction = QAction('&Quit', self)
+        self.exitAction.setShortcut(QKeySequence.Quit)
+        self.exitAction.setStatusTip('Exit application')
+        self.exitAction.triggered.connect(self.close)
+
+        keyConfig = userConfig.config['HOTKEYS']
+        self.editAction = QAction('&Setup a position', self)
+        self.editAction.setShortcut(keyConfig['editboard'])
+        self.editAction.setStatusTip('Change the current position')
+        self.editAction.triggered.connect(self.centralWidget.boardScene.editBoard)
+        self.flipAction = QAction('&Flip', self)
+        self.flipAction.setShortcut(keyConfig['flipboard'])
+        self.flipAction.setStatusTip('Flip the current board')
+        self.flipAction.triggered.connect(self.centralWidget.boardScene.flipBoard)
+
+    def createMenus(self):
+        # Menus (some dependent on widgets)
+        menubar = self.menuBar()
+        fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(self.newGameAction)
+        fileMenu.addAction(self.openGameAction)
+        fileMenu.addAction(self.exitAction)
+        boardMenu = menubar.addMenu('&Board')
+        boardMenu.addAction(self.flipAction)
+        boardMenu.addAction(self.editAction)
+
 
     def closeEvent(self, event):
         print('closing')

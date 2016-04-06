@@ -173,7 +173,7 @@ class PieceItem(QGraphicsSvgItem):
             self.pieceClicked.emit(self.square)
 
     def mouseMoveEvent(self, event):
-        gameTurn = constants.GAME_STATE.turn
+        gameTurn = constants.CURRENT_GAME_BOARD.turn
         if (self.piece.color == gameTurn and
                 bool(event.buttons() & Qt.LeftButton)):
             hotSpot = QPointF(self.boundingRect().width() +
@@ -197,7 +197,7 @@ class PieceItem(QGraphicsSvgItem):
                                             QPointF(event.scenePos()))
 
     def hoverEnterEvent(self, event):
-        gameTurn = constants.GAME_STATE.turn
+        gameTurn = constants.CURRENT_GAME_BOARD.turn
         if self.piece.color == gameTurn:
             self.setCursor(Qt.PointingHandCursor)
         else:

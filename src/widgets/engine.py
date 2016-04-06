@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
                              QHBoxLayout)
 from PyQt5.QtGui import QFontMetrics
 import platform
-import time
+import copy
 import chess.uci
 import constants
 import userConfig
@@ -46,7 +46,7 @@ class EngineWidget(QWidget):
         self.infoHandler = EngineInfoHandler(self)
         self.infoHandler.newInfo.connect(self.newInfoRecieved)
         self.engine.info_handlers.append(self.infoHandler)
-        self.board = board
+        self.board = copy.deepcopy(board)
         self.engine.uci()
         self.engine.isready(self.syncEnginePosition)
 
@@ -76,25 +76,18 @@ class EngineWidget(QWidget):
         else:
             self.engine.position(self.board)
 
-    def updateAfterMove(self, board):
-        self.board = board
-        move = board.move_stack[-1]
+    def updateAfterMove(self, newGameNode):
+        self.board = copy.deepcopy(newGameNode.board())
+        move = self.board.move_stack[-1]
         if self.longestPV and self.longestPV[0] == move:
             self.longestPV = self.longestPV[1:]
         else:
             self.longestPV.clear()
-        start = time.time()
+
         self.syncEnginePosition()
-        print ('t1', time.time() - start)
-        start = time.time()
         self.doEngineActions()
-        print ('t2', time.time() - start)
-        start = time.time()
         self.updateText()
-        print ('t3', time.time() - start)
-        start = time.time()
         self.updateBoard()
-        print ('t4', time.time() - start)
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:
@@ -158,8 +151,8 @@ class EngineWidget(QWidget):
             self.updateBoard()
             self.lastlongestPV = list(self.longestPV)
 
-    def reset(self, newBoard, turnOffEngine=False):
-        self.board = newBoard
+    def reset(self, newRootNode, turnOffEngine=True):
+        self.board = copy.deepcopy(newRootNode.board())
         self.syncEnginePosition(turnOffEngine)
         if turnOffEngine:
             self.analyzeButton.setChecked(False)

@@ -1,12 +1,13 @@
 from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
                           QPropertyAnimation, QByteArray,
                           QParallelAnimationGroup, pyqtSignal)
-from PyQt5.QtGui import (QPixmap, QPainter, QColor, QCursor, QTransform,
+from PyQt5.QtGui import (QPixmap, QPainter, QColor, QTransform,
                          QBrush, QPen, QPolygonF)
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
                              QGraphicsView, QMenu, QGraphicsItem)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
+import copy
 import math
 import userConfig
 import chess
@@ -52,16 +53,13 @@ class BoardScene(QGraphicsScene):
     with each other.
     Sends moves and premoves through signals.
     """
-    moveDone = pyqtSignal(chess.Move)
+    moveInputted = pyqtSignal(chess.Move)
 
     def __init__(self, parent, board):
         super().__init__(parent)
-        self.board = board
+        self.board = copy.deepcopy(board)
         self.squareWidgets = []
         self.squareWidth = 0
-        curs = QPixmap(constants.RESOURCES_PATH + '/cursor.png')
-        self.pieceDraggingCursor = QCursor(curs, curs.width() / 2,
-                                           curs.height() / 2)
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.lastMouseSquare = None
@@ -69,6 +67,7 @@ class BoardScene(QGraphicsScene):
         # For arrows
         self.longestPV = []
         self.effectItems = []
+        self.heroColor = chess.WHITE
 
     def initSquares(self, squareWidth):
         """
@@ -99,7 +98,9 @@ class BoardScene(QGraphicsScene):
         if fromSquare is None:
             fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
-        self.moveDone.emit(m)
+        print("attempting", m)
+        self.updateAfterMove(m)
+        self.moveInputted.emit(m)
 
     def updateSelectionGraphics(self, lastSelection, square):
         # Clicking on a new piece selects it.
@@ -152,7 +153,7 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def updatePositionAfterMove(self, board):
+    def updateAfterMove(self, move, oldBoard=None):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
@@ -160,29 +161,39 @@ class BoardScene(QGraphicsScene):
         :param isEnPassant: whether the move that just occured was an ep
         :return: void
         """
-        self.board = board
-        move = board.pop()
+        if oldBoard:
+            self.board = oldBoard
         if move.promotion is None:
             fromPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
         else:
             fromPieceItem = self.createPiece(chess.Piece(move.promotion,
-                                             not self.board.turn))
+                                             self.board.turn))
             self.squareWidgets[move.from_square].removePiece(True)
         if self.board.is_queenside_castling(move):
             # Fix rook, move.to_square is the rook square
-            rookWid = self.squareWidgets[move.to_square]
-            newPieceItem = rookWid.pieceItem
+            if self.board.turn == chess.WHITE:
+                rookSquare = chess.A1
+                move.to_square = chess.C1
+            else:
+                rookSquare = chess.A8
+                move.to_square = chess.C8
+            rookWid = self.squareWidgets[rookSquare]
+            rookItem = rookWid.pieceItem
             rookWid.removePiece()
-            self.squareWidgets[move.to_square + 3].addPiece(newPieceItem)
-            move.to_square = move.from_square - 2
+            self.squareWidgets[rookSquare + 3].addPiece(rookItem)
         elif self.board.is_kingside_castling(move):
-            # Fix rook
-            rookWidg = self.squareWidgets[move.to_square]
-            newPieceItem = rookWidg.pieceItem
+            # Fix rook, move.to_square is the rook square
+            if self.board.turn == chess.WHITE:
+                rookSquare = chess.H1
+                move.to_square = chess.G1
+            else:
+                rookSquare = chess.H8
+                move.to_square = chess.G8
+            rookWidg = self.squareWidgets[rookSquare]
+            rookItem = rookWidg.pieceItem
             rookWidg.removePiece()
-            self.squareWidgets[move.to_square - 2].addPiece(newPieceItem)
-            move.to_square = move.from_square + 2
+            self.squareWidgets[rookSquare - 2].addPiece(rookItem)
         elif self.board.is_en_passant(move):
             # remember we are updating after the move has occurred
             if self.board.turn == chess.WHITE:
@@ -192,6 +203,7 @@ class BoardScene(QGraphicsScene):
 
         self.squareWidgets[move.to_square].removePiece()
         self.squareWidgets[move.to_square].addPiece(fromPieceItem)
+
         self.board.push(move)
         self.updateSquareEffectsAfterMove(move)
 
@@ -281,7 +293,7 @@ class BoardScene(QGraphicsScene):
                 opacity = 1.0 - i / length
                 arrow[0].setOpacity(opacity)
             else:
-                hero = constants.HERO == (i+self.board.turn) % 2
+                hero = self.heroColor == (i+self.board.turn) % 2
                 opacity = 1.0 - i / length
                 self.addEffectItem(ArrowGraphicsItem, m,
                                    hero, length - i, opacity)
@@ -289,7 +301,7 @@ class BoardScene(QGraphicsScene):
 
     def flipBoard(self):
         # TODO: fix twitching on hover after flipping
-        constants.HERO = not constants.HERO
+        self.heroColor = not self.heroColor
         curArrows = [a for a in self.effectItems if a.type() ==
                      ArrowGraphicsItem.Type]
         for a in curArrows:
@@ -327,7 +339,7 @@ class BoardScene(QGraphicsScene):
         self.dragPieceAhead = self.squareWidgets[square].pieceItem
         self.squareWidgets[square].removePiece()
         self.dragPieceAhead.setZValue(150)
-        self.dragPieceAhead.setCursor(self.pieceDraggingCursor)
+        self.dragPieceAhead.setCursor(Qt.SizeAllCursor)
         pieceImg = QPixmap(self.squareWidth, self.squareWidth)
         pieceImg.fill(QColor(0, 0, 0, 0))
         painter = QPainter(pieceImg)
@@ -358,7 +370,6 @@ class BoardScene(QGraphicsScene):
         # This is a drag and drop move
         toWidget = self.squareWidgetAt(mousePos)
         if toWidget is not None and toWidget.isValidMove:
-            print("attempt", chess.Move(square, toWidget.square))
             self.dragPieceAhead.setCursor(Qt.ArrowCursor)
             self.dragPieceAhead = None
             self.sendMove(toWidget.square, square)
@@ -377,8 +388,8 @@ class BoardScene(QGraphicsScene):
             SquareWidget.Selected)
         self.selectedSquare = -1
 
-    def reset(self, newBoard):
-        self.board = newBoard
+    def reset(self, newGameNode):
+        self.board = copy.deepcopy(newGameNode.board())
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.selectedSquare = -1

@@ -1,5 +1,5 @@
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtCore import pyqtSignal, QObject, QDir
+from PyQt5.QtWidgets import QDialog, QFileDialog
 import chess
 from chess import pgn
 import constants
@@ -8,11 +8,9 @@ import constants
 class OpenChessGame(QObject):
     moveDone = pyqtSignal(pgn.GameNode)
     positionChanged = pyqtSignal(pgn.GameNode)
-    newGameOpened = pyqtSignal(pgn.GameNode)
     """
     OpenGame is a helper class that houses the game state and
     recieves/sends messages whenever it is updated.
-    Must call setWeakRefs before doMove.
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -38,18 +36,22 @@ class OpenChessGame(QObject):
         assert(move in self.board.legal_moves)
         if self.current.is_end():
             self.current.add_main_variation(move)
+            self.updateCurrent(self.current.variation(move))
+            self.moveDone.emit(self.current)
         elif move not in [v.move for v in self.current.variations]:
-            response = True  # VariationDialog(self.parent())
+            response = False  # VariationDialog(self.parent())
             if response:
                 self.current.add_variation(move)
+                self.updateCurrent(self.current.variation(move))
+                self.moveDone.emit(self.current)
             else:
                 mainVar = [m for m in self.current.variations if
                            m.is_main_variation()]
                 if mainVar:
                     self.current.demote(mainVar[0])
                 self.current.add_main_variation(move)
-        self.updateCurrent(self.current.variation(move))
-        self.moveDone.emit(self.current)
+                self.updateCurrent(self.current.variation(move))
+                self.positionChanged.emit(self.current.root())
 
     def updateCurrent(self, newCur):
         self.current = newCur
@@ -59,39 +61,36 @@ class OpenChessGame(QObject):
     def newGame(self, newGamePath=None):
         if newGamePath:
             try:
-                pgnFile = open(newGamePath)
-                self.game = pgn.read_game(pgnFile)
+                with open(newGamePath) as pgnFile:
+                    self.game = pgn.read_game(pgnFile)
                 print('opened', newGamePath)
             except Exception:
                 print('failed to open', newGamePath)
-                print('new game')
-                self.game = pgn.Game()
                 raise Exception
         else:
             print('new game')
             self.game = pgn.Game()
-        self.game.setup(chess.Board())
-        self.current = self.game.root()
-        self.board = self.current.board()
-        constants.CURRENT_GAME_BOARD = self.board
-        self.newGameOpened.emit(self.current)
+        self.updateCurrent(self.game.root())
+        self.positionChanged.emit(self.current)
 
     def openGame(self):
         # TODO: fetch path
-        path = 'C:/Users/thesm/Documents/Chess/game1.pgn'
-        self.newGame(path)
+        path = QFileDialog.getOpenFileName(self.parent(),
+                                           'Open PGN',
+                                           QDir.homePath(),
+                                           filter='*.pgn')
+        self.newGame(path[0])
 
     def scrollToMove(self, moveNode):
         if self.current == moveNode:
             return
+        print('scrolling to', moveNode.move)
         self.updateCurrent(moveNode)
         # movetree stays the same
-        self.positionChanged.emit(self.current)
+        self.positionChanged.emit(moveNode.board())
 
     def editBoard(self):
         print('editing board')
-        self.board.reset()
-        self.board.clear_board()
 
 
 class VariationDialog(QDialog):

@@ -388,8 +388,8 @@ class BoardScene(QGraphicsScene):
             SquareWidget.Selected)
         self.selectedSquare = -1
 
-    def reset(self, newGameNode):
-        self.board = copy.deepcopy(newGameNode.board())
+    def reset(self, newNode):
+        self.board = copy.deepcopy(newNode.board())
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.selectedSquare = -1

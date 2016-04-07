@@ -8,6 +8,8 @@ import strings
 
 
 class MoveTreeView(QTableView):
+    moveItemScrolled = pyqtSignal(pgn.GameNode)
+
     def __init__(self, parent, model):
         super().__init__(parent)
         self.setModel(model)
@@ -34,7 +36,6 @@ class MoveTreeView(QTableView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.displayContextMenu)
-        self.setSelectionBehavior(QTableView.SelectItems)
         self.setSelectionMode(QTableView.SingleSelection)
 
     def displayContextMenu(self, point):
@@ -58,80 +59,96 @@ class MoveTreeView(QTableView):
             self.scrollTo(self.model().index(row, col))
         self.setCurrentIndex(self.model().index(row, col))
 
+    def currentChanged(self, newCur, oldCur):
+        if newCur.isValid():
+            moveItem = self.model().itemFromIndex(newCur)
 
-class MoveTreeModel(QStandardItemModel):
+            if type(moveItem) == MoveTreeItem:
+                self.moveItemScrolled.emit(moveItem.moveNode)
+
+
+class MoveTreeModel(QStandardItemModel, pgn.BaseVisitor):
     moveItemAdded = pyqtSignal(int, int)
-    moveItemClicked = pyqtSignal(pgn.GameNode)
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super(QStandardItemModel, self).__init__(parent)
+        super(pgn.BaseVisitor, self).__init__()
         # self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
         #                                 strings.COLOR_SECOND])
         self.reset()
 
+    def visit_move(self, board, move):
+        print('look im visiting', move)
+        fullMoveNum = board.fullmove_number
+        turn = board.turn
+        itemThere = self.item(self.curRow, self.curCol)
+        if not itemThere or type(itemThere) == QStandardItem:
+            newItem = MoveTreeItem(v)
+            self.setItem(self.curRow, self.curCol, newItem)
+            self.setHeaderData(self.curRow, Qt.Vertical,
+                               str(fullMoveNum))
+            # print('made moveWidg', newItem)
+        if not turn:
+            self.curRow += 1
+
     def updateTree(self, gameNode):
-        # TODO: this is slow. maybe use visitors?
-        for v in gameNode.variations:
-            turn = v.parent.board().turn
-            self.curCol = int(not turn)
-            if v.is_main_line():
-                fullMoveNum = v.parent.board().fullmove_number
-                turn = v.parent.board().turn
-                itemThere = self.item(self.curRow, self.curCol)
-                if not itemThere or type(itemThere) == QStandardItem:
-                    print('making', fullMoveNum, turn, v.move)
-                    b = copy.deepcopy(v.parent.board())
-                    print(v.board())
-                    print(b.san(v.move))
-                    newItem = MoveTreeItem(v)
-                    self.setItem(self.curRow, self.curCol, newItem)
-                    self.setHeaderData(self.curRow, Qt.Vertical, str(fullMoveNum))
-                    print('made moveWidg', newItem)
-                if not turn:
-                    self.curRow += 1
-                if not v.is_end():
-                    self.updateTree(v)
-            else:
-                print('making variation', self.curRow, self.curCol)
-                self.curRow += 1
+        gameNode.accept(self)
+        # for v in gameNode.variations:
+        #     if v.move:
+        #         turn = v.parent.board().turn
+        #         self.curCol = int(not turn)
+        #         if v.is_main_line():
+        #             fullMoveNum = v.parent.board().fullmove_number
+        #             turn = v.parent.board().turn
+        #             itemThere = self.item(self.curRow, self.curCol)
+        #             if not itemThere or type(itemThere) == QStandardItem:
+        #                 newItem = MoveTreeItem(v)
+        #                 self.setItem(self.curRow, self.curCol, newItem)
+        #                 self.setHeaderData(self.curRow, Qt.Vertical,
+        #                                    str(fullMoveNum))
+        #                 # print('made moveWidg', newItem)
+        #             if not turn:
+        #                 self.curRow += 1
+        #             if not v.is_end():
+        #                 self.updateTree(v)
+        #         else:
+        #             print('making variation', self.curRow, self.curCol)
+        #             self.curRow += 1
 
     def updateAfterMove(self, newGameNode):
-        # self.updateTree(newGameNode.root())
         if newGameNode.is_main_line():
             fullMoveNum = newGameNode.parent.board().fullmove_number
-            turn = newGameNode.parent.board().turn
             newItem = MoveTreeItem(newGameNode)
             self.setItem(self.curRow, self.curCol, newItem)
             self.setHeaderData(self.curRow, self.curCol, str(fullMoveNum))
             self.moveItemAdded.emit(self.curRow, self.curCol)
-            print('code continued yay')
             if self.curCol == 0:
-                self.curCol += 1
+                self.curCol = 1
             else:
                 self.curRow += 1
                 self.curCol = 0
         else:
             print('making variation')
 
-    def reset(self, newRootNode=None):
+    def reset(self, newNode=None):
         self.clear()
         self.setItem(0, 0, QStandardItem('...'))
         self.setItem(0, 1, QStandardItem(''))
         self.curRow = 0
         self.curCol = 0
-        if newRootNode:
-            self.updateTree(newRootNode)
+        if newNode:
+            self.updateTree(newNode.root())
             self.moveItemAdded.emit(self.curRow, self.curCol)
 
-    def itemClicked(self, current):
-        # Because of self.setSelectionMode(QTableView.SingleSelection)
-        # current will always be the selected move
-        if current.isValid():
-            moveItem = self.itemFromIndex(current)
-            # current.model().itemFromIndex(current)
-            if type(moveItem) == MoveTreeItem:
-                print('clicked', moveItem)
-                self.moveItemClicked.emit(moveItem.moveNode)
+    # def itemClicked(self, current):
+    #     # Because of self.setSelectionMode(QTableView.SingleSelection)
+    #     # current will always be the selected move
+    #     if current.isValid():
+    #         moveItem = self.itemFromIndex(current)
+    #         # current.model().itemFromIndex(current)
+    #         if type(moveItem) == MoveTreeItem:
+    #             self.moveItemClicked.emit(moveItem.moveNode)
+
 
 
 class MoveTreeItem(QStandardItem):

@@ -67,14 +67,13 @@ class EngineWidget(QWidget):
         self.engine.stop()
         self.command = None
 
-    def syncEnginePosition(self, newGame=False):
+    def syncEnginePosition(self, stuff=None):
         self.stopEngine()
-        print('engine syncing position', self.board.fen())
         self.engine.isready()
-        if newGame:
+        print('engine syncing position ', self.board.fen())
+        if self.board.fen() == chess.STARTING_FEN:
             self.engine.ucinewgame()
-        else:
-            self.engine.position(self.board)
+        self.engine.position(self.board)
 
     def updateAfterMove(self, newGameNode):
         self.board = copy.deepcopy(newGameNode.board())
@@ -151,9 +150,9 @@ class EngineWidget(QWidget):
             self.updateBoard()
             self.lastlongestPV = list(self.longestPV)
 
-    def reset(self, newRootNode, turnOffEngine=True):
-        self.board = copy.deepcopy(newRootNode.board())
-        self.syncEnginePosition(turnOffEngine)
+    def reset(self, newNode, turnOffEngine=False):
+        self.board = copy.deepcopy(newNode.board())
+        self.syncEnginePosition()
         if turnOffEngine:
             self.analyzeButton.setChecked(False)
         else:

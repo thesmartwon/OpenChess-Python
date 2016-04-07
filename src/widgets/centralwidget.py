@@ -29,16 +29,13 @@ class CentralWidget(QFrame):
 
     def wireWidgets(self):
         self.boardScene.moveInputted.connect(self.chessGame.doMove)
-        self.moveTreeModel.moveItemClicked.connect(self.chessGame.scrollToMove)
-        self.moveTreeView.clicked.connect(self.moveTreeModel.itemClicked)
+        self.moveTreeView.moveItemScrolled.connect(self.chessGame.scrollToMove)
         self.moveTreeModel.moveItemAdded.connect(self.moveTreeView.entryAdded)
         self.chessGame.moveDone.connect(self.moveTreeModel.updateAfterMove)
         self.chessGame.moveDone.connect(self.engineWidget.updateAfterMove)
-        self.chessGame.newGameOpened.connect(self.boardScene.reset)
-        self.chessGame.newGameOpened.connect(self.moveTreeModel.reset)
-        self.chessGame.newGameOpened.connect(self.engineWidget.reset)
         self.chessGame.positionChanged.connect(self.boardScene.reset)
         self.chessGame.positionChanged.connect(self.engineWidget.reset)
+        self.chessGame.positionChanged.connect(self.moveTreeModel.reset)
 
     def initUI(self):
         """Creates parts of layout that account for sizes.

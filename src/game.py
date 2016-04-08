@@ -8,6 +8,7 @@ import constants
 class OpenChessGame(QObject):
     moveDone = pyqtSignal(pgn.GameNode)
     positionChanged = pyqtSignal(pgn.GameNode)
+    positionScrolled = pyqtSignal(pgn.GameNode)
     """
     OpenGame is a helper class that houses the game state and
     recieves/sends messages whenever it is updated.
@@ -74,7 +75,6 @@ class OpenChessGame(QObject):
         self.positionChanged.emit(self.current)
 
     def openGame(self):
-        # TODO: fetch path
         path = QFileDialog.getOpenFileName(self.parent(),
                                            'Open PGN',
                                            QDir.homePath(),
@@ -87,7 +87,7 @@ class OpenChessGame(QObject):
         print('scrolling to', moveNode.move)
         self.updateCurrent(moveNode)
         # movetree stays the same
-        self.positionChanged.emit(moveNode.board())
+        self.positionScrolled.emit(moveNode)
 
     def editBoard(self):
         print('editing board')

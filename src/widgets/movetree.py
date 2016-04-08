@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPalette,
                          QFontMetrics)
 from PyQt5.QtWidgets import QTableView, QMenu, QHeaderView
-import copy
+import itertools
 from chess import pgn
 import strings
 
@@ -64,61 +64,54 @@ class MoveTreeView(QTableView):
             moveItem = self.model().itemFromIndex(newCur)
 
             if type(moveItem) == MoveTreeItem:
-                self.moveItemScrolled.emit(moveItem.moveNode)
+                self.moveItemScrolled.emit(moveItem.gameNode)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Left:
+            pass
+        event.ignore()
 
 
-class MoveTreeModel(QStandardItemModel, pgn.BaseVisitor):
+class MoveTreeModel(QStandardItemModel):
     moveItemAdded = pyqtSignal(int, int)
 
     def __init__(self, parent):
-        super(QStandardItemModel, self).__init__(parent)
-        super(pgn.BaseVisitor, self).__init__()
+        super().__init__(parent)
         # self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
         #                                 strings.COLOR_SECOND])
         self.reset()
 
-    def visit_move(self, board, move):
-        print('look im visiting', move)
-        fullMoveNum = board.fullmove_number
-        turn = board.turn
-        itemThere = self.item(self.curRow, self.curCol)
-        if not itemThere or type(itemThere) == QStandardItem:
-            newItem = MoveTreeItem(v)
-            self.setItem(self.curRow, self.curCol, newItem)
-            self.setHeaderData(self.curRow, Qt.Vertical,
-                               str(fullMoveNum))
-            # print('made moveWidg', newItem)
-        if not turn:
-            self.curRow += 1
+    def readTree(self, gameNode):
+        turn = gameNode.board().turn
+        self.curCol = int(not turn)
+        # The mainline move goes first.
+        if gameNode.variations:
+            main_variation = gameNode.variations[0]
+            fullMoveNum = main_variation.parent.board().fullmove_number
+            itemThere = self.item(self.curRow, self.curCol)
+            if not itemThere or type(itemThere) == QStandardItem:
+                newItem = MoveTreeItem(main_variation)
+                self.setItem(self.curRow, self.curCol, newItem)
+                self.setHeaderData(self.curRow, Qt.Vertical,
+                                   str(fullMoveNum))
+                # print('made moveWidg', newItem)
+            if not turn:
+                self.curRow += 1
+        # Then visit sidelines.
+        for v in itertools.islice(gameNode.variations, 1, None):
+            if not v.is_main_variation():
+                newItem = QStandardItem('var' + str(v.move))
+                self.setItem(self.curRow, self.curCol, newItem)
+                # print('made variation', self.curRow, self.curCol, v.move)
+                self.curRow += 1
+        # The mainline is continued last.
+        if gameNode.variations:
+            self.readTree(main_variation)
 
-    def updateTree(self, gameNode):
-        gameNode.accept(self)
-        # for v in gameNode.variations:
-        #     if v.move:
-        #         turn = v.parent.board().turn
-        #         self.curCol = int(not turn)
-        #         if v.is_main_line():
-        #             fullMoveNum = v.parent.board().fullmove_number
-        #             turn = v.parent.board().turn
-        #             itemThere = self.item(self.curRow, self.curCol)
-        #             if not itemThere or type(itemThere) == QStandardItem:
-        #                 newItem = MoveTreeItem(v)
-        #                 self.setItem(self.curRow, self.curCol, newItem)
-        #                 self.setHeaderData(self.curRow, Qt.Vertical,
-        #                                    str(fullMoveNum))
-        #                 # print('made moveWidg', newItem)
-        #             if not turn:
-        #                 self.curRow += 1
-        #             if not v.is_end():
-        #                 self.updateTree(v)
-        #         else:
-        #             print('making variation', self.curRow, self.curCol)
-        #             self.curRow += 1
-
-    def updateAfterMove(self, newGameNode):
-        if newGameNode.is_main_line():
-            fullMoveNum = newGameNode.parent.board().fullmove_number
-            newItem = MoveTreeItem(newGameNode)
+    def updateAfterMove(self, newNode):
+        if newNode.is_main_line():
+            fullMoveNum = newNode.parent.board().fullmove_number
+            newItem = MoveTreeItem(newNode)
             self.setItem(self.curRow, self.curCol, newItem)
             self.setHeaderData(self.curRow, self.curCol, str(fullMoveNum))
             self.moveItemAdded.emit(self.curRow, self.curCol)
@@ -130,14 +123,15 @@ class MoveTreeModel(QStandardItemModel, pgn.BaseVisitor):
         else:
             print('making variation')
 
-    def reset(self, newNode=None):
+    def reset(self, rootNode=None):
         self.clear()
         self.setItem(0, 0, QStandardItem('...'))
         self.setItem(0, 1, QStandardItem(''))
         self.curRow = 0
         self.curCol = 0
-        if newNode:
-            self.updateTree(newNode.root())
+        if rootNode:
+            print('tree reset')
+            self.readTree(rootNode.root())
             self.moveItemAdded.emit(self.curRow, self.curCol)
 
     # def itemClicked(self, current):
@@ -147,15 +141,14 @@ class MoveTreeModel(QStandardItemModel, pgn.BaseVisitor):
     #         moveItem = self.itemFromIndex(current)
     #         # current.model().itemFromIndex(current)
     #         if type(moveItem) == MoveTreeItem:
-    #             self.moveItemClicked.emit(moveItem.moveNode)
-
+    #             self.moveItemClicked.emit(moveItem.gameNode)
 
 
 class MoveTreeItem(QStandardItem):
-    def __init__(self, moveNode):
+    def __init__(self, gameNode):
         super().__init__()
-        self.moveNode = moveNode
-        self.moveSan = moveNode.parent.board().san(moveNode.move)
+        self.gameNode = gameNode
+        self.moveSan = gameNode.parent.board().san(gameNode.move)
         self.setText(self.moveSan)
 
     def clicked(self, event):

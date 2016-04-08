@@ -32,8 +32,6 @@ class BoardSceneView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        newGameAction = menu.addAction("New game")
-        newGameAction.triggered.connect(self.parent().openGame.newGame)
         flipAction = menu.addAction("Flip board")
         flipAction.triggered.connect(self.scene().flipBoard)
         menu.popup(self.mapToGlobal(event.pos()))
@@ -269,7 +267,7 @@ class BoardScene(QGraphicsScene):
             kingSquare.addEffectItem(SquareWidget.CheckSquare)
         self.selectedSquare = -1
 
-    def updateEngineItems(self, longestPV):
+    def updatePVItems(self, longestPV):
         if not longestPV:
             self.clearEffectItems(ArrowGraphicsItem)
             return

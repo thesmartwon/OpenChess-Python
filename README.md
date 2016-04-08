@@ -7,7 +7,7 @@
 This is an cross-platform open-source Chess GUI written in python that can be used for playing or analyzing large amounts of chess games.
 
 ## Philosophy
-It is still in its very early stages of development,  simple, fun, and videogame-like. Keep the board and the game of chess, not the features, the focus. All the features in ChessBase are to be supported, however.
+The goal is to keep the board and the game of chess, not the features, the focus. I want chess to be simple, fun, and videogame-like. All the (useful, widely-used) features in ChessBase are to be supported.
 
 There are some problems that I have with current chess GUIs:
 - There's too much going on at every screen.
@@ -25,6 +25,7 @@ Base
 - (done) Pieces follow rules
 - (done) Movetree
 - (done) Engine analysis pane
+- (in progress) Full variation support
 - Game commentating (drawing arrows, circles, and squares various for youtube videos/lessons)
 - Game annotating (some graphical buttons and icons for game annotators to make and view annotated pgns)
 - Advantage over time graph

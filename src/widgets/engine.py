@@ -9,9 +9,11 @@ import constants
 import userConfig
 
 
-# Note that no assumptions can really be maade about the engine
+# Note that no assumptions can really be made about the engine
 # state thanks to isready() being ASYNCRONOUS
 class EngineWidget(QWidget):
+    pvChanged = pyqtSignal(list)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.board = None
@@ -75,8 +77,8 @@ class EngineWidget(QWidget):
             self.engine.ucinewgame()
         self.engine.position(self.board)
 
-    def updateAfterMove(self, newGameNode):
-        self.board = copy.deepcopy(newGameNode.board())
+    def updateAfterMove(self, newNode):
+        self.board = copy.deepcopy(newNode.board())
         move = self.board.move_stack[-1]
         if self.longestPV and self.longestPV[0] == move:
             self.longestPV = self.longestPV[1:]
@@ -85,8 +87,8 @@ class EngineWidget(QWidget):
 
         self.syncEnginePosition()
         self.doEngineActions()
-        self.updateText()
-        self.updateBoard()
+        self.createText()
+        self.createBoardSceneGraphics()
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:
@@ -113,7 +115,7 @@ class EngineWidget(QWidget):
             pvTxt = 'Invalid variation_san'
         return pvTxt
 
-    def updateText(self):
+    def createText(self):
         pvTxt = 'not thinking'
         scoreTxt = '0'
         depthTxt = '0'
@@ -131,10 +133,9 @@ class EngineWidget(QWidget):
         self.pvLabel.setText(pvTxt)
         self.depthLabel.setText(depthTxt)
 
-    def updateBoard(self):
+    def createBoardSceneGraphics(self):
         if self.longestPV != self.lastlongestPV:
-            boardScene = self.parent().parent().boardScene
-            boardScene.updateEngineItems(self.longestPV)
+            self.pvChanged.emit(self.longestPV)
 
     def newInfoRecieved(self):
         with self.infoHandler:
@@ -146,8 +147,8 @@ class EngineWidget(QWidget):
                     self.longestPV = pvInfo[1]
         if (self.longestPV != self.lastlongestPV and
                 self.analyzeButton.isChecked()):
-            self.updateText()
-            self.updateBoard()
+            self.createText()
+            self.createBoardSceneGraphics()
             self.lastlongestPV = list(self.longestPV)
 
     def reset(self, newNode, turnOffEngine=False):
@@ -159,7 +160,7 @@ class EngineWidget(QWidget):
             self.doEngineActions()
         self.longestPV = []
         self.lastlongestPV = []
-        self.updateText()
+        self.createText()
 
     def destroyEvent(self):
         print('closing engine')

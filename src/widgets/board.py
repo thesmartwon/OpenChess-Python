@@ -9,18 +9,22 @@ from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
 import copy
 import math
-import userConfig
 import chess
+import userConfig
 import constants
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
 class BoardSceneView(QGraphicsView):
+    mouseWheelScrolled = pyqtSignal(int, bool)
+
     def __init__(self, parent, scene):
         super().__init__(parent)
         self.setScene(scene)
         if QGLFormat.hasOpenGL():
             self.setViewport(QGLWidget(QGLFormat(QGL.SampleBuffers)))
+
+        self.numScrolls = 0
 
     def initUI(self, initialSceneWidth):
         self.initialSceneWidth = initialSceneWidth
@@ -43,6 +47,17 @@ class BoardSceneView(QGraphicsView):
                     sceneWidth / self.initialSceneWidth)
         self.setTransform(trans)
         self.centerOn(sceneWidth / 2.0, sceneWidth / 2.0)
+
+    def wheelEvent(self, event):
+        if event.angleDelta().y() > 0:
+            self.numScrolls += 1
+        elif event.angleDelta().y() < 0:
+            self.numScrolls -= 1
+        activation = int(userConfig.config['BOARD']['scrollwheelclicks'])
+        if abs(self.numScrolls) >= activation:
+            event.accept()
+            self.mouseWheelScrolled.emit(self.numScrolls, True)
+            self.numScrolls = 0
 
 
 class BoardScene(QGraphicsScene):
@@ -87,34 +102,21 @@ class BoardScene(QGraphicsScene):
             self.squareWidgets.append(newSquareWidget)
         self.setSceneRect(0, 0, int(squareWidth * 8), int(squareWidth * 8))
 
-    # Helper methods
     def sendMove(self, toSquare, fromSquare=None):
         """
-        Passes the move to the parent. Then updates the board graphics.
+        Emits moveInputted after first asking for a promotion
+        piece if there should be one. Then updates the board graphics.
         Does not validate move, although it should be valid.
         """
         if fromSquare is None:
             fromSquare = self.selectedSquare
         m = chess.Move(fromSquare, toSquare)
-        print("attempting", m)
-        self.updateAfterMove(m)
+        if (self.board.piece_at(m.from_square).piece_type == chess.PAWN and
+                chess.rank_index(m.to_square) in [0, 7]):
+            # TODO: ask for a real promotion piece
+            print('promoting to queen')
+            m.promotion = chess.QUEEN
         self.moveInputted.emit(m)
-
-    def updateSelectionGraphics(self, lastSelection, square):
-        # Clicking on a new piece selects it.
-        if lastSelection != square:
-            self.squareWidgets[square].isSelected = True
-            self.squareWidgets[square].addEffectItem(SquareWidget.Selected)
-        else:
-            # Same piece deselects
-            self.selectedSquare = -1
-            return
-        # Add the valid move squares
-        for m in self.board.legal_moves:
-            if m.from_square == self.selectedSquare:
-                self.squareWidgets[m.to_square].addEffectItem(
-                    SquareWidget.ValidMove)
-                self.squareWidgets[m.to_square].isValidMove = True
 
     def squareWidgetAt(self, pos):
         for i in self.items(pos):
@@ -134,9 +136,23 @@ class BoardScene(QGraphicsScene):
         newPieceItem.setScale(scale)
         return newPieceItem
 
+    def updateSelectionGraphics(self, lastSelection, square):
+        # Clicking on a new piece selects it.
+        if lastSelection != square:
+            self.squareWidgets[square].isSelected = True
+            self.squareWidgets[square].addEffectItem(SquareWidget.Selected)
+        else:
+            # Same piece deselects
+            self.selectedSquare = -1
+            return
+        # Add the valid move squares
+        for m in self.board.legal_moves:
+            if m.from_square == self.selectedSquare:
+                self.squareWidgets[m.to_square].addEffectItem(
+                    SquareWidget.ValidMove)
+                self.squareWidgets[m.to_square].isValidMove = True
+
     def updateSquareEffectsAfterMove(self, move):
-        # Note that updating engine items is called
-        # automatically by the engine widget, not here.
         for s in self.squareWidgets:
             p = self.board.piece_at(s.square)
             if s.square == move.from_square or s.square == move.to_square:
@@ -151,22 +167,23 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def updateAfterMove(self, move, oldBoard=None):
+    def updateAfterMove(self, moveNode):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
         :param move: the move that happened on the board
-        :param isEnPassant: whether the move that just occured was an ep
+        :param oldBoard: the board before the move
         :return: void
         """
-        if oldBoard:
-            self.board = oldBoard
+        move = moveNode.move
+        oldBoard = copy.deepcopy(moveNode.parent.board())
+        self.board = oldBoard
         if move.promotion is None:
             fromPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
         else:
             fromPieceItem = self.createPiece(chess.Piece(move.promotion,
-                                             self.board.turn))
+                                                         self.board.turn))
             self.squareWidgets[move.from_square].removePiece(True)
         if self.board.is_queenside_castling(move):
             # Fix rook, move.to_square is the rook square
@@ -245,19 +262,19 @@ class BoardScene(QGraphicsScene):
                 self.removeEffectItem(i)
         assert not self.effectItems
 
-    # Events + called from elsewhere
     def refreshPosition(self):
         """
-        Clears all pieces and creates new pieces according to
-        self.board.
+        Creates new pieces according to self.board.
         Also clears the selected square and adds check effects if in check.
-        :return: Void
         """
         for s in self.squareWidgets:
             s.clearEffectItems()
-            s.removePiece()
             p = self.board.piece_at(s.square)
-            if p is not None:
+            print(s, p, s.pieceItem.piece if s.pieceItem else None)
+            if not p or (s.pieceItem and s.pieceItem.piece != p):
+                s.removePiece()
+            if p and (not s.pieceItem or
+                      (s.pieceItem and s.pieceItem.piece != p)):
                 newPieceItem = self.createPiece(p)
                 s.addPiece(newPieceItem)
         if self.board.is_check():
@@ -387,6 +404,7 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def reset(self, newNode):
+        print('b reset')
         self.board = copy.deepcopy(newNode.board())
         self.dragPieceBehind = None
         self.dragPieceAhead = None
@@ -398,14 +416,12 @@ class BoardScene(QGraphicsScene):
         self.refreshPosition()
 
     def editBoard(self):
-        pieces = []
-        for t in chess.PIECE_TYPES:
-            for c in chess.COLORS:
-                pieces.append(chess.Piece(t, c))
+        pieces = [chess.Piece(t, c) for t in chess.PIECE_TYPES
+                  for c in chess.COLORS]
+
         # TODO: implement
         # dimen = self.moveTreeView.geometry()
         # pieceWidth = max(dimen.width() / 8, dimen.height() / 8)
-        self.moveTreeView.setVisible(False)
 
 
 class ArrowGraphicsItem(QGraphicsItem):

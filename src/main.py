@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QMainWindow, QAction,
 import sys
 import userConfig
 import constants
+import strings
 from widgets.centralwidget import CentralWidget
 
 
@@ -23,8 +24,8 @@ class MainWindow(QMainWindow):
         QApplication.setFont(antiAliasedFont)
 
         self.setWindowTitle('Open Chess')
-        # TODO: Add an application icon
-        # self.setWindowIcon(QIcon('web.png'))
+        path = constants.RESOURCES_PATH + '/icon.png'
+        self.setWindowIcon(QIcon(path))
 
         # Geometry
         """This will make the window the correct aspect ratio"""
@@ -71,40 +72,49 @@ class MainWindow(QMainWindow):
         self.move(QDesktopWidget().screenGeometry().center() - frameGeo.center())
 
     def createActions(self):
-        self.newGameAction = QAction('&New Game', self)
+        self.newGameAction = QAction(strings.MENU_NEW, self)
         self.newGameAction.setShortcut(QKeySequence.New)
-        self.newGameAction.setStatusTip('Start a new game')
+        self.newGameAction.setToolTip(strings.MENU_NEW_TIP)
         self.newGameAction.triggered.connect(self.centralWidget.chessGame.newGame)
-        self.openGameAction = QAction('&Open a Game', self)
+        self.openGameAction = QAction(strings.MENU_OPEN, self)
         self.openGameAction.setShortcut(QKeySequence.Open)
-        self.openGameAction.setStatusTip('Start a new game')
+        self.openGameAction.setToolTip(strings.MENU_OPEN_TIP)
         self.openGameAction.triggered.connect(self.centralWidget.chessGame.openGame)
-        self.exitAction = QAction('&Quit', self)
+        self.saveGameAction = QAction(strings.MENU_SAVE, self)
+        self.saveGameAction.setShortcut(QKeySequence.Save)
+        self.saveGameAction.setToolTip(strings.MENU_SAVE_TIP)
+        self.saveGameAction.triggered.connect(self.centralWidget.chessGame.saveGame)
+        self.saveGameAsAction = QAction(strings.MENU_SAVEAS, self)
+        self.saveGameAsAction.setShortcut(QKeySequence.Save)
+        self.saveGameAsAction.setToolTip(strings.MENU_SAVEAS_TIP)
+        self.saveGameAsAction.triggered.connect(self.centralWidget.chessGame.saveGame)
+        self.exitAction = QAction(strings.MENU_QUIT, self)
         self.exitAction.setShortcut(QKeySequence.Quit)
-        self.exitAction.setStatusTip('Exit application')
+        self.exitAction.setToolTip(strings.MENU_QUIT_TIP)
         self.exitAction.triggered.connect(self.close)
 
         keyConfig = userConfig.config['HOTKEYS']
-        self.editAction = QAction('&Setup a position', self)
+        self.editAction = QAction(strings.MENU_EDITBOARD, self)
         self.editAction.setShortcut(keyConfig['editboard'])
-        self.editAction.setStatusTip('Change the current position')
-        self.editAction.triggered.connect(self.centralWidget.boardScene.editBoard)
-        self.flipAction = QAction('&Flip', self)
+        self.editAction.setToolTip(strings.MENU_EDITBOARD_TIP)
+        self.editAction.triggered.connect(self.centralWidget.chessGame.editBoard)
+        self.flipAction = QAction(strings.MENU_FLIP, self)
         self.flipAction.setShortcut(keyConfig['flipboard'])
-        self.flipAction.setStatusTip('Flip the current board')
+        self.flipAction.setToolTip(strings.MENU_FLIP_TIP)
         self.flipAction.triggered.connect(self.centralWidget.boardScene.flipBoard)
 
     def createMenus(self):
         # Menus (some dependent on widgets)
         menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
+        fileMenu = menubar.addMenu(strings.MENU_FILE)
         fileMenu.addAction(self.newGameAction)
         fileMenu.addAction(self.openGameAction)
+        fileMenu.addAction(self.saveGameAction)
+        fileMenu.addAction(self.saveGameAsAction)
         fileMenu.addAction(self.exitAction)
-        boardMenu = menubar.addMenu('&Board')
+        boardMenu = menubar.addMenu(strings.MENU_BOARD)
         boardMenu.addAction(self.flipAction)
         boardMenu.addAction(self.editAction)
-
 
     def closeEvent(self, event):
         print('closing')

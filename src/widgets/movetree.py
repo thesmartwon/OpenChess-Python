@@ -1,14 +1,23 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (QStandardItemModel, QStandardItem, QPalette,
-                         QFontMetrics)
+                         QFontMetrics, QKeySequence)
 from PyQt5.QtWidgets import QTableView, QMenu, QHeaderView
 import itertools
 from chess import pgn
 import strings
+import userConfig
 
 
 class MoveTreeView(QTableView):
     moveItemScrolled = pyqtSignal(pgn.GameNode)
+    prevShortcuts = [QKeySequence(s.strip())[0] for s in
+                     userConfig.config['HOTKEYS']['prevmove'].split(',')]
+    nextShortcuts = [QKeySequence(s.strip())[0] for s in
+                     userConfig.config['HOTKEYS']['nextmove'].split(',')]
+    nextVarShortcuts = [QKeySequence(s.strip())[0] for s in userConfig
+                        .config['HOTKEYS']['nextvariation'].split(',')]
+    prevVarShortcuts = [QKeySequence(s.strip())[0] for s in userConfig
+                        .config['HOTKEYS']['prevvariation'].split(',')]
 
     def __init__(self, parent, model):
         super().__init__(parent)
@@ -53,23 +62,70 @@ class MoveTreeView(QTableView):
             action = menu.popup(self.mapToGlobal(point))
 
     def entryAdded(self, row, col):
-        if row == self.model().rowCount() - 1:
-            self.scrollToBottom()
-        else:
-            self.scrollTo(self.model().index(row, col))
         self.setCurrentIndex(self.model().index(row, col))
+
+    def entryScrolled(self, moveNode):
+        """
+        Happens when game asks us to scroll without changing current tree
+        """
+        curItem = self.model().itemFromIndex(self.currentIndex())
+        if type(curItem) == MoveTreeItem and curItem.gameNode != moveNode:
+            # This is ridiculous. Has to be a better way to search
+            for r in range(self.model().rowCount()):
+                for c in range(self.model().columnCount()):
+                    item = self.model().itemFromIndex(self.model().index(r, c))
+                    if (type(item) == MoveTreeItem and
+                            item.gameNode == moveNode):
+                        self.setCurrentIndex(self.model().index(r, c))
+                        print('found')
+                        return
 
     def currentChanged(self, newCur, oldCur):
         if newCur.isValid():
             moveItem = self.model().itemFromIndex(newCur)
-
+            self.scrollTo(newCur)
             if type(moveItem) == MoveTreeItem:
                 self.moveItemScrolled.emit(moveItem.gameNode)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Left:
-            pass
-        event.ignore()
+        keyCode = QKeySequence(event.modifiers() | event.key())[0]
+        if keyCode in self.prevShortcuts:
+            event.accept()
+            self.scrollInDirection(-1, lambda i:
+                                   i.gameNode.is_main_variation())
+        elif keyCode in self.nextShortcuts:
+            event.accept()
+            self.scrollInDirection(1, lambda i: i.gameNode.is_main_variation())
+        elif keyCode in self.prevVarShortcuts:
+            if self.model().hasVariations:
+                event.accept()
+                self.scrollInDirection(-1, lambda i:
+                                       not i.gameNode.is_main_variation())
+        elif keyCode in self.nextVarShortcuts:
+            if self.model().hasVariations:
+                event.accept()
+                self.scrollInDirection(1, lambda i:
+                                       not i.gameNode.is_main_variation())
+
+    def scrollInDirection(self, direction, stopCondition):
+        numItems = self.model().rowCount() * self.model().columnCount()
+        curNum = self.currentIndex().row() * 2 + self.currentIndex().column()
+        while True:
+            curNum += direction
+            if curNum == numItems:
+                curNum = numItems - 1
+                # This makes it so that if the last item is not a MoveTreeItem,
+                # we will go backwards until we find one
+                direction *= -1
+            elif curNum < 0:
+                curNum = 0
+                direction *= -1
+            curIndex = self.model().index(curNum / 2, curNum % 2)
+            curItem = self.model().itemFromIndex(curIndex)
+            if type(curItem) == MoveTreeItem and stopCondition(curItem):
+                break
+        if self.currentIndex() != curIndex and curIndex.isValid():
+            self.setCurrentIndex(curIndex)
 
 
 class MoveTreeModel(QStandardItemModel):
@@ -81,50 +137,53 @@ class MoveTreeModel(QStandardItemModel):
         #                                 strings.COLOR_SECOND])
         self.reset()
 
+    def createMoveTreeItem(self, gameNode, notify=False):
+        newItem = MoveTreeItem(gameNode)
+        if gameNode.is_main_variation():
+            self.setItem(self.curRow, self.curCol, newItem)
+        else:
+            if gameNode.board().turn:
+                list = [newItem, QStandardItem('')]
+            else:
+                list = [QStandardItem(''), newItem]
+            self.insertRow(self.curRow, list)
+            print('made variation', gameNode.move)
+            self.hasVariations = True
+        header = str(gameNode.parent.board().fullmove_number)
+        self.setHeaderData(self.curRow, Qt.Vertical, header)
+
+        if notify:
+            self.moveItemAdded.emit(self.curRow, self.curCol)
+
     def readTree(self, gameNode):
         turn = gameNode.board().turn
         self.curCol = int(not turn)
         # The mainline move goes first.
         if gameNode.variations:
             main_variation = gameNode.variations[0]
-            fullMoveNum = main_variation.parent.board().fullmove_number
-            itemThere = self.item(self.curRow, self.curCol)
-            if not itemThere or type(itemThere) == QStandardItem:
-                newItem = MoveTreeItem(main_variation)
-                self.setItem(self.curRow, self.curCol, newItem)
-                self.setHeaderData(self.curRow, Qt.Vertical,
-                                   str(fullMoveNum))
-                # print('made moveWidg', newItem)
+            self.createMoveTreeItem(main_variation)
             if not turn:
                 self.curRow += 1
         # Then visit sidelines.
         for v in itertools.islice(gameNode.variations, 1, None):
             if not v.is_main_variation():
-                newItem = QStandardItem('var' + str(v.move))
-                self.setItem(self.curRow, self.curCol, newItem)
-                # print('made variation', self.curRow, self.curCol, v.move)
+                self.createMoveTreeItem(v)
                 self.curRow += 1
         # The mainline is continued last.
         if gameNode.variations:
             self.readTree(main_variation)
 
     def updateAfterMove(self, newNode):
-        if newNode.is_main_line():
-            fullMoveNum = newNode.parent.board().fullmove_number
-            newItem = MoveTreeItem(newNode)
-            self.setItem(self.curRow, self.curCol, newItem)
-            self.setHeaderData(self.curRow, self.curCol, str(fullMoveNum))
-            self.moveItemAdded.emit(self.curRow, self.curCol)
-            if self.curCol == 0:
-                self.curCol = 1
-            else:
-                self.curRow += 1
-                self.curCol = 0
+        self.createMoveTreeItem(newNode, True)
+        if self.curCol == 0:
+            self.curCol = 1
         else:
-            print('making variation')
+            self.curRow += 1
+            self.curCol = 0
 
     def reset(self, rootNode=None):
         self.clear()
+        self.hasVariations = False
         self.setItem(0, 0, QStandardItem('...'))
         self.setItem(0, 1, QStandardItem(''))
         self.curRow = 0
@@ -132,16 +191,7 @@ class MoveTreeModel(QStandardItemModel):
         if rootNode:
             print('tree reset')
             self.readTree(rootNode.root())
-            self.moveItemAdded.emit(self.curRow, self.curCol)
-
-    # def itemClicked(self, current):
-    #     # Because of self.setSelectionMode(QTableView.SingleSelection)
-    #     # current will always be the selected move
-    #     if current.isValid():
-    #         moveItem = self.itemFromIndex(current)
-    #         # current.model().itemFromIndex(current)
-    #         if type(moveItem) == MoveTreeItem:
-    #             self.moveItemClicked.emit(moveItem.gameNode)
+            self.moveItemAdded.emit(0, 0)
 
 
 class MoveTreeItem(QStandardItem):
@@ -150,6 +200,11 @@ class MoveTreeItem(QStandardItem):
         self.gameNode = gameNode
         self.moveSan = gameNode.parent.board().san(gameNode.move)
         self.setText(self.moveSan)
+        self.setEditable(False)
+        self.setToolTip(gameNode.comment)
+
+        if not self.gameNode.is_main_variation():
+            self.setBackground(Qt.yellow)
 
     def clicked(self, event):
         print('yea')

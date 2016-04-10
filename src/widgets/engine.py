@@ -62,6 +62,7 @@ class EngineWidget(QWidget):
             self.engine.isready(self.goInfinite)
         else:
             self.stopEngine()
+            self.pvLabel.setText('[Off]' + self.pvLabel.text())
         # TODO: Add timed engine
 
     def stopEngine(self, stuff=None):
@@ -108,7 +109,7 @@ class EngineWidget(QWidget):
     def createPVText(self, pvInfo, isStale):
         pvTxt = ''
         if isStale:
-            pvTxt += '[Stale]'
+            pvTxt += '[Off]'
         try:
             pvTxt += self.board.variation_san(self.longestPV)
         except ValueError:

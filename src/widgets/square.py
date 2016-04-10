@@ -38,6 +38,9 @@ class SquareWidget(QGraphicsWidget):
         self.pieceItem = None
         self.setAcceptHoverEvents(True)
 
+    def __repr__(self):
+        return str(chess.SQUARE_NAMES[self.square])
+
     def boundingRect(self):
         return QRectF(0, 0, self.geometry().width(), self.geometry().width())
 

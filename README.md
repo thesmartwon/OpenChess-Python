@@ -30,6 +30,8 @@ I want to make Open Chess the perfect companion for lichess.org, and chess train
 	- Board editing
 	- Board premoving
 	- Board moves undo/redoable
+	- Board move animations on 2 clicks/scrolling
+	- Attacked square highlighting
 2. (done) Movetree
 3. (done) Engine analysis pane
 	- Add engine variation to game

@@ -1,4 +1,5 @@
 import os
+import chess
 
 
 # TODO: put this all in userConfig
@@ -15,6 +16,12 @@ PIECE_TYPE_FILE_DICT = {'P': 'wp.svg', 'p': 'bp.svg',
                         'B': 'wb.svg', 'b': 'bb.svg',
                         'Q': 'wq.svg', 'q': 'bq.svg',
                         'K': 'wk.svg', 'k': 'bk.svg'}
+CHESS_ERRORS = [chess.STATUS_NO_WHITE_KING, chess.STATUS_TOO_MANY_BLACK_PIECES,
+                chess.STATUS_TOO_MANY_KINGS, chess.STATUS_TOO_MANY_BLACK_PAWNS,
+                chess.STATUS_TOO_MANY_WHITE_PAWNS, chess.STATUS_OPPOSITE_CHECK,
+                chess.STATUS_PAWNS_ON_BACKRANK, chess.STATUS_INVALID_EP_SQUARE,
+                chess.STATUS_BAD_CASTLING_RIGHTS, chess.STATUS_NO_BLACK_KING,
+                chess.STATUS_TOO_MANY_WHITE_PIECES]
 CURRENT_GAME_BOARD = None
 PIECE_PADDING_RIGHT = .162
 PIECE_PADDING_BOT = .3

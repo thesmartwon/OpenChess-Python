@@ -40,7 +40,7 @@ class CentralWidget(QFrame):
         self.boardScene.moveInputted.connect(self.chessGame.doMove)
         self.boardSceneView.mouseWheelScrolled.connect(self.chessGame.scrollInDirection)
         self.moveTreeView.moveItemScrolled.connect(self.chessGame.scrollToNode)
-        self.moveTreeModel.moveItemAdded.connect(self.moveTreeView.entryAdded)
+        self.moveTreeModel.moveItemAdded.connect(self.moveTreeView.entryScrolled)
         self.engineWidget.pvChanged.connect(self.boardScene.updatePVItems)
 
     def initUI(self):

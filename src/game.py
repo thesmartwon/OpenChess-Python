@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from chess import pgn
 import os
 import constants
+import strings
 
 
 class OpenChessGame(QObject):
@@ -35,18 +36,24 @@ class OpenChessGame(QObject):
             self.updateCurrent(self.current.variation(move))
             self.moveDone.emit(self.current)
         elif move not in [v.move for v in self.current.variations]:
-            addAsVariation = True  # VariationDialog(self.parent())
-            if addAsVariation == QMessageBox.Yes:
+            varOption = VariationMessageBox(self.parent()).exec_()
+            if varOption == 1:
                 self.current.add_variation(move)
-                print('appending %s (%s)' % (self.board.san(move), str(move)))
+                print('adding variation %s (%s)' % (self.board.san(move),
+                                                    str(move)))
                 self.updateCurrent(self.current.variation(move))
                 self.moveDone.emit(self.current)
-            elif addAsVariation == QMessageBox.No:
+            elif varOption == 0:
                 if self.current.variations:
                     self.current.demote(self.current.variations[0])
                 self.current.add_main_variation(move)
+                print('overwriting %s (%s)' % (self.board.san(move),
+                                               str(move)))
                 self.updateCurrent(self.current.variation(move))
-                self.positionChanged.emit(self.current.root())
+                self.positionChanged.emit(self.current)
+            else:
+                print('rejected %s (%s)' % (self.board.san(move),
+                                            str(move)))
         else:
             self.updateCurrent(self.current.variation(move))
             self.positionScrolled.emit(self.current)
@@ -92,16 +99,15 @@ class OpenChessGame(QObject):
         path = QFileDialog.getSaveFileName(self.parent(),
                                            'Save PGN',
                                            QDir.homePath(),
-                                           filter='*.pgn')
-        path = path[0] + path[1].replace('*', '')
-        if path:
-            self.writeGame(path)
-            self.fileHandle = path
+                                           filter='*.pgn\n*.*')
+        if path[0]:
+            self.writeGame(path[0])
+            self.fileHandle = path[0]
 
     def scrollToNode(self, moveNode):
         if self.current == moveNode:
             return
-        print('scrolling to', moveNode.board())
+        print('scrolling to', moveNode.board().fen())
         self.updateCurrent(moveNode)
         self.positionScrolled.emit(moveNode)
 
@@ -133,3 +139,13 @@ class OpenChessGame(QObject):
 
     def editBoard(self):
         print('editing board')
+
+
+class VariationMessageBox(QMessageBox):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle(strings.GAME_VARIATION_ERROR)
+        self.setText(strings.GAME_VARIATION)
+        self.addButton(QMessageBox.Cancel)
+        self.addButton('Overwrite', QMessageBox.NoRole)
+        self.addButton('Add as variation', QMessageBox.YesRole)

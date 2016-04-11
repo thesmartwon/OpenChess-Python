@@ -1,9 +1,9 @@
-from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF,
-                          QPropertyAnimation, QByteArray,
-                          QParallelAnimationGroup, pyqtSignal)
-from PyQt5.QtGui import (QPixmap, QPainter, QColor, QTransform,
-                         QBrush, QPen, QPolygonF)
-from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem,
+from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF, QByteArray,
+                          QPropertyAnimation, QParallelAnimationGroup,
+                          pyqtSignal)
+from PyQt5.QtGui import (QPixmap, QPainter, QColor, QTransform, QBrush, QPen,
+                         QPolygonF)
+from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem, QMessageBox,
                              QGraphicsView, QMenu, QGraphicsItem)
 from PyQt5.QtOpenGL import QGL, QGLFormat, QGLWidget
 from widgets.square import SquareWidget, PieceItem, DummySquareItem
@@ -12,6 +12,7 @@ import math
 import chess
 import userConfig
 import constants
+import strings
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
@@ -152,10 +153,11 @@ class BoardScene(QGraphicsScene):
                     SquareWidget.ValidMove)
                 self.squareWidgets[m.to_square].isValidMove = True
 
-    def updateSquareEffectsAfterMove(self, move):
+    def updateSquareEffects(self, move=None):
         for s in self.squareWidgets:
             p = self.board.piece_at(s.square)
-            if s.square == move.from_square or s.square == move.to_square:
+            if (move and (s.square == move.from_square or
+                          s.square == move.to_square)):
                 s.clearEffectItems()
                 s.addEffectItem(SquareWidget.LastMove)
             elif (self.board.is_check() and p is not None and
@@ -220,7 +222,7 @@ class BoardScene(QGraphicsScene):
         self.squareWidgets[move.to_square].addPiece(fromPieceItem)
 
         self.board.push(move)
-        self.updateSquareEffectsAfterMove(move)
+        self.updateSquareEffects(move)
 
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
         if itemClass == ArrowGraphicsItem.Type:
@@ -262,27 +264,20 @@ class BoardScene(QGraphicsScene):
                 self.removeEffectItem(i)
         assert not self.effectItems
 
-    def refreshPosition(self):
+    def readBoard(self, board):
         """
-        Creates new pieces according to self.board.
-        Also clears the selected square and adds check effects if in check.
+        Creates new pieces according to board.
         """
+        self.board = copy.deepcopy(board)
         for s in self.squareWidgets:
             s.clearEffectItems()
             p = self.board.piece_at(s.square)
-            print(s, p, s.pieceItem.piece if s.pieceItem else None)
             if not p or (s.pieceItem and s.pieceItem.piece != p):
                 s.removePiece()
             if p and (not s.pieceItem or
                       (s.pieceItem and s.pieceItem.piece != p)):
                 newPieceItem = self.createPiece(p)
                 s.addPiece(newPieceItem)
-        if self.board.is_check():
-            kingSet = self.board.pieces(chess.KING, self.board.turn)
-            assert len(kingSet) == 1
-            kingSquare = self.squareWidgets[list(kingSet)[0]]
-            kingSquare.addEffectItem(SquareWidget.CheckSquare)
-        self.selectedSquare = -1
 
     def updatePVItems(self, longestPV):
         if not longestPV:
@@ -404,16 +399,46 @@ class BoardScene(QGraphicsScene):
         self.selectedSquare = -1
 
     def reset(self, newNode):
-        print('b reset')
-        self.board = copy.deepcopy(newNode.board())
+        print('board reset', newNode.board().fen())
         self.dragPieceBehind = None
         self.dragPieceAhead = None
         self.selectedSquare = -1
         self.lastMouseSquare = None
+        # For squares
+        self.readBoard(newNode.board())
+        self.updateSquareEffects()
         # For arrows
         self.longestPV = []
         self.clearEffectItems()
-        self.refreshPosition()
+
+    def writeBoard(self):
+        """
+        Returns a chess.board representative of self.squareWidgets.
+        Castling rights and ep squares are added, and the position is
+        validated as well, although it can be overridden by the user.
+        """
+        returnBoard = chess.Board()
+        returnBoard.clear()
+        for i in range(self.squareWidgets):
+            p = self.squareWidgets.piece
+            if p:
+                returnBoard.set_piece_at(i, p)
+
+        if returnBoard.status() == chess.STATUS_VALID:
+            return returnBoard
+        else:
+            errors = [strings.BOARD_ERROR_DICT[error] for error in
+                      constants.CHESS_ERRORS if error & returnBoard.status()]
+            errorString = '{}\n{}\n\n{}'.format(strings.BOARD_ERROR,
+                                                '\n'.join(errors),
+                                                strings.BOARD_ERROR_CONTINUE)
+            response = QMessageBox.warning(self, strings.BOARD_ERROR_TITLE,
+                                           errorString,
+                                           QMessageBox.Yes | QMessageBox.No)
+            if response == QMessageBox.Yes:
+                return returnBoard
+            else:
+                return None
 
     def editBoard(self):
         pieces = [chess.Piece(t, c) for t in chess.PIECE_TYPES

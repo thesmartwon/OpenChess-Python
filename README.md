@@ -24,11 +24,15 @@ There are some problems that I have with current chess GUIs:
 I want to make Open Chess the perfect companion for lichess.org, and chess training in general. Below is what I'm going to do next.
 
 ### Base
+- General
+	- Logging streams
 1. (done) Board follows rules
 	- Board editing
+	- Board premoving
+	- Board moves undo/redoable
 2. (done) Movetree
 3. (done) Engine analysis pane
-	- Add variation to game
+	- Add engine variation to game
 	- Computer gauge
 	- Make tableview instead of long text
 4. (in progress) Full variation support
@@ -37,6 +41,7 @@ I want to make Open Chess the perfect companion for lichess.org, and chess train
 	- Opening type as header
 	- White/black resign buttons
 	- +/- pawns in moveTree
+	- Default overwrite/add setting
 5. Game commentating (drawing arrows, circles, and squares various for youtube videos/lessons)
 6. Advantage over time graph
 7. Endgame explorer (and some theory training)
@@ -57,6 +62,8 @@ I want to make Open Chess the perfect companion for lichess.org, and chess train
 1. A page about how Stockfish works
 2. Convenient game library with searching
 3. Statistics and stat tracking on nearly EVERYTHING. Personal profile page. Lots of graphs.
+4. Screenshot to FEN
+5. Printing games
 
 
 Check back often to see the progress!

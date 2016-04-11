@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
         self.saveGameAsAction = QAction(strings.MENU_SAVEAS, self)
         self.saveGameAsAction.setShortcut(QKeySequence.Save)
         self.saveGameAsAction.setToolTip(strings.MENU_SAVEAS_TIP)
-        self.saveGameAsAction.triggered.connect(self.centralWidget.chessGame.saveGame)
+        self.saveGameAsAction.triggered.connect(self.centralWidget.chessGame.saveGameAs)
         self.exitAction = QAction(strings.MENU_QUIT, self)
         self.exitAction.setShortcut(QKeySequence.Quit)
         self.exitAction.setToolTip(strings.MENU_QUIT_TIP)

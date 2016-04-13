@@ -9,8 +9,6 @@ import constants
 import userConfig
 
 
-# Note that no assumptions can really be made about the engine
-# state thanks to isready() being ASYNCRONOUS
 class EngineWidget(QWidget):
     pvChanged = pyqtSignal(list)
 
@@ -65,18 +63,24 @@ class EngineWidget(QWidget):
             self.pvLabel.setText('[Off]' + self.pvLabel.text())
         # TODO: Add timed engine
 
-    def stopEngine(self, stuff=None):
+    def stopEngine(self, callback=None):
         print('engine stopping')
-        self.engine.stop()
+        self.engine.stop(callback)
         self.command = None
 
-    def syncEnginePosition(self, stuff=None):
-        self.stopEngine()
-        self.engine.isready()
+    # TODO: prettier way for these callbacks?
+    def onSyncCallback2(self, stuff=None):
         print('engine syncing position ', self.board.fen())
         if self.board.fen() == chess.STARTING_FEN:
             self.engine.ucinewgame()
         self.engine.position(self.board)
+        self.doEngineActions()
+
+    def onSyncCallback1(self, stuff=None):
+        self.engine.isready(self.onSyncCallback2)
+
+    def syncEnginePosition(self, stuff=None):
+        self.stopEngine(self.onSyncCallback1)
 
     def updateAfterMove(self, newNode):
         self.board = copy.deepcopy(newNode.board())
@@ -87,9 +91,6 @@ class EngineWidget(QWidget):
             self.longestPV.clear()
 
         self.syncEnginePosition()
-        self.doEngineActions()
-        self.createText()
-        self.createBoardSceneGraphics()
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:
@@ -154,14 +155,13 @@ class EngineWidget(QWidget):
 
     def reset(self, newNode, turnOffEngine=False):
         self.board = copy.deepcopy(newNode.board())
-        self.syncEnginePosition()
-        if turnOffEngine:
-            self.analyzeButton.setChecked(False)
-        else:
-            self.doEngineActions()
         self.longestPV = []
         self.lastlongestPV = []
         self.createText()
+        if turnOffEngine:
+            self.analyzeButton.setChecked(False)
+        else:
+            self.syncEnginePosition()
 
     def destroyEvent(self):
         print('closing engine')
@@ -199,7 +199,6 @@ class PVLabel(QLabel):
         pvLineHeight = pvMet.height()
         self.setMaximumHeight(pvLineHeight * 12)
         self.setMinimumHeight(pvLineHeight * 12)
-        self.setMaximumWidth(self.width())
         self.setWordWrap(True)
 
 

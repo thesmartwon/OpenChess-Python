@@ -97,13 +97,10 @@ class BoardScene(QGraphicsScene):
             newSquareWidget = SquareWidget(s, squareWidth)
             newSquareWidget.pieceReleased.connect(self.sendMove)
             newSquareWidget.invalidDrop.connect(self.deselectSquares)
+            self.addItem(newSquareWidget)
             if self.board.piece_at(s) is not None:
                 piece = self.createPiece(self.board.piece_at(s))
                 newSquareWidget.addPiece(piece)
-                self.addItem(piece)
-                piece.setPos(squareWidth * (s % 8),
-                             squareWidth * (7 - int(s / 8)))
-            self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
         self.setSceneRect(0, 0, int(squareWidth * 8), int(squareWidth * 8))
 
@@ -185,7 +182,6 @@ class BoardScene(QGraphicsScene):
         :return: void
         """
         time2 = time.time()
-        print('time2', time2)
         if move.promotion is None:
             fromPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
@@ -226,9 +222,6 @@ class BoardScene(QGraphicsScene):
 
         self.squareWidgets[move.to_square].removePiece(True)
         self.squareWidgets[move.to_square].addPiece(fromPieceItem)
-        square = self.squareWidgets[move.to_square].square
-        fromPieceItem.setPos(self.squareWidth * (square % 8),
-                             self.squareWidth * (7 - int(square / 8)))
         self.board.push(move)
         self.updateSquareEffects(move)
         print('time3', time.time(), time.time() - time2)
@@ -365,8 +358,7 @@ class BoardScene(QGraphicsScene):
         self.dragPieceAhead.renderer().render(painter)
         painter.end()
         self.dragPieceBehind = QGraphicsPixmapItem(pieceImg)
-        pos = self.squareWidgets[square].pos()
-        self.dragPieceBehind.setPos(pos)
+        self.dragPieceBehind.setPos(self.squareWidgets[square].pos())
         self.dragPieceBehind.setOpacity(0.5)
         self.addItem(self.dragPieceBehind)
 

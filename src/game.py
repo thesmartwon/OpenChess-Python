@@ -4,7 +4,6 @@ from chess import pgn
 import os
 import constants
 import strings
-import time
 
 
 class OpenChessGame(QObject):
@@ -121,22 +120,18 @@ class OpenChessGame(QObject):
                 if curNode.parent:
                     curNode = curNode.parent
                 else:
-                    self.scrollToNode(curNode)
-                    break
+                    direction *= -1
             elif curNode.variations:
                 curNode = curNode.variations[0]
             else:
+                direction *= -1
+
+            if mustBeMainVar and curNode.is_main_variation():
                 self.scrollToNode(curNode)
                 break
-
-            if mustBeMainVar:
-                if curNode.is_main_variation():
-                    self.scrollToNode(curNode)
-                    break
-            elif mustBeMainVar:
-                if not curNode.is_main_variation():
-                    self.scrollToNode(curNode)
-                    break
+            elif mustBeVar and len(curNode.variations) > 1:
+                self.scrollToNode(curNode.variations[1])
+                break
 
     def editBoard(self):
         print('editing board')

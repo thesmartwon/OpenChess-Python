@@ -118,7 +118,10 @@ class SquareWidget(QGraphicsWidget):
     def addPiece(self, piece):
         piece.square = self.square
         # piece.setParentItem(self)
+        if not piece.scene():
+            self.scene().addItem(piece)
         piece.setZValue(5)
+        piece.setPos(self.pos())
         self.pieceItem = piece
         self.isOccupied = True
 

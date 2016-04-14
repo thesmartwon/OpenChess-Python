@@ -10,6 +10,7 @@ import userConfig
 
 class MoveTreeView(QTableView):
     moveItemScrolled = pyqtSignal(pgn.GameNode)
+    scrolledInDirection = pyqtSignal(int, bool, bool)
     prevShortcuts = [QKeySequence(s.strip())[0] for s in
                      userConfig.config['HOTKEYS']['prevmove'].split(',')]
     nextShortcuts = [QKeySequence(s.strip())[0] for s in
@@ -69,6 +70,8 @@ class MoveTreeView(QTableView):
         item = self.model().findNode(moveNode)
         if item:
             self.setCurrentIndex(item)
+        else:
+            self.clearSelection()
 
     def currentChanged(self, newCur, oldCur):
         if newCur.isValid():
@@ -81,41 +84,18 @@ class MoveTreeView(QTableView):
         keyCode = QKeySequence(event.modifiers() | event.key())[0]
         if keyCode in self.prevShortcuts:
             event.accept()
-            self.scrollInDirection(-1, lambda i:
-                                   i.gameNode.is_main_variation())
+            self.scrolledInDirection.emit(-1, True, False)
         elif keyCode in self.nextShortcuts:
             event.accept()
-            self.scrollInDirection(1, lambda i: i.gameNode.is_main_variation())
+            self.scrolledInDirection.emit(1, True, False)
         elif keyCode in self.prevVarShortcuts:
             if self.model().hasVariations:
                 event.accept()
-                self.scrollInDirection(-1, lambda i:
-                                       not i.gameNode.is_main_variation())
+                self.scrolledInDirection.emit(-1, False, True)
         elif keyCode in self.nextVarShortcuts:
             if self.model().hasVariations:
                 event.accept()
-                self.scrollInDirection(1, lambda i:
-                                       not i.gameNode.is_main_variation())
-
-    def scrollInDirection(self, direction, stopCondition):
-        numItems = self.model().rowCount() * self.model().columnCount()
-        curNum = self.currentIndex().row() * 2 + self.currentIndex().column()
-        while True:
-            curNum += direction
-            if curNum == numItems:
-                curNum = numItems - 1
-                # This makes it so that if the last item is not a MoveTreeItem,
-                # we will go backwards until we find one
-                direction *= -1
-            elif curNum < 0:
-                curNum = 0
-                direction *= -1
-            curIndex = self.model().index(curNum / 2, curNum % 2)
-            curItem = self.model().itemFromIndex(curIndex)
-            if type(curItem) == MoveTreeItem and stopCondition(curItem):
-                break
-        if self.currentIndex() != curIndex and curIndex.isValid():
-            self.setCurrentIndex(curIndex)
+                self.scrolledInDirection.emit(1, False, True)
 
 
 class MoveTreeModel(QStandardItemModel):
@@ -134,6 +114,7 @@ class MoveTreeModel(QStandardItemModel):
                 item = self.itemFromIndex(self.index(r, c))
                 if type(item) == MoveTreeItem and item.gameNode == gameNode:
                     return self.index(r, c)
+        return None
 
     def createMoveTreeItem(self, gameNode):
         if gameNode.parent.parent:
@@ -148,15 +129,12 @@ class MoveTreeModel(QStandardItemModel):
         else:
             curRow = 0
             curCol = 0
+        print('cur', curRow, curCol)
         newItem = MoveTreeItem(gameNode)
         if gameNode.is_main_line():
             self.setItem(curRow, curCol, newItem)
         elif gameNode.is_main_variation():
-            if gameNode.board().turn:
-                list = [newItem, QStandardItem('')]
-                self.insertRow(curRow, list)
-            else:
-                self.setItem(curRow, curCol, newItem)
+            self.setItem(curRow, curCol, newItem)
             print('made variation line', gameNode.move)
         else:
             if gameNode.board().turn:
@@ -178,8 +156,8 @@ class MoveTreeModel(QStandardItemModel):
             self.createMoveTreeItem(main_variation)
         # Then visit sidelines.
         for v in itertools.islice(gameNode.variations, 1, None):
-            if not v.is_main_variation():
-                self.createMoveTreeItem(v)
+            self.createMoveTreeItem(v)
+            self.readTree(v)
         # The mainline is continued last.
         if gameNode.variations:
             self.readTree(main_variation)

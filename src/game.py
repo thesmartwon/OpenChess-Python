@@ -4,6 +4,7 @@ from chess import pgn
 import os
 import constants
 import strings
+import time
 
 
 class OpenChessGame(QObject):

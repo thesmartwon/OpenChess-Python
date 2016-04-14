@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, pyqtSignal, QObject, QBasicTimer
 from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout,
                              QHBoxLayout)
 from PyQt5.QtGui import QFontMetrics
@@ -19,12 +19,14 @@ class EngineWidget(QWidget):
         self.longestPV = []
         self.lastlongestPV = []
         self.initUI()
+        self.timer = QBasicTimer()
+        self.timer.start(100, self)
 
     def initUI(self):
         self.pvLabel = PVLabel(self)
         self.scoreLabel = ScoreLabel(self)
         self.depthLabel = DepthLabel(self)
-        self.analyzeButton = AnalyzeButton(self, self.doEngineActions)
+        self.analyzeButton = AnalyzeButton(self, self.analyzeClicked)
 
         horiLayout = QHBoxLayout()
         horiLayout.setSpacing(0)
@@ -48,19 +50,16 @@ class EngineWidget(QWidget):
         self.engine.info_handlers.append(self.infoHandler)
         self.board = copy.deepcopy(board)
         self.engine.uci()
-        self.engine.isready(self.syncEnginePosition)
+        self.engine.isready(self.stopAndSync)
 
     def goInfinite(self, stuff=None):
         print('engine infinite thinking')
         self.command = self.engine.go(infinite=True, async_callback=True)
 
-    def doEngineActions(self):
+    def startEngineActions(self):
         if self.analyzeButton.isChecked():
             assert self.command is None
             self.engine.isready(self.goInfinite)
-        else:
-            self.stopEngine()
-            self.pvLabel.setText('[Off]' + self.pvLabel.text())
         # TODO: Add timed engine
 
     def stopEngine(self, callback=None):
@@ -68,19 +67,25 @@ class EngineWidget(QWidget):
         self.engine.stop(callback)
         self.command = None
 
+    def analyzeClicked(self):
+        if self.analyzeButton.isChecked():
+            self.readyAndGo()
+        else:
+            self.stopEngine(None)
+
     # TODO: prettier way for these callbacks?
-    def onSyncCallback2(self, stuff=None):
-        print('engine syncing position ', self.board.fen())
+    def positionAndGo(self, stuff=None):
+        print('engine syncing position', self.board.fen())
         if self.board.fen() == chess.STARTING_FEN:
             self.engine.ucinewgame()
         self.engine.position(self.board)
-        self.doEngineActions()
+        self.startEngineActions()
 
-    def onSyncCallback1(self, stuff=None):
-        self.engine.isready(self.onSyncCallback2)
+    def readyAndGo(self, stuff=None):
+        self.engine.isready(self.positionAndGo)
 
-    def syncEnginePosition(self, stuff=None):
-        self.stopEngine(self.onSyncCallback1)
+    def stopAndSync(self, stuff=None):
+        self.stopEngine(self.readyAndGo)
 
     def updateAfterMove(self, newNode):
         self.board = copy.deepcopy(newNode.board())
@@ -89,8 +94,8 @@ class EngineWidget(QWidget):
             self.longestPV = self.longestPV[1:]
         else:
             self.longestPV.clear()
-
-        self.syncEnginePosition()
+        if self.analyzeButton.isChecked():
+            self.stopAndSync()
 
     def createScoreText(self, scoreInfo):
         if scoreInfo[1].mate is not None:
@@ -107,14 +112,14 @@ class EngineWidget(QWidget):
                     scoreTxt = '-' + scoreTxt[1:]
         return scoreTxt
 
-    def createPVText(self, pvInfo, isStale):
-        pvTxt = ''
+    def createPVText(self, isStale):
         if isStale:
-            pvTxt += '[Off]'
-        try:
-            pvTxt += self.board.variation_san(self.longestPV)
-        except ValueError:
-            pvTxt = 'Invalid variation_san'
+            pvTxt = '[Off]'
+        else:
+            try:
+                pvTxt = self.board.variation_san(self.longestPV)
+            except ValueError:
+                pvTxt = 'Invalid variation_san'
         return pvTxt
 
     def createText(self):
@@ -127,7 +132,7 @@ class EngineWidget(QWidget):
                 scoreTxt = self.createScoreText(self.infoHandler.info['score'])
 
             if 1 in self.infoHandler.info['pv']:
-                pvTxt = self.createPVText(self.infoHandler.info['pv'], stale)
+                pvTxt = self.createPVText(stale)
             if not stale and 'depth' in self.infoHandler.info.keys():
                 depthTxt = str(self.infoHandler.info['depth'])
 
@@ -139,6 +144,14 @@ class EngineWidget(QWidget):
         if self.longestPV != self.lastlongestPV:
             self.pvChanged.emit(self.longestPV)
 
+    # newInfoRecieved can be called so many times in a row right after
+    # an engine receives a new position that the thread locks up.
+    def timerEvent(self, event):
+        if self.longestPV != self.lastlongestPV:
+            self.createText()
+            self.createBoardSceneGraphics()
+            self.lastlongestPV = copy.deepcopy(self.longestPV)
+
     def newInfoRecieved(self):
         with self.infoHandler:
             pvInfo = self.infoHandler.info['pv']
@@ -147,11 +160,6 @@ class EngineWidget(QWidget):
                     self.longestPV = pvInfo[1]
                 elif len(pvInfo[1]) > len(self.longestPV):
                     self.longestPV = pvInfo[1]
-        if (self.longestPV != self.lastlongestPV and
-                self.analyzeButton.isChecked()):
-            self.createText()
-            self.createBoardSceneGraphics()
-            self.lastlongestPV = list(self.longestPV)
 
     def reset(self, newNode, turnOffEngine=False):
         self.board = copy.deepcopy(newNode.board())
@@ -161,7 +169,7 @@ class EngineWidget(QWidget):
         if turnOffEngine:
             self.analyzeButton.setChecked(False)
         else:
-            self.syncEnginePosition()
+            self.stopAndSync()
 
     def destroyEvent(self):
         print('closing engine')

@@ -13,6 +13,7 @@ import chess
 import userConfig
 import constants
 import strings
+import time
 # THIS CLASS IS VERY IMPORTANT TO ME, LET'S KEEP IT PRETTY
 
 
@@ -99,9 +100,24 @@ class BoardScene(QGraphicsScene):
             if self.board.piece_at(s) is not None:
                 piece = self.createPiece(self.board.piece_at(s))
                 newSquareWidget.addPiece(piece)
+                self.addItem(piece)
+                piece.setPos(squareWidth * (s % 8),
+                             squareWidth * (7 - int(s / 8)))
             self.addItem(newSquareWidget)
             self.squareWidgets.append(newSquareWidget)
         self.setSceneRect(0, 0, int(squareWidth * 8), int(squareWidth * 8))
+
+    def createPiece(self, piece, scale=None):
+        newPieceItem = PieceItem(piece)
+        newPieceItem.pieceClicked.connect(self.pieceClicked)
+        newPieceItem.pieceDragStarting.connect(self.pieceDragStarting)
+        newPieceItem.pieceDragHappening.connect(self.pieceDragHappening)
+        newPieceItem.pieceDragStopping.connect(self.pieceDragStopping)
+        if scale is None:
+            scale = (float(self.squareWidth) /
+                     newPieceItem.boundingRect().width())
+        newPieceItem.setScale(scale)
+        return newPieceItem
 
     def sendMove(self, toSquare, fromSquare=None):
         """
@@ -117,6 +133,9 @@ class BoardScene(QGraphicsScene):
             # TODO: ask for a real promotion piece
             print('promoting to queen')
             m.promotion = chess.QUEEN
+        # In order to be as responsive as possible, the board is updated with
+        # its own move before being sent to the engine, ect.
+        self.updateAfterMove(m)
         self.moveInputted.emit(m)
 
     def squareWidgetAt(self, pos):
@@ -124,18 +143,6 @@ class BoardScene(QGraphicsScene):
             if type(i) == DummySquareItem:
                 return i.parentItem()
         return None
-
-    def createPiece(self, piece, scale=None):
-        newPieceItem = PieceItem(piece)
-        newPieceItem.pieceClicked.connect(self.pieceClicked)
-        newPieceItem.pieceDragStarting.connect(self.pieceDragStarting)
-        newPieceItem.pieceDragHappening.connect(self.pieceDragHappening)
-        newPieceItem.pieceDragStopping.connect(self.pieceDragStopping)
-        if scale is None:
-            scale = (float(self.squareWidth) /
-                     newPieceItem.boundingRect().width())
-        newPieceItem.setScale(scale)
-        return newPieceItem
 
     def updateSelectionGraphics(self, lastSelection, square):
         # Clicking on a new piece selects it.
@@ -169,7 +176,7 @@ class BoardScene(QGraphicsScene):
             s.isValidMove = False
         self.selectedSquare = -1
 
-    def updateAfterMove(self, moveNode):
+    def updateAfterMove(self, move):
         """
         Updates the board graphics one valid move forward.
         This is faster than calling refreshPosition.
@@ -177,9 +184,8 @@ class BoardScene(QGraphicsScene):
         :param oldBoard: the board before the move
         :return: void
         """
-        move = moveNode.move
-        oldBoard = copy.deepcopy(moveNode.parent.board())
-        self.board = oldBoard
+        time2 = time.time()
+        print('time2', time2)
         if move.promotion is None:
             fromPieceItem = self.squareWidgets[move.from_square].pieceItem
             self.squareWidgets[move.from_square].removePiece()
@@ -218,11 +224,14 @@ class BoardScene(QGraphicsScene):
             else:
                 self.squareWidgets[move.to_square + 8].removePiece()
 
-        self.squareWidgets[move.to_square].removePiece()
+        self.squareWidgets[move.to_square].removePiece(True)
         self.squareWidgets[move.to_square].addPiece(fromPieceItem)
-
+        square = self.squareWidgets[move.to_square].square
+        fromPieceItem.setPos(self.squareWidth * (square % 8),
+                             self.squareWidth * (7 - int(square / 8)))
         self.board.push(move)
         self.updateSquareEffects(move)
+        print('time3', time.time(), time.time() - time2)
 
     def createEffectItem(self, itemClass, move=None, hero=True, opacity=1.0):
         if itemClass == ArrowGraphicsItem.Type:
@@ -273,7 +282,7 @@ class BoardScene(QGraphicsScene):
             s.clearEffectItems()
             p = self.board.piece_at(s.square)
             if not p or (s.pieceItem and s.pieceItem.piece != p):
-                s.removePiece()
+                s.removePiece(True)
             if p and (not s.pieceItem or
                       (s.pieceItem and s.pieceItem.piece != p)):
                 newPieceItem = self.createPiece(p)
@@ -371,6 +380,7 @@ class BoardScene(QGraphicsScene):
                 self.lastMouseSquare = squareWidget
 
     def pieceDragStopping(self, square, mousePos):
+        print('time1', time.time())
         assert(self.dragPieceBehind is not None)
         self.removeItem(self.dragPieceBehind)
         self.dragPieceBehind = None
@@ -387,7 +397,6 @@ class BoardScene(QGraphicsScene):
             self.dragPieceAhead.setCursor(Qt.PointingHandCursor)
             self.dragPieceAhead = None
             self.deselectSquares()
-            return
 
     def deselectSquares(self):
         for s in self.squareWidgets:

@@ -117,19 +117,18 @@ class SquareWidget(QGraphicsWidget):
 
     def addPiece(self, piece):
         piece.square = self.square
-        piece.setParentItem(self)
+        # piece.setParentItem(self)
         piece.setZValue(5)
         self.pieceItem = piece
         self.isOccupied = True
 
-    def removePiece(self, delete=False):
+    def removePiece(self, removeFromScene=False):
+        self.isOccupied = False
         if self.pieceItem:
-            self.pieceItem.setParentItem(None)
-            if delete:
-                self.pieceItem.setParentItem(None)
+            if removeFromScene:
                 self.scene().removeItem(self.pieceItem)
             self.pieceItem = None
-            self.isOccupied = False
+
 
     def hoverEnterEvent(self, event):
         if (self.isValidMove and
@@ -171,6 +170,9 @@ class PieceItem(QGraphicsSvgItem):
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
 
+    def __repr__(self):
+        return str(self.piece) + str(self.boundingRect())
+
     def mousePressEvent(self, event):
         if (event.button() == Qt.LeftButton):
             self.pieceClicked.emit(self.square)
@@ -205,6 +207,10 @@ class PieceItem(QGraphicsSvgItem):
             self.setCursor(Qt.PointingHandCursor)
         else:
             self.setCursor(Qt.ArrowCursor)
+
+    # def setPos(self, *args, **kwargs):
+    #     print('newpos', self, args, kwargs)
+    #     super().setPos(*args, **kwargs)
 
 
 class DummySquareItem(QGraphicsRectItem):

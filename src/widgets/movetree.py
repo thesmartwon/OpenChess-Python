@@ -37,16 +37,25 @@ class MoveTreeView(QTableView):
         maxEnd = max([met.width(c) for c in ['+', '#']])
         maxTake = met.width('x')
         maxItemWidth = maxPiece + maxRank * 2 + maxFile * 2 + maxTake + maxEnd
-        self.maxHeaderWidth = met.width('000')
+        self.maxHeaderWidth = met.width('00000.')
         self.vScrollBarWidth = 17
         self.setMinimumWidth(maxItemWidth * 2 + self.maxHeaderWidth +
                              self.vScrollBarWidth)
+        self.verticalHeader().hide()
         self.horizontalHeader().hide()
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.resizeCols(self.width())
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.displayContextMenu)
         self.setSelectionMode(QTableView.SingleSelection)
+
+    def addColumnSpans(self):
+        for r in range(self.model().rowCount()):
+            # Look at the first item where the variations are
+            item = self.model().itemFromIndex(self.model().index(r, 0))
+            if type(item) != BlankTreeItem:
+                self.setSpan(r, 0, 1, 3)
 
     def displayContextMenu(self, point):
         index = self.indexAt(point)
@@ -76,7 +85,10 @@ class MoveTreeView(QTableView):
     def currentChanged(self, newCur, oldCur):
         if newCur.isValid():
             moveItem = self.model().itemFromIndex(newCur)
-            self.scrollTo(newCur)
+            if newCur.row() == self.model().rowCount() - 1:
+                self.scrollToBottom()
+            else:
+                self.scrollTo(newCur)
             if type(moveItem) == MoveTreeItem:
                 self.moveItemScrolled.emit(moveItem.gameNode)
 
@@ -89,13 +101,28 @@ class MoveTreeView(QTableView):
             event.accept()
             self.scrolledInDirection.emit(1, True, False)
         elif keyCode in self.prevVarShortcuts:
-            if self.model().hasVariations:
+            if self.model().firstVariations:
                 event.accept()
                 self.scrolledInDirection.emit(-1, False, True)
         elif keyCode in self.nextVarShortcuts:
-            if self.model().hasVariations:
+            if self.model().firstVariations:
                 event.accept()
                 self.scrolledInDirection.emit(1, False, True)
+
+    def resizeCols(self, width):
+        self.setColumnWidth(0, self.maxHeaderWidth)
+        remaining = width - self.maxHeaderWidth - 2
+        # if self.verticalScrollBar().isVisible():
+        #     remaining -= self.vScrollBarWidth
+        self.setColumnWidth(1, int(remaining / 2))
+        self.setColumnWidth(2, int(remaining / 2))
+
+    def onPositionChange(self, moveNode):
+        self.resizeCols(self.width())
+        self.addColumnSpans()
+
+    def resizeEvent(self, event):
+        self.resizeCols(event.size().width())
 
 
 class MoveTreeModel(QStandardItemModel):
@@ -105,6 +132,7 @@ class MoveTreeModel(QStandardItemModel):
         super().__init__(parent)
         # self.setHorizontalHeaderLabels([strings.COLOR_FIRST,
         #                                 strings.COLOR_SECOND])
+        self.setItemPrototype(BlankTreeItem())
         self.reset()
 
     def findNode(self, gameNode):
@@ -121,31 +149,23 @@ class MoveTreeModel(QStandardItemModel):
             prevItem = self.findNode(gameNode.parent)
             curRow = prevItem.row()
             curCol = prevItem.column()
-            if curCol == 1:
+            if curCol == 2:
                 curRow += 1
-                curCol = 0
+                curCol = 1
             else:
                 curCol += 1
         else:
             curRow = 0
-            curCol = 0
-        print('cur', curRow, curCol)
+            curCol = 1
         newItem = MoveTreeItem(gameNode)
         if gameNode.is_main_line():
             self.setItem(curRow, curCol, newItem)
-        elif gameNode.is_main_variation():
-            self.setItem(curRow, curCol, newItem)
-            print('made variation line', gameNode.move)
+            header = '{}.'.format(str(gameNode.parent.board().fullmove_number))
+            self.setItem(curRow, 0, BlankTreeItem(header))
         else:
-            if gameNode.board().turn:
-                list = [newItem, QStandardItem('')]
-            else:
-                list = [QStandardItem(''), newItem]
-            self.insertRow(curRow, list)
-            print('made variation', gameNode.move)
-            self.hasVariations = True
-        header = str(gameNode.parent.board().fullmove_number)
-        self.setHeaderData(curRow, Qt.Vertical, header)
+            curRow += 1
+            self.insertRow(curRow, newItem)
+            self.firstVariations.append(newItem)
 
     def readTree(self, gameNode):
         turn = gameNode.board().turn
@@ -154,23 +174,29 @@ class MoveTreeModel(QStandardItemModel):
         if gameNode.variations:
             main_variation = gameNode.variations[0]
             self.createMoveTreeItem(main_variation)
-        # Then visit sidelines.
-        for v in itertools.islice(gameNode.variations, 1, None):
-            self.createMoveTreeItem(v)
-            self.readTree(v)
-        # The mainline is continued last.
-        if gameNode.variations:
             self.readTree(main_variation)
+        # Visit sidelines after all main lines.
+        for v in itertools.islice(gameNode.variations, 1, None):
+            if not v.is_main_variation():
+                self.createMoveTreeItem(v)
+            else:
+                print('figuring it out')
 
     def updateAfterMove(self, newNode):
-        self.createMoveTreeItem(newNode)
+        if newNode.is_main_line():
+            self.createMoveTreeItem(newNode)
+        else:
+            for i in self.firstVariations:
+                if newNode.parent in i:
+                    i.updateSan(newNode)
         self.moveItemAdded.emit(newNode)
 
     def reset(self, newCurrent=None):
         self.clear()
-        self.hasVariations = False
-        self.setItem(0, 0, QStandardItem('...'))
-        self.setItem(0, 1, QStandardItem(''))
+        self.firstVariations = []
+        self.setItem(0, 0, BlankTreeItem('1.'))
+        self.setItem(0, 1, BlankTreeItem('...'))
+        self.setItem(0, 2, BlankTreeItem(''))
         if newCurrent:
             print('tree reset')
             self.readTree(newCurrent.root())
@@ -181,17 +207,37 @@ class MoveTreeItem(QStandardItem):
     def __init__(self, gameNode):
         super().__init__()
         self.gameNode = gameNode
-        self.moveSan = gameNode.parent.board().san(gameNode.move)
-        self.setText(self.moveSan)
+        self.childNodes = set()
         self.setEditable(False)
         self.setToolTip(gameNode.comment)
 
         if not self.gameNode.is_main_line():
+            self.moveSan = str(gameNode)
+            self.addChildren(gameNode)
             self.setBackground(Qt.yellow)
-
-    def clicked(self, event):
-        print('yea')
+        else:
+            self.moveSan = gameNode.parent.board().san(gameNode.move)
+        self.setText(self.moveSan)
 
     def __repr__(self):
         i = self.index()
         return '%d, %d, move %s' % (i.row(), i.column(), self.moveSan)
+
+    def __contains__(self, key):
+        return key in self.childNodes
+
+    def addChildren(self, node):
+        for v in node.variations:
+            self.childNodes.add(v)
+            self.addChildren(v)
+
+    def updateSan(self, newNode=None):
+        self.childNodes.add(newNode)
+        self.moveSan = str(self.gameNode)
+        self.setText(self.moveSan)
+
+
+class BlankTreeItem(QStandardItem):
+    def __init__(self, text=None):
+        super().__init__(text)
+        self.setEditable(False)

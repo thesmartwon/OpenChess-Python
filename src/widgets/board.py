@@ -1,6 +1,5 @@
-from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF, QByteArray,
-                          QPropertyAnimation, QParallelAnimationGroup,
-                          pyqtSignal)
+from PyQt5.QtCore import (Qt, QRectF, QLineF, QPointF, QSizeF, pyqtSignal,
+                          QPropertyAnimation, QParallelAnimationGroup)
 from PyQt5.QtGui import (QPixmap, QPainter, QColor, QTransform, QBrush, QPen,
                          QPolygonF)
 from PyQt5.QtWidgets import (QGraphicsScene, QGraphicsPixmapItem, QMessageBox,
@@ -311,8 +310,16 @@ class BoardScene(QGraphicsScene):
                                    hero, length - i, opacity)
         assert len(self.effectItems) <= length
 
+    def createPositionAnimation(self, item, duration):
+        ani = QPropertyAnimation(item, b'pos', self)
+        ani.setDuration(duration)
+        ani.setStartValue(item.pos())
+        width = self.squareWidth * 7
+        ani.setEndValue(QPointF(width - item.x(),
+                                width - item.y()))
+        return ani
+
     def flipBoard(self):
-        # TODO: fix twitching on hover after flipping
         self.heroColor = not self.heroColor
         curArrows = [a for a in self.effectItems if a.type() ==
                      ArrowGraphicsItem.Type]
@@ -321,14 +328,11 @@ class BoardScene(QGraphicsScene):
         aniGroup = BoardAnimationGroup(self, curArrows + self.squareWidgets)
         aniDuration = 250
         for sq in self.squareWidgets:
-            prop = QByteArray(b'pos')
-            ani = QPropertyAnimation(sq, prop, self)
-            ani.setDuration(aniDuration)
-            ani.setStartValue(sq.pos())
-            width = self.squareWidth * 7
-            ani.setEndValue(QPointF(width - sq.x(),
-                                    width - sq.y()))
+            ani = self.createPositionAnimation(sq, aniDuration)
             aniGroup.addAnimation(ani)
+            if sq.pieceItem:
+                ani2 = self.createPositionAnimation(sq.pieceItem, aniDuration)
+                aniGroup.addAnimation(ani2)
         aniGroup.start()
 
     def toggleCoordinates(self):

@@ -80,8 +80,9 @@ class OpenChessGame(QObject):
                                            'Open PGN',
                                            QDir.homePath(),
                                            filter='*.pgn')
-        self.newGame(path[0])
-        self.fileHandle = path
+        if path[0]:
+            self.newGame(path[0])
+            self.fileHandle = path[0]
 
     def writeGame(self, filePath):
         print('saving', filePath)
@@ -115,16 +116,18 @@ class OpenChessGame(QObject):
                           mustBeVar=False):
         assert not (mustBeMainVar and mustBeVar)
         curNode = self.current
+
         while True:
             if direction < 0:
                 if curNode.parent:
                     curNode = curNode.parent
                 else:
                     direction *= -1
-            elif curNode.variations:
-                curNode = curNode.variations[0]
-            else:
-                direction *= -1
+            elif direction > 0:
+                if curNode.variations:
+                    curNode = curNode.variations[0]
+                else:
+                    direction *= -1
 
             if mustBeMainVar and curNode.is_main_variation():
                 self.scrollToNode(curNode)

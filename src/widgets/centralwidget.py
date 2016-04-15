@@ -30,9 +30,11 @@ class CentralWidget(QFrame):
     def wireWidgets(self):
         self.chessGame.moveDone.connect(self.moveTreeModel.updateAfterMove)
         self.chessGame.moveDone.connect(self.engineWidget.updateAfterMove)
+        self.chessGame.moveDone.connect(self.moveTreeView.onPositionChange)
         self.chessGame.positionChanged.connect(self.boardScene.reset)
         self.chessGame.positionChanged.connect(self.engineWidget.reset)
         self.chessGame.positionChanged.connect(self.moveTreeModel.reset)
+        self.chessGame.positionChanged.connect(self.moveTreeView.onPositionChange)
         self.chessGame.positionScrolled.connect(self.moveTreeView.entryScrolled)
         self.chessGame.positionScrolled.connect(self.boardScene.reset)
         self.chessGame.positionScrolled.connect(self.engineWidget.reset)

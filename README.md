@@ -1,7 +1,7 @@
 # Open Chess
 This is an cross-platform open-source Chess GUI written in python3.5 that can be used for playing or analyzing large amounts of chess games.
 ## Building
-1. Use Python 3.5.x (I'm using [3.5.1](https://www.python.org/downloads/release/python-35/))
+1. Use Python 3.5.x (I'm using [3.5.1](https://www.python.org/downloads/release/python-351/))
 2. Install the [SIP 4.18 whl](https://www.riverbankcomputing.com/software/sip/download) with `pip install sip-4.18...`.
 3. Install the [PyQt5.6 whl](https://www.riverbankcomputing.com/software/pyqt/download5) with `pip install PyQt5.6...`.
 4. Install python-chess with `pip install python-chess`.

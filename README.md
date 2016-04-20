@@ -2,10 +2,10 @@
 This is an cross-platform open-source Chess GUI written in python3.5 that can be used for playing or analyzing large amounts of chess games.
 ## Building
 1. Use Python 3.5.x (I'm using [3.5.1](https://www.python.org/downloads/release/python-351/))
-2. Install the [SIP 4.18 whl](https://www.riverbankcomputing.com/software/sip/download) with `pip install sip-4.18...`.
-3. Install the [PyQt5.6 whl](https://www.riverbankcomputing.com/software/pyqt/download5) with `pip install PyQt5.6...`.
+2. Install [Qt](https://www.qt.io/download-open-source/)
+3. Install [PyQt5.6+](https://www.riverbankcomputing.com/software/pyqt/download5) (alternatively use `python -m pip install PyQt5`.)
 4. Install python-chess with `pip install python-chess`.
-5. Run `python src/main.py` and that's it!
+5. Run `python3 src/main.py` and that's it!
 
 ## Philosophy
 The goal is to keep the board and the game of chess, not the features, the focus. I want chess to be simple, fun, and videogame-like. All the (useful, widely-used) features in ChessBase are to be supported.
